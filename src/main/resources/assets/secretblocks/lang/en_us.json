@@ -38,5 +38,11 @@
 	"item.secretblocks.secret_goggles": "Secret Goggles",
 	"item.secretblocks.builders_goggles": "Builder's Goggles",
 	"item.secretblocks.switch_probe": "Switch Probe",
-	"item.secretblocks.switch_probe_rotation_mode": "Rotator Probe"
+	"item.secretblocks.switch_probe_rotation_mode": "Rotator Probe",
+	"item.secretblocks.camouflage_wand": "Camouflage Wand",
+	"message.secretblocks.camouflage_wand.loaded": "Loaded %s",
+	"message.secretblocks.camouflage_wand.nothing_to_load": "Nothing to load: this face shows no block",
+	"message.secretblocks.camouflage_wand.not_allowed": "The Camouflage Wand works in creative mode or for operators",
+	"message.secretblocks.camouflage_wand.tooltip.loaded": "Loaded: %s",
+	"message.secretblocks.camouflage_wand.tooltip.empty": "Sneak + use on a block to load it"
 }

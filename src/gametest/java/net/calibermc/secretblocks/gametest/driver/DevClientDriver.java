@@ -40,6 +40,11 @@ import java.util.List;
  *   the client (survival mining, or an instant creative break);</li>
  *   <li>{@code use x y z face}: use the held item on that face (placement);</li>
  *   <li>{@code select n}: select hotbar slot n;</li>
+ *   <li>{@code sneak on|off}: hold or release the sneak key (the server
+ *   learns of it through the client's usual movement packets);</li>
+ *   <li>{@code held}: report the held stack (item, NBT and tooltip) and any
+ *   open screen on the client and, in singleplayer, the built-in server's
+ *   copy of the stack: two lines;</li>
  *   <li>{@code wait n}: wait n ticks;</li>
  *   <li>{@code look x y z}: report the client's block state, block entity and
  *   disguise at that position (without creating a missing block entity);</li>
@@ -187,6 +192,27 @@ public class DevClientDriver implements ClientModInitializer {
 			case "select" -> {
 				mc.player.getInventory().selected = Integer.parseInt(a[1]);
 				report("select " + a[1]);
+			}
+			case "sneak" -> {
+				mc.options.keyShift.setDown(a[1].equals("on"));
+				report("sneak " + a[1]);
+			}
+			case "held" -> {
+				var stack = mc.player.getMainHandItem();
+				var tooltip = stack.getTooltipLines(mc.player, net.minecraft.world.item.TooltipFlag.Default.NORMAL)
+						.stream().map(net.minecraft.network.chat.Component::getString).toList();
+				report("held client " + Registry.ITEM.getKey(stack.getItem()) + " " + stack.getTag() + " tooltip=" + tooltip
+						+ " screen=" + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()));
+				var server = mc.getSingleplayerServer();
+				var uuid = mc.player.getUUID();
+				if (server == null) {
+					report("held server none");
+				} else {
+					server.execute(() -> {
+						var player = server.getPlayerList().getPlayer(uuid);
+						report("held server " + (player == null ? "no player" : player.getMainHandItem().getTag()));
+					});
+				}
 			}
 			case "wait" -> waitTicks = Integer.parseInt(a[1]);
 			case "look" -> report("look " + describe(mc, pos(a, 1)));

@@ -1,10 +1,12 @@
 package net.calibermc.secretblocks;
 
+import net.calibermc.secretblocks.items.CamouflageWand;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModEntities;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.calibermc.secretblocks.screen.ModScreenHandlers;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.storage.loot.LootPool;
@@ -48,6 +50,8 @@ public class SecretBlocks implements ModInitializer {
         ModEntities.registerAllEntities();
         ModScreenHandlers.registerAllScreenHandlers();
         registerGogglesLoot();
+        // The wand acts before the clicked block's own use.
+        UseBlockCallback.EVENT.register(CamouflageWand::onUseBlock);
 
     }
 }

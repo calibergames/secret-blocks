@@ -2,6 +2,7 @@ package net.calibermc.secretblocks.registry;
 
 import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.items.BuildersGoggles;
+import net.calibermc.secretblocks.items.CamouflageWand;
 import net.calibermc.secretblocks.items.SecretGoggles;
 import net.calibermc.secretblocks.items.SwitchProbe;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
@@ -21,6 +22,11 @@ public class ModItems {
     // A builder's tool: creative inventory and /give only, no recipe or loot.
     public static final Item BUILDERS_GOGGLES = registerItem("builders_goggles",
             new BuildersGoggles(new FabricItemSettings().tab(SECRET_BLOCKS_GROUP).rarity(Rarity.EPIC)));
+
+    // A builder's tool: creative inventory and /give only, no recipe or loot;
+    // it also checks on the server that the player is in creative or an operator.
+    public static final Item CAMOUFLAGE_WAND = registerItem("camouflage_wand",
+            new CamouflageWand(new FabricItemSettings().tab(SECRET_BLOCKS_GROUP).rarity(Rarity.EPIC).stacksTo(1)));
 
     public static final Item SWITCH_PROBE = registerItem("switch_probe",
             new SwitchProbe( new FabricItemSettings().tab(SECRET_BLOCKS_GROUP).rarity(Rarity.RARE).stacksTo(1)));

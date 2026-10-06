@@ -43,7 +43,8 @@
       "net.calibermc.secretblocks.gametest.GateGameTests",
       "net.calibermc.secretblocks.gametest.PistonGameTests",
       "net.calibermc.secretblocks.gametest.PushableGameTests",
-      "net.calibermc.secretblocks.gametest.BuildersGogglesGameTests"
+      "net.calibermc.secretblocks.gametest.BuildersGogglesGameTests",
+      "net.calibermc.secretblocks.gametest.WandGameTests"
     ]
   },
   "depends": {

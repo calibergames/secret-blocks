@@ -49,10 +49,11 @@ public class RecipeGameTests implements FabricGameTest {
 	/**
 	 * The allowlist of items with no recipe on purpose, each with its reason.
 	 * The Rotator Probe is the Switch Probe switched by sneak-use. The
-	 * Builder's Goggles are a creative/op tool; the Camouflage Wand
-	 * joins them when it is added; the Secret Gate's segments have no item.
+	 * Builder's Goggles and the Camouflage Wand are creative/op tools; the
+	 * Secret Gate's segments have no item.
 	 */
-	private static final Set<Item> NO_RECIPE = Set.of(ModItems.SWITCH_PROBE_ROTATION_MODE, ModItems.BUILDERS_GOGGLES);
+	private static final Set<Item> NO_RECIPE = Set.of(ModItems.SWITCH_PROBE_ROTATION_MODE, ModItems.BUILDERS_GOGGLES,
+			ModItems.CAMOUFLAGE_WAND);
 
 	/** A mod data file: its name without folder or extension, and whether its Fabric load conditions (if any) accept it. */
 	private record DataFile(String name, boolean conditionsPass) {
