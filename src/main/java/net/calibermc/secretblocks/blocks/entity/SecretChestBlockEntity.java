@@ -5,12 +5,17 @@ import net.calibermc.secretblocks.screen.SecretChestScreenHandler;
 import net.calibermc.secretblocks.util.ImplementedInventory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Containers;
+import net.minecraft.world.LockCode;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The block entity of the Secret Chest and the Secret Trapped Chest: the
@@ -31,7 +36,14 @@ import net.minecraft.world.level.block.state.BlockState;
  * {@code SecretChest.getMenuProvider} (handing the block entity to
  * {@code openMenu} is what made the server refuse a spectator's click).
  */
-public class SecretChestBlockEntity extends SecretBlockEntity implements ImplementedInventory {
+public class SecretChestBlockEntity extends SecretBlockEntity implements ImplementedInventory, Nameable {
+
+	/** A name given with an anvil or by command; shown as the screen's title. Saved as vanilla's {@code CustomName}. */
+	@Nullable
+	private Component customName;
+
+	/** A vanilla container lock ({@code Lock}): the chest opens only for a player holding an item with that name. */
+	private LockCode lockKey = LockCode.NO_LOCK;
 
 	private final ContainerOpenersCounter openers = new ContainerOpenersCounter() {
 		@Override
@@ -64,6 +76,44 @@ public class SecretChestBlockEntity extends SecretBlockEntity implements Impleme
 	@Override
 	public NonNullList<ItemStack> getItems() {
 		return items();
+	}
+
+	@Nullable
+	@Override
+	public Component getCustomName() {
+		return customName;
+	}
+
+	/** The custom name, or the block's own; a named chest drops a named item through its loot table's {@code copy_name}. */
+	@Override
+	public Component getName() {
+		return customName != null ? customName : getBlockState().getBlock().getName();
+	}
+
+	public void setCustomName(@Nullable Component name) {
+		customName = name;
+		setChanged();
+	}
+
+	public LockCode getLockKey() {
+		return lockKey;
+	}
+
+	/** Name and lock use vanilla's keys, so they carry over when the Camouflage Wand converts a chest. */
+	@Override
+	public void saveAdditional(CompoundTag tag) {
+		super.saveAdditional(tag);
+		if (customName != null) {
+			tag.putString("CustomName", Component.Serializer.toJson(customName));
+		}
+		lockKey.addToTag(tag);
+	}
+
+	@Override
+	public void load(CompoundTag tag) {
+		super.load(tag);
+		customName = tag.contains("CustomName", 8) ? Component.Serializer.fromJson(tag.getString("CustomName")) : null;
+		lockKey = LockCode.fromTag(tag);
 	}
 
 	/** Like a vanilla container: a changed slot is saved and comparators hear of it. */

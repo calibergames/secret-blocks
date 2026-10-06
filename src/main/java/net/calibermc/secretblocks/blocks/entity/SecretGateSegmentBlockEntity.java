@@ -123,6 +123,6 @@ public class SecretGateSegmentBlockEntity extends BlockEntity implements Disguis
 	/** What clients receive: the disguise only, never the owner's position. */
 	@Override
 	public CompoundTag getUpdateTag() {
-		return disguise.save(new CompoundTag());
+		return disguise.saveForClients(new CompoundTag());
 	}
 }

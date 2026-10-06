@@ -88,7 +88,7 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 		CompoundTag tag = cir.getReturnValue();
 		Disguise disguise = secretblocks$getCarriedDisguise();
 		if (disguise != null) {
-			tag.put(SECRETBLOCKS_CARRIED, disguise.save(new CompoundTag()));
+			tag.put(SECRETBLOCKS_CARRIED, disguise.saveForClients(new CompoundTag()));
 		}
 	}
 

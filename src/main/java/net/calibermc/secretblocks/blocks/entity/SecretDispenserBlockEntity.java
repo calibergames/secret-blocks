@@ -59,6 +59,6 @@ public class SecretDispenserBlockEntity extends DispenserBlockEntity implements 
 	/** What clients receive: the disguise only, never the contents. */
 	@Override
 	public CompoundTag getUpdateTag() {
-		return disguise.save(new CompoundTag());
+		return disguise.saveForClients(new CompoundTag());
 	}
 }

@@ -75,6 +75,17 @@ public interface DisguisedBlockEntity {
 		markDisguiseChanged();
 	}
 
+	/** The vanilla block the Camouflage Wand made this block from, when it was not the usual counterpart; else {@code null}. */
+	@org.jetbrains.annotations.Nullable
+	default Block getOriginal() {
+		return getDisguise().getOriginal();
+	}
+
+	default void setOriginal(@org.jetbrains.annotations.Nullable Block original) {
+		getDisguise().setOriginal(original);
+		markDisguiseChanged();
+	}
+
 	default int getRotation(Direction face) {
 		return getDisguise().getRotation(face);
 	}
@@ -89,11 +100,6 @@ public interface DisguisedBlockEntity {
 			getDisguise().setRotation(face, rotation);
 		}
 		markDisguiseChanged();
-	}
-
-	/** Write only the disguise keys into {@code tag} (what the renderer and clients need). */
-	default CompoundTag serialize(CompoundTag tag) {
-		return getDisguise().save(tag);
 	}
 
 	/** The disguise changed: save it with the chunk and send it to clients. */

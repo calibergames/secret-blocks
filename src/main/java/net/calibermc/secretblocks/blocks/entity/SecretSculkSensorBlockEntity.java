@@ -58,6 +58,6 @@ public class SecretSculkSensorBlockEntity extends SculkSensorBlockEntity impleme
 	/** What clients receive: the disguise only, never the vibration listener. */
 	@Override
 	public CompoundTag getUpdateTag() {
-		return disguise.save(new CompoundTag());
+		return disguise.saveForClients(new CompoundTag());
 	}
 }

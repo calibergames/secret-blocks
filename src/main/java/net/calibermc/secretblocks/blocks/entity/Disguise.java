@@ -1,14 +1,20 @@
 package net.calibermc.secretblocks.blocks.entity;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The disguise of one secret block: for each of its six faces, the block
@@ -20,6 +26,12 @@ import java.util.Map;
  * NBT uses the keys the mod has always written, so existing worlds keep
  * their disguises: {@code <face>State}, {@code <face>Direction},
  * {@code <face>Rotation} for each face, plus {@code age}.
+ *
+ * A block the Camouflage Wand made from a vanilla block of another kind than
+ * its usual counterpart (a spruce door, a stone brick stair) remembers that
+ * block under {@value #ORIGINAL}, so turning it back restores it. That key is
+ * kept on the server, like a container's contents: clients get
+ * {@link #saveForClients}.
  */
 public final class Disguise {
 
@@ -30,6 +42,11 @@ public final class Disguise {
 	private final Map<Direction, Direction> directions = new EnumMap<>(Direction.class);
 	private final Map<Direction, Integer> rotations = new EnumMap<>(Direction.class);
 	private int age = 0;
+	@Nullable
+	private Block original;
+
+	/** The vanilla block the Camouflage Wand made this secret block from, when it was not the usual counterpart. */
+	public static final String ORIGINAL = "secretblocks:original";
 
 	public Disguise() {
 		for (Direction face : FACES) {
@@ -67,8 +84,26 @@ public final class Disguise {
 		age++;
 	}
 
-	/** Write the disguise into {@code tag} and return it. */
+	@Nullable
+	public Block getOriginal() {
+		return original;
+	}
+
+	public void setOriginal(@Nullable Block original) {
+		this.original = original;
+	}
+
+	/** Write the disguise, and the remembered original block, into {@code tag} and return it. */
 	public CompoundTag save(CompoundTag tag) {
+		saveForClients(tag);
+		if (original != null) {
+			tag.putString(ORIGINAL, Registry.BLOCK.getKey(original).toString());
+		}
+		return tag;
+	}
+
+	/** What clients need to draw the block: the disguise without the remembered original block. */
+	public CompoundTag saveForClients(CompoundTag tag) {
 		tag.putInt("age", age);
 		for (Direction face : FACES) {
 			tag.put(face.getName() + "State", NbtUtils.writeBlockState(states.get(face)));
@@ -87,6 +122,10 @@ public final class Disguise {
 		if (tag.contains("age")) {
 			age = tag.getInt("age");
 		}
+		if (tag.contains(ORIGINAL, Tag.TAG_STRING)) {
+			ResourceLocation id = ResourceLocation.tryParse(tag.getString(ORIGINAL));
+			original = id != null && Registry.BLOCK.containsKey(id) ? Registry.BLOCK.get(id) : null;
+		}
 		for (Direction face : FACES) {
 			String name = face.getName();
 			if (tag.contains(name + "State")) {
@@ -98,6 +137,17 @@ public final class Disguise {
 			if (tag.contains(name + "Rotation")) {
 				rotations.put(face, tag.getInt(name + "Rotation"));
 			}
+		}
+	}
+
+	/** Remove every disguise key (and the remembered original block) from {@code tag}: what a vanilla block entity is given. */
+	public static void stripFrom(CompoundTag tag) {
+		tag.remove("age");
+		tag.remove(ORIGINAL);
+		for (Direction face : FACES) {
+			tag.remove(face.getName() + "State");
+			tag.remove(face.getName() + "Direction");
+			tag.remove(face.getName() + "Rotation");
 		}
 	}
 

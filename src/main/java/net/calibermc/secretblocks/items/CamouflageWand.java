@@ -10,6 +10,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -27,7 +28,9 @@ import java.util.Optional;
 /**
  * Camouflage Wand: a creative and operator tool (no recipe or loot). Sneak +
  * use on a block loads it as the wand's disguise; on a secret block it loads
- * the face that was clicked, as the Switch Probe reads it.
+ * the face that was clicked, as the Switch Probe reads it. Plain use turns a
+ * vanilla block into its secret counterpart, wearing the loaded disguise, or
+ * a secret block back ({@link WandConversion}).
  *
  * {@link #onUseBlock} is registered as a use-block hook (Fabric's
  * {@code UseBlockCallback}), which runs ahead of the clicked block's own use
@@ -49,17 +52,28 @@ public class CamouflageWand extends Item {
 
 	/**
 	 * The use-block hook. Returns {@code PASS} unless the player holds the wand
-	 * in {@code hand} and is sneaking; then the server loads the disguise or
-	 * refuses with a message, and in both cases the block's own use does not
-	 * run.
+	 * in {@code hand}; then the server loads the disguise (sneaking) or
+	 * converts the block, or refuses with a message, and in every case the
+	 * block's own use does not run.
 	 */
 	public static InteractionResult onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
 		ItemStack stack = player.getItemInHand(hand);
-		if (!stack.is(ModItems.CAMOUFLAGE_WAND) || player.isSpectator() || !player.isShiftKeyDown()) {
+		if (!stack.is(ModItems.CAMOUFLAGE_WAND) || player.isSpectator()) {
 			return InteractionResult.PASS;
 		}
 		if (level.isClientSide()) {
-			return InteractionResult.SUCCESS; // the server decides; the stack syncs back
+			return InteractionResult.SUCCESS; // the server decides; the block and the stack sync back
+		}
+		if (!player.isShiftKeyDown()) {
+			if (!(player instanceof ServerPlayer serverPlayer)) {
+				return InteractionResult.FAIL;
+			}
+			WandConversion.Result result = WandConversion.convert(serverPlayer, level, hand, hit);
+			if (result.reason() != null) {
+				return refuse(player, result.reason());
+			}
+			player.displayClientMessage(Component.translatable(MESSAGES + "converted", result.converted().getName()), true);
+			return InteractionResult.SUCCESS;
 		}
 		if (!mayUse(player)) {
 			return refuse(player, "not_allowed");

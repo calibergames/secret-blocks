@@ -65,6 +65,6 @@ public class SecretHopperBlockEntity extends HopperBlockEntity implements Disgui
 	/** What clients receive: the disguise only, never the contents. */
 	@Override
 	public CompoundTag getUpdateTag() {
-		return disguise.save(new CompoundTag());
+		return disguise.saveForClients(new CompoundTag());
 	}
 }

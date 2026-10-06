@@ -43,8 +43,14 @@ import java.util.List;
  *   <li>{@code sneak on|off}: hold or release the sneak key (the server
  *   learns of it through the client's usual movement packets);</li>
  *   <li>{@code held}: report the held stack (item, NBT and tooltip) and any
- *   open screen on the client and, in singleplayer, the built-in server's
- *   copy of the stack: two lines;</li>
+ *   open screen (with its title) on the client and, in singleplayer, the
+ *   built-in server's copy of the stack: two lines;</li>
+ *   <li>{@code close}: close the open screen, as Escape does;</li>
+ *   <li>{@code sdata x y z}: in singleplayer, the built-in server's block
+ *   entity data at that position (what is saved, contents included);</li>
+ *   <li>{@code sitems r}: in singleplayer, the dropped items the built-in
+ *   server has within r blocks of the player: their count, then each stack
+ *   and where it lies;</li>
  *   <li>{@code wait n}: wait n ticks;</li>
  *   <li>{@code look x y z}: report the client's block state, block entity and
  *   disguise at that position (without creating a missing block entity);</li>
@@ -202,7 +208,7 @@ public class DevClientDriver implements ClientModInitializer {
 				var tooltip = stack.getTooltipLines(mc.player, net.minecraft.world.item.TooltipFlag.Default.NORMAL)
 						.stream().map(net.minecraft.network.chat.Component::getString).toList();
 				report("held client " + Registry.ITEM.getKey(stack.getItem()) + " " + stack.getTag() + " tooltip=" + tooltip
-						+ " screen=" + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName()));
+						+ " screen=" + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName() + " title=" + mc.screen.getTitle().getString()));
 				var server = mc.getSingleplayerServer();
 				var uuid = mc.player.getUUID();
 				if (server == null) {
@@ -211,6 +217,38 @@ public class DevClientDriver implements ClientModInitializer {
 					server.execute(() -> {
 						var player = server.getPlayerList().getPlayer(uuid);
 						report("held server " + (player == null ? "no player" : player.getMainHandItem().getTag()));
+					});
+				}
+			}
+			case "close" -> {
+				mc.player.closeContainer();
+				report("close");
+			}
+			case "sdata" -> {
+				BlockPos pos = pos(a, 1);
+				var server = mc.getSingleplayerServer();
+				if (server == null) {
+					report("sdata none");
+				} else {
+					var level = server.getLevel(mc.level.dimension());
+					server.execute(() -> {
+						BlockEntity entity = level.getBlockEntity(pos);
+						report("sdata " + pos.toShortString() + " " + (entity == null ? "none" : entity.saveWithoutMetadata()));
+					});
+				}
+			}
+			case "sitems" -> {
+				double r = Double.parseDouble(a[1]);
+				var server = mc.getSingleplayerServer();
+				var uuid = mc.player.getUUID();
+				if (server == null) {
+					report("sitems none");
+				} else {
+					server.execute(() -> {
+						var player = server.getPlayerList().getPlayer(uuid);
+						var items = player == null ? List.<net.minecraft.world.entity.item.ItemEntity>of()
+								: player.level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, player.getBoundingBox().inflate(r));
+						report("sitems " + items.size() + " " + items.stream().map(e -> e.getItem() + "@" + e.blockPosition().toShortString()).toList());
 					});
 				}
 			}

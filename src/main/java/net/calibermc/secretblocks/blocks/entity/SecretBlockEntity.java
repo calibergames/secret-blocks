@@ -103,6 +103,6 @@ public class SecretBlockEntity extends BlockEntity implements DisguisedBlockEnti
 	 */
 	@Override
 	public CompoundTag getUpdateTag() {
-		return disguise.save(new CompoundTag());
+		return disguise.saveForClients(new CompoundTag());
 	}
 }

@@ -44,5 +44,14 @@
 	"message.secretblocks.camouflage_wand.nothing_to_load": "Nothing to load: this face shows no block",
 	"message.secretblocks.camouflage_wand.not_allowed": "The Camouflage Wand works in creative mode or for operators",
 	"message.secretblocks.camouflage_wand.tooltip.loaded": "Loaded: %s",
-	"message.secretblocks.camouflage_wand.tooltip.empty": "Sneak + use on a block to load it"
+	"message.secretblocks.camouflage_wand.tooltip.empty": "Sneak + use on a block to load it",
+	"message.secretblocks.camouflage_wand.converted": "Now %s",
+	"message.secretblocks.camouflage_wand.empty": "Load a disguise first: sneak + use on a block",
+	"message.secretblocks.camouflage_wand.no_counterpart": "This block has no secret or vanilla counterpart",
+	"message.secretblocks.camouflage_wand.double_chest": "Double chests cannot be converted",
+	"message.secretblocks.camouflage_wand.loot_table": "Open it once first: its loot has not been generated yet",
+	"message.secretblocks.camouflage_wand.piston_extended": "Retract the piston first",
+	"message.secretblocks.camouflage_wand.too_far": "Too far away",
+	"message.secretblocks.camouflage_wand.not_here": "You cannot change blocks here",
+	"message.secretblocks.camouflage_wand.door_half": "This door is missing its other half"
 }

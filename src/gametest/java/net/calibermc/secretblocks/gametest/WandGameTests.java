@@ -1,6 +1,5 @@
 package net.calibermc.secretblocks.gametest;
 
-import com.mojang.authlib.GameProfile;
 import net.calibermc.secretblocks.items.CamouflageWand;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModItems;
@@ -12,23 +11,13 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeverBlock;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 import static net.calibermc.secretblocks.gametest.TestSupport.*;
 
@@ -39,71 +28,19 @@ import static net.calibermc.secretblocks.gametest.TestSupport.*;
  */
 public class WandGameTests implements FabricGameTest {
 
-	private static final GameProfile PROFILE = new GameProfile(
-			UUID.nameUUIDFromBytes("secretblocks-gametest-wand".getBytes(StandardCharsets.UTF_8)), "sb_wand");
-
 	private static final BlockPos TARGET = new BlockPos(3, 1, 3);
-	private static final Vec3 TARGET_NORTH = new Vec3(3.5, 1.5, 3.0);
 	private static final Vec3 FEET_NORTH = new Vec3(3.5, 1, 0.5);
 
-	/** A test player whose creative mode and permission level are set by the test, and whose messages are kept. */
-	private static final class WandPlayer extends ServerPlayer {
-		final boolean creative;
-		final int permission;
-		boolean spectator;
-		final List<Component> messages = new ArrayList<>();
-
-		WandPlayer(ServerLevel level, boolean creative, int permission) {
-			super(level.getServer(), level, PROFILE, null);
-			this.creative = creative;
-			this.permission = permission;
-		}
-
-		@Override
-		public boolean isCreative() {
-			return creative;
-		}
-
-		@Override
-		public boolean isSpectator() {
-			return spectator;
-		}
-
-		@Override
-		protected int getPermissionLevel() {
-			return permission;
-		}
-
-		@Override
-		public void displayClientMessage(Component message, boolean actionBar) {
-			messages.add(message);
-		}
-
-		String lastMessageKey() {
-			if (messages.isEmpty()) {
-				return "";
-			}
-			return messages.get(messages.size() - 1).getContents() instanceof TranslatableContents t ? t.getKey() : "";
-		}
+	private static WandTestPlayer sneaking(GameTestHelper h, boolean creative, int permission) {
+		return WandTestPlayer.at(h, FEET_NORTH, creative, permission, true);
 	}
 
-	private static WandPlayer wandPlayer(GameTestHelper h, boolean creative, int permission) {
-		WandPlayer player = new WandPlayer(h.getLevel(), creative, permission);
-		Vec3 feet = abs(h, FEET_NORTH);
-		player.moveTo(feet.x, feet.y, feet.z, 0, 0);
-		player.setShiftKeyDown(true);
-		return player;
+	private static InteractionResult click(GameTestHelper h, WandTestPlayer player, ItemStack stack) {
+		return player.click(h, stack, TARGET, Direction.NORTH, true);
 	}
 
-	/**
-	 * A click on the north face of {@link #TARGET} through the server's real
-	 * use path ({@code ServerPlayerGameMode.useItemOn}), where the hook runs
-	 * before the block's own use.
-	 */
-	private static InteractionResult click(GameTestHelper h, ServerPlayer player, ItemStack stack) {
-		player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-		BlockHitResult hit = new BlockHitResult(abs(h, TARGET_NORTH), Direction.NORTH, h.absolutePos(TARGET), false);
-		return player.gameMode.useItemOn(player, h.getLevel(), stack, InteractionHand.MAIN_HAND, hit);
+	private static BlockHitResult hit(GameTestHelper h) {
+		return new BlockHitResult(abs(h, new Vec3(3.5, 1.5, 3.0)), Direction.NORTH, h.absolutePos(TARGET), false);
 	}
 
 	private static String loadedName(ItemStack wand) {
@@ -116,7 +53,7 @@ public class WandGameTests implements FabricGameTest {
 	public void sneakUseLoadsABlock(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.POLISHED_GRANITE);
-		WandPlayer player = wandPlayer(h, true, 0);
+		WandTestPlayer player = sneaking(h, true, 0);
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		InteractionResult result = click(h, player, wand);
 		check(h, result.consumesAction(), "the load should consume the click, got " + result);
@@ -135,28 +72,25 @@ public class WandGameTests implements FabricGameTest {
 		secret(h, TARGET).setState(Blocks.STONE.defaultBlockState());
 		secret(h, TARGET).setState(Direction.NORTH, Blocks.EMERALD_BLOCK.defaultBlockState());
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
-		click(h, wandPlayer(h, true, 0), wand);
+		click(h, sneaking(h, true, 0), wand);
 		check(h, "minecraft:emerald_block".equals(loadedName(wand)), "the wand should carry the north face, got " + wand.getTag());
 		h.succeed();
 	}
 
 	/**
 	 * The hook is registered and takes the click on a lever. (Sneaking with an
-	 * item already keeps vanilla from using the block; the hook going first
-	 * matters for plain use.)
+	 * item already keeps vanilla from using the block; plain use, where the
+	 * hook going first matters, is tested with the conversions.)
 	 */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void theRegisteredHookTakesTheClick(GameTestHelper h) {
 		floor(h);
-		h.setBlock(TARGET.below(), Blocks.STONE);
-		BlockState lever = Blocks.LEVER.defaultBlockState();
-		h.setBlock(TARGET, lever);
-		WandPlayer player = wandPlayer(h, true, 0);
+		h.setBlock(TARGET, Blocks.LEVER.defaultBlockState());
+		WandTestPlayer player = sneaking(h, true, 0);
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		player.setItemInHand(InteractionHand.MAIN_HAND, wand);
-		BlockHitResult hit = new BlockHitResult(abs(h, TARGET_NORTH), Direction.NORTH, h.absolutePos(TARGET), false);
 		// The registered hook itself, as the loader calls it.
-		InteractionResult result = UseBlockCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, hit);
+		InteractionResult result = UseBlockCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, hit(h));
 		check(h, result == InteractionResult.SUCCESS, "the registered hook should take the click, got " + result);
 		check(h, "minecraft:lever".equals(loadedName(wand)), "the wand should carry the lever, got " + wand.getTag());
 		check(h, !h.getBlockState(TARGET).getValue(LeverBlock.POWERED), "the lever must not flip");
@@ -168,7 +102,7 @@ public class WandGameTests implements FabricGameTest {
 	public void aSurvivalNonOperatorIsRefused(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.POLISHED_GRANITE);
-		WandPlayer player = wandPlayer(h, false, 0);
+		WandTestPlayer player = sneaking(h, false, 0);
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		InteractionResult result = click(h, player, wand);
 		check(h, result == InteractionResult.FAIL, "the click should fail, got " + result);
@@ -183,7 +117,7 @@ public class WandGameTests implements FabricGameTest {
 		floor(h);
 		h.setBlock(TARGET, Blocks.POLISHED_GRANITE);
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
-		click(h, wandPlayer(h, false, 2), wand);
+		click(h, sneaking(h, false, 2), wand);
 		check(h, "minecraft:polished_granite".equals(loadedName(wand)), "an operator should load, got " + wand.getTag());
 		h.succeed();
 	}
@@ -194,7 +128,7 @@ public class WandGameTests implements FabricGameTest {
 		floor(h);
 		h.setBlock(TARGET, ModBlocks.SOLID_BLOCK);
 		secret(h, TARGET).setState(Direction.NORTH, Blocks.AIR.defaultBlockState());
-		WandPlayer player = wandPlayer(h, true, 0);
+		WandTestPlayer player = sneaking(h, true, 0);
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		wand.getOrCreateTag().put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(Blocks.GOLD_BLOCK.defaultBlockState()));
 		InteractionResult result = click(h, player, wand);
@@ -204,25 +138,19 @@ public class WandGameTests implements FabricGameTest {
 		h.succeed();
 	}
 
-	/** Without sneaking, or with another item, the hook stays out of the way. */
+	/** With another item, or for a spectator, the hook stays out of the way. */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void theHookPassesOtherwise(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.POLISHED_GRANITE);
-		BlockHitResult hit = new BlockHitResult(abs(h, TARGET_NORTH), Direction.NORTH, h.absolutePos(TARGET), false);
-		WandPlayer standing = wandPlayer(h, true, 0);
-		standing.setShiftKeyDown(false);
-		standing.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.CAMOUFLAGE_WAND));
-		check(h, CamouflageWand.onUseBlock(standing, h.getLevel(), InteractionHand.MAIN_HAND, hit) == InteractionResult.PASS,
-				"plain use is not the wand's yet");
-		WandPlayer other = wandPlayer(h, true, 0);
+		WandTestPlayer other = sneaking(h, true, 0);
 		other.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.SWITCH_PROBE));
-		check(h, CamouflageWand.onUseBlock(other, h.getLevel(), InteractionHand.MAIN_HAND, hit) == InteractionResult.PASS,
+		check(h, CamouflageWand.onUseBlock(other, h.getLevel(), InteractionHand.MAIN_HAND, hit(h)) == InteractionResult.PASS,
 				"another item should pass");
-		WandPlayer spectator = wandPlayer(h, true, 0);
+		WandTestPlayer spectator = sneaking(h, true, 0);
 		spectator.spectator = true;
 		spectator.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.CAMOUFLAGE_WAND));
-		check(h, CamouflageWand.onUseBlock(spectator, h.getLevel(), InteractionHand.MAIN_HAND, hit) == InteractionResult.PASS,
+		check(h, CamouflageWand.onUseBlock(spectator, h.getLevel(), InteractionHand.MAIN_HAND, hit(h)) == InteractionResult.PASS,
 				"a spectator should pass");
 		h.succeed();
 	}
@@ -248,9 +176,9 @@ public class WandGameTests implements FabricGameTest {
 			wand.getOrCreateTag().put(CamouflageWand.DISGUISE, malformed);
 			check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a malformed id should read as empty: " + bad);
 		}
-		CompoundTag noName = new CompoundTag();
-		noName.putInt("Name", 3);
-		wand.getOrCreateTag().put(CamouflageWand.DISGUISE, noName);
+		CompoundTag numeric = new CompoundTag();
+		numeric.putInt("Name", 3);
+		wand.getOrCreateTag().put(CamouflageWand.DISGUISE, numeric);
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a numeric id should read as empty");
 		h.succeed();
 	}

@@ -44,7 +44,8 @@
       "net.calibermc.secretblocks.gametest.PistonGameTests",
       "net.calibermc.secretblocks.gametest.PushableGameTests",
       "net.calibermc.secretblocks.gametest.BuildersGogglesGameTests",
-      "net.calibermc.secretblocks.gametest.WandGameTests"
+      "net.calibermc.secretblocks.gametest.WandGameTests",
+      "net.calibermc.secretblocks.gametest.WandConversionGameTests"
     ]
   },
   "depends": {

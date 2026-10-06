@@ -56,6 +56,6 @@ public class SecretComparatorBlockEntity extends ComparatorBlockEntity implement
 	/** What clients receive: the disguise only, never the output signal. */
 	@Override
 	public CompoundTag getUpdateTag() {
-		return disguise.save(new CompoundTag());
+		return disguise.saveForClients(new CompoundTag());
 	}
 }
