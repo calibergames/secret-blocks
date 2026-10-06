@@ -19,6 +19,9 @@ will be updated with new features and bug fixes as time goes on.
 AbrarSyed, Sindavar33 and wyn_price: Original Secret Rooms Mod \
 LudoCrypt: Initial semi-functioning ~port~ of Secret Rooms Mod features to Fabric 
 
+## Development
+Parts of this mod were developed with AI-assisted tools.
+
 ## License
 Secret Blocks is licensed under LGPL-3.0, see [LICENSE](./LICENSE).
 
