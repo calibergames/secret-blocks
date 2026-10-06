@@ -1,0 +1,31 @@
+{
+	"variants": {
+		"facing=east,powered=false": {
+			"model": "minecraft:block/torch"
+		},
+		"facing=east,powered=true": {
+			"model": "secretblocks:block/torch_lever_on"
+		},
+		"facing=north,powered=false": {
+			"model": "minecraft:block/torch"
+		},
+		"facing=north,powered=true": {
+			"model": "secretblocks:block/torch_lever_on",
+			"y": 270
+		},
+		"facing=south,powered=false": {
+			"model": "minecraft:block/torch"
+		},
+		"facing=south,powered=true": {
+			"model": "secretblocks:block/torch_lever_on",
+			"y": 90
+		},
+		"facing=west,powered=false": {
+			"model": "minecraft:block/torch"
+		},
+		"facing=west,powered=true": {
+			"model": "secretblocks:block/torch_lever_on",
+			"y": 180
+		}
+	}
+}

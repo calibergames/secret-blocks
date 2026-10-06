@@ -5,7 +5,7 @@
 			"item": "secretblocks:solid_block"
 		},
 		{
-			"tag": "minecraft:stone_buttons"
+			"item": "minecraft:stone_button"
 		}
 	],
 	"result": {

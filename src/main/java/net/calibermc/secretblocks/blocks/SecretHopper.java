@@ -1,73 +1,59 @@
 package net.calibermc.secretblocks.blocks;
 
-import net.calibermc.secretblocks.SecretBlocks;
-import net.calibermc.secretblocks.SecretBlocksClient;
-import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
+import net.calibermc.secretblocks.blocks.entity.SecretHopperBlockEntity;
+import net.calibermc.secretblocks.registry.ModEntities;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class SecretHopper extends net.minecraft.block.HopperBlock implements BlockEntityProvider, SecretBlock {
+/**
+ * Secret Hopper: a vanilla hopper shaped as a full block and drawn as its
+ * disguise. Its block entity is a vanilla hopper
+ * block entity with the disguise added; it still collects items resting on
+ * top (the hopper's pick-up area covers the space above the block).
+ */
+public class SecretHopper extends net.minecraft.world.level.block.HopperBlock implements SecretBlock {
 
-    public SecretHopper(Settings settings) {
+    public SecretHopper(Properties settings) {
         super(settings);
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new SecretBlockEntity(pos, state);
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new SecretHopperBlockEntity(pos, state);
+    }
+
+    /** Vanilla's ticker only accepts the vanilla hopper type; run the same tick for ours. */
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide() ? null : createTickerHelper(type, ModEntities.SECRET_HOPPER, HopperBlockEntity::pushItemsTick);
     }
 
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-        super.onPlaced(world, pos, state, placer, itemStack);
-        if (world.isClient) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            SecretBlocksClient.sendHitSetter(pos, (BlockHitResult) client.crosshairTarget, false);
-            SecretBlocksClient.sendHitSetter(pos.up(), (BlockHitResult) client.crosshairTarget, false);
-        }
-    }
-
-    @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (world.getBlockEntity(pos) instanceof SecretBlockEntity) {
-            SecretBlockEntity blockEntity = (SecretBlockEntity) world.getBlockEntity(pos);
-        }
-        return super.onUse(state, world, pos, player, hand, hit);
-    }
-
-    @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
     @Environment(EnvType.CLIENT)
-    public boolean isSideInvisible(BlockState state, BlockState stateFrom, Direction direction) {
-        return (stateFrom.getBlock() instanceof SecretBlock) ? true : super.isSideInvisible(state, stateFrom, direction);
+    public boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
+        return (stateFrom.getBlock() instanceof SecretBlock) ? true : super.skipRendering(state, stateFrom, direction);
     }
 
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return VoxelShapes.fullCube();
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        return Shapes.block();
     }
-
 }
-

@@ -6,9 +6,9 @@
 [![License](https://img.shields.io/static/v1?label=licence&message=LGPL-3.0&color=blue)](./LICENSE)
 
 Secret Blocks is a simple mod that allows players to add hidden/secret blocks to the world.  These blocks include various 
-Redstone components, such as Secret Redstone Wire, Secret Buttons, Secret Levers, Secret Pressure Plates, Secret Doors, Secret Trapdoors 
-and more.  In addition to the secret Redstone components, Secret Blocks also adds Secret Chests, Secret Dispensers, Secret Hoppers, 
-Secret Stairs, Ghost Blocks and One-Way Glass. All of these blocks can be crafted using the their vanilla counterparts and a Secret Dummy Block.
+Redstone components, such as Secret Redstone Dust and Secret Redstone Wire, Secret Repeaters and Comparators, Secret Daylight Detectors, Secret Sculk Sensors, Secret Buttons, Secret Levers, Torch Levers, Secret Pressure Plates, Secret Gates, Secret Pistons and Sticky Pistons, Secret Doors, Secret Trapdoors 
+and more.  In addition to the secret Redstone components, Secret Blocks also adds Secret Chests and Secret Trapped Chests, Secret Dispensers, Secret Droppers, Secret Hoppers, 
+Secret Stairs, Ghost Blocks and One-Way Glass. All of these blocks can be crafted from their vanilla counterparts and a Secret Dummy Block (the Secret Redstone Wire also takes a redstone torch; the Secret Gate, which has no vanilla counterpart, takes a piston and redstone dust; the Torch Lever, which is not disguised, is a torch and a lever).
 
 This mod was developed with heavy inspiration from the original Secret Rooms Mod, but was created for Fabric.  The mod is currently in development, and 
 will be updated with new features and bug fixes as time goes on.

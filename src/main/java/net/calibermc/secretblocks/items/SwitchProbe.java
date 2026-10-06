@@ -1,94 +1,97 @@
 package net.calibermc.secretblocks.items;
 
-import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.blocks.SecretBlock;
-import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
+import net.calibermc.secretblocks.blocks.entity.Disguise;
+import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.registry.ModItems;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class SwitchProbe extends Item {
 
-	public SwitchProbe(Settings settings) {
+	public SwitchProbe(Properties settings) {
 		super(settings);
 	}
 
 	@Override
-	public ActionResult useOnBlock(ItemUsageContext context) {
+	public InteractionResult useOn(UseOnContext context) {
 
-		World world = context.getWorld();
-		BlockPos blockPos = context.getBlockPos();
+		Level world = context.getLevel();
+		BlockPos blockPos = context.getClickedPos();
 		BlockState blockState = world.getBlockState(blockPos);
 		Block block = blockState.getBlock();
-		ItemStack itemStack = context.getStack();
-		Direction dir = context.getSide();
+		ItemStack itemStack = context.getItemInHand();
+		Direction dir = context.getClickedFace();
 
 		if (block instanceof SecretBlock) {
-			if (world.getBlockEntity(blockPos) instanceof SecretBlockEntity) {
+			if (world.getBlockEntity(blockPos) instanceof DisguisedBlockEntity secretBlockEntity) {
 
-				SecretBlockEntity secretBlockEntity = (SecretBlockEntity) world.getBlockEntity(blockPos);
+				if (world.isClientSide()) {
+					return InteractionResult.SUCCESS; // the server applies it; clients get it through the block-entity sync
+				}
 
 				if (itemStack.getItem() == ModItems.SWITCH_PROBE) {
-					if (itemStack.hasNbt()) {
-						SecretBlocks.updateSide(getState(itemStack), dir, blockPos, secretBlockEntity);
-						SecretBlocks.updateDirection(getDirection(itemStack), dir, blockPos, secretBlockEntity);
+					if (itemStack.hasTag()) {
+						secretBlockEntity.setState(dir, getState(itemStack));
+						secretBlockEntity.setDirection(dir, getDirection(itemStack));
 					} else {
 						BlockState stateAdjacent = secretBlockEntity.getState(dir);
 						putStateAndDirection(itemStack, stateAdjacent, dir);
 					}
 				} else if (itemStack.getItem() == ModItems.SWITCH_PROBE_ROTATION_MODE) {
-					SecretBlocks.updateRotation(secretBlockEntity.getRotation(dir) == 270 ? 0 : secretBlockEntity.getRotation(dir) + 90, dir, blockPos, secretBlockEntity);
+					secretBlockEntity.setRotation(dir, secretBlockEntity.getRotation(dir) == 270 ? 0 : secretBlockEntity.getRotation(dir) + 90);
 				}
-				secretBlockEntity.refresh();
-				return ActionResult.SUCCESS;
+				return InteractionResult.SUCCESS;
 
 			} else {
-				return ActionResult.FAIL;
+				return InteractionResult.FAIL;
 			}
 		} else if (block != Blocks.AIR && itemStack.getItem() != ModItems.SWITCH_PROBE_ROTATION_MODE) {
-			putStateAndDirection(itemStack, blockState, dir);
-			return ActionResult.SUCCESS;
+			if (!world.isClientSide()) {
+				putStateAndDirection(itemStack, blockState, dir); // the server's copy of the stack syncs to the client
+			}
+			return InteractionResult.SUCCESS;
 		} else {
-			return ActionResult.FAIL;
+			return InteractionResult.FAIL;
 		}
 	}
 
 	@Override
-	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-		if (user.isSneaking()) {
-			user.setStackInHand(hand, new ItemStack(user.getStackInHand(hand).getItem() == ModItems.SWITCH_PROBE ? ModItems.SWITCH_PROBE_ROTATION_MODE : ModItems.SWITCH_PROBE));
+	public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+		if (user.isShiftKeyDown()) {
+			user.setItemInHand(hand, new ItemStack(user.getItemInHand(hand).getItem() == ModItems.SWITCH_PROBE ? ModItems.SWITCH_PROBE_ROTATION_MODE : ModItems.SWITCH_PROBE));
 		}
 		return super.use(world, user, hand);
 	}
 
 	private static void putStateAndDirection(ItemStack itemStack, BlockState state, Direction dir) {
-		NbtCompound tag = itemStack.getOrCreateNbt();
-		tag.put("setState", NbtHelper.fromBlockState(state));
+		CompoundTag tag = itemStack.getOrCreateTag();
+		tag.put("setState", NbtUtils.writeBlockState(state));
 		tag.putString("setDirection", dir.name().toLowerCase());
 	}
 
 	private static BlockState getState(ItemStack itemStack) {
-		return NbtHelper.toBlockState(itemStack.getOrCreateSubNbt("setState"));
+		return NbtUtils.readBlockState(itemStack.getOrCreateTagElement("setState"));
 	}
 
 	private static Direction getDirection(ItemStack itemStack) {
-		NbtCompound tag = itemStack.getOrCreateNbt();
+		CompoundTag tag = itemStack.getOrCreateTag();
 		Direction tempDir = Direction.NORTH;
 
-		tempDir = SecretBlockEntity.byName(tag.getString("setDirection"));
+		tempDir = Disguise.byName(tag.getString("setDirection"));
 
 		return tempDir;
 	}

@@ -1,0 +1,10 @@
+{
+	"variants": {
+		"powered=true": {
+			"model": "minecraft:block/redstone_block"
+		},
+		"powered=false": {
+			"model": "minecraft:block/stone"
+		}
+	}
+}

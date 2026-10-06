@@ -1,103 +1,132 @@
 package net.calibermc.secretblocks.blocks;
 
-import net.calibermc.secretblocks.SecretBlocksClient;
-import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
+import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
+import net.calibermc.secretblocks.screen.SecretChestScreenHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class SecretChest extends BlockWithEntity implements BlockEntityProvider, SecretBlock {
+public class SecretChest extends BaseEntityBlock implements EntityBlock, SecretBlock {
 
-    public SecretChest(Settings settings) {
+    public SecretChest(Properties settings) {
         super(settings);
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new SecretBlockEntity(pos, state);
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new SecretChestBlockEntity(pos, state);
     }
 
+    /**
+     * Open the chest's screen through {@link #getMenuProvider}, the one way this
+     * block's menu is made.
+     */
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-        super.onPlaced(world, pos, state, placer, itemStack);
-        if (world.isClient) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            SecretBlocksClient.sendHitSetter(pos, (BlockHitResult) client.crosshairTarget, false);
-            SecretBlocksClient.sendHitSetter(pos.up(), (BlockHitResult) client.crosshairTarget, false);
-        }
-        super.onPlaced(world, pos, state, placer, itemStack);
-    }
-
-    @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-            if (!world.isClient) {
-                //This will call the createScreenHandlerFactory method from BlockWithEntity, which will return our blockEntity casted to
-                //a namedScreenHandlerFactory. If your block class does not extend BlockWithEntity, it needs to implement createScreenHandlerFactory.
-                NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
-
-                if (screenHandlerFactory != null) {
-                    //With this call the server will request the client to open the appropriate Screenhandler
-                    player.openHandledScreen(screenHandlerFactory);
-                }
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!world.isClientSide) {
+            MenuProvider provider = state.getMenuProvider(world, pos);
+            if (provider != null) {
+                player.openMenu(provider);
             }
-            return ActionResult.SUCCESS;
+        }
+        return InteractionResult.SUCCESS;
     }
 
-    //This method will drop all items onto the ground when the block is broken
+    /**
+     * The chest's menu, as the extended factory its menu type needs (it sends the
+     * block position with the open-screen packet). The server also asks for this
+     * directly when a spectator right-clicks the block, without calling
+     * {@link #use}: returning the block entity there, a plain menu provider, made
+     * the server refuse the packet with an error (in 1.2.0 too). The title is
+     * the block's own name, so the Secret Trapped Chest shows as one.
+     */
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (state.getBlock() != newState.getBlock()) {
-            BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof SecretBlockEntity) {
-                ItemScatterer.spawn(world, pos, (SecretBlockEntity) blockEntity);
-                // update comparators
-                world.updateComparators(pos,this);
+    public MenuProvider getMenuProvider(BlockState state, Level world, BlockPos pos) {
+        if (!(world.getBlockEntity(pos) instanceof SecretChestBlockEntity chest)) {
+            return null;
+        }
+        return new ExtendedScreenHandlerFactory() {
+            @Override
+            public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
+                buf.writeBlockPos(pos);
             }
-            super.onStateReplaced(state, world, pos, newState, moved);
+
+            @Override
+            public Component getDisplayName() {
+                return getName();
+            }
+
+            @Override
+            public AbstractContainerMenu createMenu(int syncId, Inventory inv, Player player) {
+                return new SecretChestScreenHandler(syncId, inv, chest);
+            }
+        };
+    }
+
+    /**
+     * The viewer count's scheduled recheck (vanilla's {@code ContainerOpenersCounter}
+     * asks for a block tick 5 ticks after the chest is opened and while anyone
+     * has it open): players who left without closing the screen are dropped.
+     */
+    @Override
+    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof SecretChestBlockEntity chest) {
+            chest.recheckOpen();
         }
     }
 
+    // The contents drop, with a comparator update, in SecretChestBlockEntity.dropStoredItems
+    // (called for every secret block as it is removed, before this); BaseEntityBlock.onRemove
+    // then removes the block entity.
+
     @Override
-    public boolean hasComparatorOutput(BlockState state) {
+    public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
     @Override
-    public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
-        return ScreenHandler.calculateComparatorOutput(world.getBlockEntity(pos));
+    public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+        return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(world.getBlockEntity(pos));
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
     @Environment(EnvType.CLIENT)
-    public boolean isSideInvisible(BlockState state, BlockState stateFrom, Direction direction) {
-        return (stateFrom.getBlock() instanceof SecretBlock) ? true : super.isSideInvisible(state, stateFrom, direction);
+    public boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
+        return stateFrom.getBlock() instanceof SecretBlock || super.skipRendering(state, stateFrom, direction);
     }
 
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return VoxelShapes.fullCube();
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        return Shapes.block();
     }
 
 }

@@ -1,119 +1,118 @@
 package net.calibermc.secretblocks.blocks;
 
-import net.calibermc.secretblocks.SecretBlocks;
-import net.calibermc.secretblocks.SecretBlocksClient;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.enums.BlockHalf;
-import net.minecraft.block.enums.StairShape;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.StairsShape;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class StairBlock extends net.minecraft.block.StairsBlock implements BlockEntityProvider, SecretBlock {
+public class StairBlock extends net.minecraft.world.level.block.StairBlock implements EntityBlock, SecretBlock {
 
-	public StairBlock(BlockState baseBlockState, Settings settings) {
+	public StairBlock(BlockState baseBlockState, Properties settings) {
 		super(baseBlockState, settings);
 	}
 
 	@Override
-	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new SecretBlockEntity(pos, state);
 	}
 
 	@Override
-	public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-		if (world.isClient) {
-			MinecraftClient client = MinecraftClient.getInstance();
-			SecretBlocksClient.sendHitSetter(pos, (BlockHitResult) client.crosshairTarget, false);
-		}
-		super.onPlaced(world, pos, state, placer, itemStack);
-	}
-
-	@Override
-	public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		if (world.getBlockEntity(pos) instanceof SecretBlockEntity) {
 			SecretBlockEntity blockEntity = (SecretBlockEntity) world.getBlockEntity(pos);
 		}
-		return super.onUse(state, world, pos, player, hand, hit);
+		return super.use(state, world, pos, player, hand, hit);
 	}
 
 	@Override
-	public BlockRenderType getRenderType(BlockState state) {
-		return BlockRenderType.MODEL;
+	public RenderShape getRenderShape(BlockState state) {
+		return RenderShape.MODEL;
 	}
 
 	@Override
 	@Environment(EnvType.CLIENT)
-	public boolean isSideInvisible(BlockState state, BlockState stateFrom, Direction direction) {
-		return (stateFrom.getBlock() instanceof SecretBlock) ? true : super.isSideInvisible(state, stateFrom, direction);
+	public boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
+		return (stateFrom.getBlock() instanceof SecretBlock) ? true : super.skipRendering(state, stateFrom, direction);
 	}
 
 
 	@Override  // COLLIDE ONLY WITH STAIR SHAPE
-	public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-		return (state.get(HALF) == BlockHalf.TOP ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_INDICES[this.getShapeIndexIndex(state)]];
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+		return (state.getValue(HALF) == Half.TOP ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_INDICES[this.getShapeIndex(state)]];
 
 	}
 
 	@Override  // OUTLINE FULL CUBE
-	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-		return VoxelShapes.fullCube();
+	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+		return Shapes.block();
 
+	}
+
+	@Override
+	public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
+		super.onRemove(state, world, pos, newState, moved);
+		// StairBlock.onRemove hands removal to its base block, which removes this
+		// block entity only because the base (the Dummy Block) has one too.
+		if (!state.is(newState.getBlock())) {
+			world.removeBlockEntity(pos);
+		}
 	}
 
     //Gets the stair shape for collision
 	private static final int[] SHAPE_INDICES;  // for stairs shape
 
-	private int getShapeIndexIndex(BlockState state) {
-		return ((StairShape)state.get(SHAPE)).ordinal() * 4 + ((Direction)state.get(FACING)).getHorizontal();
+	private int getShapeIndex(BlockState state) {
+		return ((StairsShape)state.getValue(SHAPE)).ordinal() * 4 + ((Direction)state.getValue(FACING)).get2DDataValue();
 	}
 
-	private static StairShape getStairShape(BlockState state, BlockView world, BlockPos pos) {
-		Direction direction = (Direction)state.get(FACING);
-		BlockState blockState = world.getBlockState(pos.offset(direction));
-		if (isStairs(blockState) && state.get(HALF) == blockState.get(HALF)) {
-			Direction direction2 = (Direction)blockState.get(FACING);
-			if (direction2.getAxis() != ((Direction)state.get(FACING)).getAxis() && isDifferentOrientation(state, world, pos, direction2.getOpposite())) {
-				if (direction2 == direction.rotateYCounterclockwise()) {
-					return StairShape.OUTER_LEFT;
+	private static StairsShape getStairsShape(BlockState state, BlockGetter world, BlockPos pos) {
+		Direction direction = (Direction)state.getValue(FACING);
+		BlockState blockState = world.getBlockState(pos.relative(direction));
+		if (isStairs(blockState) && state.getValue(HALF) == blockState.getValue(HALF)) {
+			Direction direction2 = (Direction)blockState.getValue(FACING);
+			if (direction2.getAxis() != ((Direction)state.getValue(FACING)).getAxis() && canTakeShape(state, world, pos, direction2.getOpposite())) {
+				if (direction2 == direction.getCounterClockWise()) {
+					return StairsShape.OUTER_LEFT;
 				}
 
-				return StairShape.OUTER_RIGHT;
+				return StairsShape.OUTER_RIGHT;
 			}
 		}
 
-		BlockState blockState2 = world.getBlockState(pos.offset(direction.getOpposite()));
-		if (isStairs(blockState2) && state.get(HALF) == blockState2.get(HALF)) {
-			Direction direction3 = (Direction)blockState2.get(FACING);
-			if (direction3.getAxis() != ((Direction)state.get(FACING)).getAxis() && isDifferentOrientation(state, world, pos, direction3)) {
-				if (direction3 == direction.rotateYCounterclockwise()) {
-					return StairShape.INNER_LEFT;
+		BlockState blockState2 = world.getBlockState(pos.relative(direction.getOpposite()));
+		if (isStairs(blockState2) && state.getValue(HALF) == blockState2.getValue(HALF)) {
+			Direction direction3 = (Direction)blockState2.getValue(FACING);
+			if (direction3.getAxis() != ((Direction)state.getValue(FACING)).getAxis() && canTakeShape(state, world, pos, direction3)) {
+				if (direction3 == direction.getCounterClockWise()) {
+					return StairsShape.INNER_LEFT;
 				}
 
-				return StairShape.INNER_RIGHT;
+				return StairsShape.INNER_RIGHT;
 			}
 		}
 
-		return StairShape.STRAIGHT;
+		return StairsShape.STRAIGHT;
 	}
 
-	private static boolean isDifferentOrientation(BlockState state, BlockView world, BlockPos pos, Direction dir) {
-		BlockState blockState = world.getBlockState(pos.offset(dir));
-		return !isStairs(blockState) || blockState.get(FACING) != state.get(FACING) || blockState.get(HALF) != state.get(HALF);
+	private static boolean canTakeShape(BlockState state, BlockGetter world, BlockPos pos, Direction dir) {
+		BlockState blockState = world.getBlockState(pos.relative(dir));
+		return !isStairs(blockState) || blockState.getValue(FACING) != state.getValue(FACING) || blockState.getValue(HALF) != state.getValue(HALF);
 	}
 
 	static {

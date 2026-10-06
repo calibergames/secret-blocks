@@ -1,84 +1,141 @@
 package net.calibermc.secretblocks.blocks;
 
-import net.calibermc.secretblocks.SecretBlocks;
-import net.calibermc.secretblocks.SecretBlocksClient;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.phys.AABB;
 
-public class PressurePlate extends net.minecraft.block.PressurePlateBlock implements BlockEntityProvider, SecretBlock {
+import java.util.function.Predicate;
 
-    public PressurePlate(Settings settings) {
-        super(ActivationRule.EVERYTHING, settings);
-    }
+/**
+ * Secret Pressure Plate and Secret Player Pressure Plate: a full, disguised
+ * floor block that powers redstone while something stands on it, so the
+ * trigger looks exactly like the floor around it. Which entities count is
+ * the {@code trigger} predicate.
+ *
+ * Pressing happens when an entity stands on the top face ({@code stepOn};
+ * sneaking players count too). While pressed it re-checks the space just
+ * above its top face every second and releases once nothing that counts is
+ * there. It gives power 15 to its neighbors (weak power: it
+ * does not power the block under it through that block).
+ */
+public class PressurePlate extends Block implements EntityBlock, SecretBlock {
 
-    @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new SecretBlockEntity(pos, state);
-    }
+	public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+	private static final int RECHECK_TICKS = 20;
+	private static final double DETECTION_HEIGHT = 0.25;
 
-    @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-        super.onPlaced(world, pos, state, placer, itemStack);
-        if (world.isClient) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            SecretBlocksClient.sendHitSetter(pos, (BlockHitResult) client.crosshairTarget, false);
-            SecretBlocksClient.sendHitSetter(pos.up(), (BlockHitResult) client.crosshairTarget, false);
-        }
-    }
+	private final Predicate<Entity> trigger;
 
-    @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (world.getBlockEntity(pos) instanceof SecretBlockEntity) {
-            SecretBlockEntity blockEntity = (SecretBlockEntity) world.getBlockEntity(pos);
-        }
-        return super.onUse(state, world, pos, player, hand, hit);
-    }
+	public PressurePlate(Properties settings, Predicate<Entity> trigger) {
+		super(settings);
+		this.trigger = trigger;
+		registerDefaultState(stateDefinition.any().setValue(POWERED, false));
+	}
 
-    @Override
-    public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-        if (!world.isClient) {
-            int i = this.getRedstoneOutput(state);
-            if (i == 0) {
-                this.updatePlateState(entity, world, pos, state, i);
-            }
+	@Override
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+		builder.add(POWERED);
+	}
 
-        }
-    }
+	@Override
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+		return new SecretBlockEntity(pos, state);
+	}
 
-    @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
-    }
+	@Override
+	public RenderShape getRenderShape(BlockState state) {
+		return RenderShape.MODEL;
+	}
 
-    @Override
-    @Environment(EnvType.CLIENT)
-    public boolean isSideInvisible(BlockState state, BlockState stateFrom, Direction direction) {
-        return (stateFrom.getBlock() instanceof SecretBlock) ? true : super.isSideInvisible(state, stateFrom, direction);
-    }
+	@Override
+	@Environment(EnvType.CLIENT)
+	public boolean skipRendering(BlockState state, BlockState stateFrom, Direction direction) {
+		return (stateFrom.getBlock() instanceof SecretBlock) ? true : super.skipRendering(state, stateFrom, direction);
+	}
 
-    @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return VoxelShapes.fullCube();
-    }
+	@Override
+	public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
+		if (!level.isClientSide() && !state.getValue(POWERED) && counts(entity)) {
+			update(level, pos, state);
+		}
+		super.stepOn(level, pos, state, entity);
+	}
+
+	@Override
+	public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+		if (state.getValue(POWERED)) {
+			update(level, pos, state);
+		}
+	}
+
+	private boolean counts(Entity entity) {
+		return !entity.isIgnoringBlockTriggers() && trigger.test(entity);
+	}
+
+	/** Something that counts is in the slice just above the top face (the block itself is solid). */
+	private boolean pressed(Level level, BlockPos pos) {
+		AABB above = new AABB(pos.getX(), pos.getY() + 1, pos.getZ(),
+				pos.getX() + 1, pos.getY() + 1 + DETECTION_HEIGHT, pos.getZ() + 1);
+		return !level.getEntitiesOfClass(Entity.class, above, this::counts).isEmpty();
+	}
+
+	private void update(Level level, BlockPos pos, BlockState state) {
+		boolean was = state.getValue(POWERED);
+		boolean now = pressed(level, pos);
+		if (now != was) {
+			level.setBlock(pos, state.setValue(POWERED, now), Block.UPDATE_ALL);
+			level.updateNeighborsAt(pos, this);
+			level.playSound(null, pos, now ? SoundEvents.STONE_PRESSURE_PLATE_CLICK_ON : SoundEvents.STONE_PRESSURE_PLATE_CLICK_OFF,
+					SoundSource.BLOCKS, 0.3F, now ? 0.6F : 0.5F);
+			level.gameEvent(null, now ? GameEvent.BLOCK_ACTIVATE : GameEvent.BLOCK_DEACTIVATE, pos);
+		}
+		if (now) {
+			level.scheduleTick(pos, this, RECHECK_TICKS);
+		}
+	}
+
+	@Override
+	public boolean isSignalSource(BlockState state) {
+		return true;
+	}
+
+	@Override
+	public int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
+		return state.getValue(POWERED) ? 15 : 0;
+	}
+
+	@Override
+	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
+		boolean removed = !state.is(newState.getBlock());
+		super.onRemove(state, level, pos, newState, moved);
+		if (removed && state.getValue(POWERED)) {
+			level.updateNeighborsAt(pos, this);
+		}
+	}
+
+	/** A piston breaks it, as it breaks a vanilla pressure plate. */
+	@Override
+	public PushReaction getPistonPushReaction(BlockState state) {
+		return PushReaction.DESTROY;
+	}
 }
-

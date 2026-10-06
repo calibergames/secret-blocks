@@ -1,40 +1,28 @@
 package net.calibermc.secretblocks.mixin;
 
+import net.calibermc.secretblocks.render.SecretCulling;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.calibermc.secretblocks.blocks.SecretBlock;
-import net.calibermc.secretblocks.blocks.DoorBlock;
-import net.calibermc.secretblocks.blocks.TrapdoorBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
-
+/** Vanilla's face culling beside secret blocks: see {@link SecretCulling}. */
 @Environment(EnvType.CLIENT)
 @Mixin(Block.class)
 public class DrawSideMixin {
 
-	@Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true)
-	private static void TSRshouldDrawSide(BlockState state, BlockView world, BlockPos pos, Direction side, BlockPos blockPos, CallbackInfoReturnable<Boolean> ci) {
-		BlockState blockState = world.getBlockState(blockPos);
-
-		if (blockState.getBlock() instanceof SecretBlock) {
-			ci.setReturnValue(true);
-		}
-
-		if (state.getBlock() == blockState.getBlock() && state.getBlock() instanceof SecretBlock) {
-			ci.setReturnValue(false);
-		}
-
-		if (state.getBlock() instanceof SecretBlock && (blockState.getBlock() instanceof DoorBlock || blockState.getBlock() instanceof TrapdoorBlock)) {
-			ci.setReturnValue(true);
+	@Inject(method = "shouldRenderFace", at = @At("HEAD"), cancellable = true)
+	private static void TSRshouldDrawSide(BlockState state, BlockGetter world, BlockPos pos, Direction side, BlockPos blockPos, CallbackInfoReturnable<Boolean> ci) {
+		Boolean draw = SecretCulling.drawFace(state, world.getBlockState(blockPos));
+		if (draw != null) {
+			ci.setReturnValue(draw);
 		}
 	}
-
 }

@@ -10,8 +10,8 @@
 	],
 	"contact": {
 		"homepage": "*",
-		"sources": "https://github.com/CaliberMC/Secret-Blocks",
-		"issues": "https://github.com/CaliberMC/Secret-Blocks/issues"
+		"sources": "https://github.com/calibergames/secret-blocks",
+		"issues": "https://github.com/calibergames/secret-blocks/issues"
 	},
 	"license": "LGPL-3.0",
 	"icon": "assets/secretblocks/icon.png",
@@ -32,13 +32,5 @@
 		"fabric": "*",
 		"minecraft": "~1.19",
 		"java": ">=17"
-	},
-	"suggests": {
-		"flamingo": "*"
-	},
-	"custom": {
-		"dashloader:customobject": [
-			"net.calibermc.secretblocks.dashloader.DashSecretBlockBakedModel"
-		]
 	}
 }

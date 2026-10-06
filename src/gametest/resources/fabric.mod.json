@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "id": "secretblocks-gametest",
+  "version": "1.0.0",
+  "name": "Secret Blocks Game Tests",
+  "description": "Game tests and the dev client driver for Secret Blocks. Development only; never shipped.",
+  "license": "LGPL-3.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.calibermc.secretblocks.gametest.support.TestBlocks"
+    ],
+    "client": [
+      "net.calibermc.secretblocks.gametest.driver.DevClientDriver"
+    ],
+    "fabric-gametest": [
+      "net.calibermc.secretblocks.gametest.PlacementGameTests",
+      "net.calibermc.secretblocks.gametest.BehaviourGameTests",
+      "net.calibermc.secretblocks.gametest.NbtGameTests",
+      "net.calibermc.secretblocks.gametest.ProbeGameTests",
+      "net.calibermc.secretblocks.gametest.ApprovedPlacementGameTests",
+      "net.calibermc.secretblocks.gametest.SyncGameTests",
+      "net.calibermc.secretblocks.gametest.PressurePlateGameTests",
+      "net.calibermc.secretblocks.gametest.ObserverGameTests",
+      "net.calibermc.secretblocks.gametest.ClamberGameTests",
+      "net.calibermc.secretblocks.gametest.DispenserGameTests",
+      "net.calibermc.secretblocks.gametest.HopperGameTests",
+      "net.calibermc.secretblocks.gametest.GogglesGameTests",
+      "net.calibermc.secretblocks.gametest.IronDoorGameTests",
+      "net.calibermc.secretblocks.gametest.RedstoneGameTests",
+      "net.calibermc.secretblocks.gametest.RecipeGameTests",
+      "net.calibermc.secretblocks.gametest.CounterpartGameTests",
+      "net.calibermc.secretblocks.gametest.ContainerGameTests",
+      "net.calibermc.secretblocks.gametest.RedstoneWireGameTests",
+      "net.calibermc.secretblocks.gametest.RepeaterGameTests",
+      "net.calibermc.secretblocks.gametest.ComparatorGameTests",
+      "net.calibermc.secretblocks.gametest.TrappedChestGameTests",
+      "net.calibermc.secretblocks.gametest.TorchLeverGameTests",
+      "net.calibermc.secretblocks.gametest.DaylightDetectorGameTests",
+      "net.calibermc.secretblocks.gametest.DropperGameTests",
+      "net.calibermc.secretblocks.gametest.SculkSensorGameTests",
+      "net.calibermc.secretblocks.gametest.GateSegmentGameTests",
+      "net.calibermc.secretblocks.gametest.GateGameTests",
+      "net.calibermc.secretblocks.gametest.PistonGameTests",
+      "net.calibermc.secretblocks.gametest.PushableGameTests",
+      "net.calibermc.secretblocks.gametest.BuildersGogglesGameTests"
+    ]
+  },
+  "depends": {
+    "secretblocks": "*",
+    "fabric-gametest-api-v1": "*"
+  }
+}
