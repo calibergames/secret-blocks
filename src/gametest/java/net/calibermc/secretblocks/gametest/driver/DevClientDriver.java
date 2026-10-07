@@ -301,7 +301,8 @@ public class DevClientDriver implements ClientModInitializer {
 					report("builder " + a[1] + " -> active=" + active);
 				}
 			}
-			case "bench" -> bench(mc, Integer.parseInt(a[1]), Integer.parseInt(a[2]));
+			case "bench" -> bench(mc, Integer.parseInt(a[1]), Integer.parseInt(a[2]), a.length < 4 || !a[3].equals("noflush"));
+			case "fps" -> report("fps " + mc.fpsString);
 			case "hud" -> {
 				// F1: hide the HUD and hand for clean screenshots.
 				mc.options.hideGui = a[1].equals("off");
@@ -340,10 +341,13 @@ public class DevClientDriver implements ClientModInitializer {
 	 * ({@code BuilderChestRenderer}). Every secret block entity within
 	 * {@code radius} of the player is sent through vanilla's dispatcher
 	 * {@code rounds} times, as the level renderer does once per visible block
-	 * entity per frame (distance check, light lookup, then the renderer).
-	 * Reports the count and nanoseconds per call.
+	 * entity per frame (distance check, light lookup, then the renderer),
+	 * ending the batches after each round as a frame does ({@code noflush}
+	 * as a third word leaves them, to time the renderer alone). Reports the
+	 * count and nanoseconds per call. {@code fps}: the debug screen's frame
+	 * rate line.
 	 */
-	private void bench(Minecraft mc, int radius, int rounds) {
+	private void bench(Minecraft mc, int radius, int rounds, boolean flush) {
 		List<BlockEntity> entities = new java.util.ArrayList<>();
 		BlockPos centre = mc.player.blockPosition();
 		for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-radius, -radius, -radius), centre.offset(radius, radius, radius))) {
@@ -357,6 +361,7 @@ public class DevClientDriver implements ClientModInitializer {
 		var buffers = mc.renderBuffers().bufferSource();
 		for (int warm = 0; warm < 20; warm++) {
 			entities.forEach(entity -> dispatcher.render(entity, 0, poseStack, buffers));
+			buffers.endBatch();
 		}
 		long start = System.nanoTime();
 		for (int round = 0; round < rounds; round++) {
@@ -365,11 +370,15 @@ public class DevClientDriver implements ClientModInitializer {
 				dispatcher.render(entity, 0, poseStack, buffers);
 				poseStack.popPose();
 			}
+			// One frame's worth: the level renderer ends its batches every frame.
+			if (flush) {
+				buffers.endBatch();
+			}
 		}
 		long elapsed = System.nanoTime() - start;
 		double perCall = entities.isEmpty() ? 0 : (double) elapsed / ((long) rounds * entities.size());
-		report(String.format(java.util.Locale.ROOT, "bench entities=%d rounds=%d ns_per_call=%.1f ms_per_frame=%.3f builder=%s",
-				entities.size(), rounds, perCall, perCall * entities.size() / 1e6, net.calibermc.secretblocks.render.BuilderView.isActive()));
+		report(String.format(java.util.Locale.ROOT, "bench at %s entities=%d rounds=%d flush=%s ns_per_call=%.1f ms_per_frame=%.3f builder=%s",
+				centre.toShortString(), entities.size(), rounds, flush, perCall, perCall * entities.size() / 1e6, net.calibermc.secretblocks.render.BuilderView.isActive()));
 	}
 
 	/**

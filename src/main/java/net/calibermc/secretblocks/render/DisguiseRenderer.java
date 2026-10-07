@@ -7,6 +7,7 @@ import net.calibermc.secretblocks.blocks.TrapdoorBlock;
 import net.calibermc.secretblocks.registry.Counterparts;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.client.Minecraft;
@@ -44,6 +45,8 @@ public final class DisguiseRenderer {
 
 		QuadEmitter emitter = context.getEmitter();
 		boolean builder = BuilderView.isActive();
+		boolean joinsAbove = builder && DoorHalves.joinsAbove(blockView, pos, state);
+		boolean joinsBelow = builder && DoorHalves.joinsBelow(blockView, pos, state);
 
 		CompoundTag tag = disguise.save(new CompoundTag()); // disguise keys only, not the inventory
 		Minecraft minecraft = Minecraft.getInstance();
@@ -100,6 +103,9 @@ public final class DisguiseRenderer {
 			if (GogglesView.isWearing() && !abqList.isEmpty()
 					&& GogglesView.overlaySprite() != null && GogglesView.overlayMaterial() != null) {
 				emitGogglesOverlay(emitter, state, direction);
+			}
+			if (builder && BuilderView.outlineSprite() != null) {
+				emitOutline(emitter, state, direction, joinsAbove, joinsBelow);
 			}
 		}
 		if (builder) {
@@ -160,14 +166,24 @@ public final class DisguiseRenderer {
 		return 0.5f + (coordinate - 0.5f) * 0.996f;
 	}
 
+	/** One face rectangle, as {@link QuadEmitter#square} takes it. */
+	@FunctionalInterface
+	private interface Square {
+		void at(Direction face, float left, float bottom, float right, float top, float depth);
+	}
+
 	/** The shape of one disguise face: a full square, or a door or trapdoor panel face. */
 	private static void emitShape(QuadEmitter emitter, BlockState state, Direction direction) {
+		shape(state, direction, emitter::square);
+	}
+
+	private static void shape(BlockState state, Direction direction, Square square) {
 		if (state.getBlock() instanceof DoorBlock) {
-			renderDoor(emitter, state, direction);
+			renderDoor(square, state, direction);
 		} else if (state.getBlock() instanceof TrapdoorBlock) {
-			renderTrapdoor(emitter, state, direction);
+			renderTrapdoor(square, state, direction);
 		} else {
-			emitter.square(direction, 0.0f, 0.0f, 1.0f, 1.0f, 0);
+			square.at(direction, 0.0f, 0.0f, 1.0f, 1.0f, 0);
 		}
 	}
 
@@ -191,114 +207,158 @@ public final class DisguiseRenderer {
 		emitter.emit();
 	}
 
-	private static void renderDoorCuboid(QuadEmitter emitter, Direction faceDirection, Direction cuboidDirection) {
+	/** How wide the builder's outline is, and how far it sits out from the face. */
+	private static final float OUTLINE_WIDTH = 1.0f / 32.0f;
+	private static final float OUTLINE_LIFT = 0.002f;
+	/** Light blue, full-bright. */
+	private static final int OUTLINE_COLOR = 0xFF4D_E6FF;
+
+	/**
+	 * Builder's view outline: a thin, bright frame around each disguise face,
+	 * drawn into the chunk with the faded disguise (so it costs nothing per
+	 * frame), out past the Secret Goggles' overlay. Faces the block shares
+	 * with the other half of its door get no frame on that edge (and the
+	 * faces between the halves none at all), so a door is one panel.
+	 */
+	private static void emitOutline(QuadEmitter emitter, BlockState state, Direction direction, boolean joinsAbove, boolean joinsBelow) {
+		if ((direction == Direction.UP && joinsAbove) || (direction == Direction.DOWN && joinsBelow)) {
+			return;
+		}
+		boolean side = direction.getAxis().isHorizontal();
+		shape(state, direction, (face, left, bottom, right, top, depth) -> {
+			float w = OUTLINE_WIDTH;
+			if (!(side && joinsBelow)) {
+				emitOutlineStrip(emitter, face, left, bottom, right, Math.min(top, bottom + w), depth);
+			}
+			if (!(side && joinsAbove)) {
+				emitOutlineStrip(emitter, face, left, Math.max(bottom, top - w), right, top, depth);
+			}
+			emitOutlineStrip(emitter, face, left, bottom, Math.min(right, left + w), top, depth);
+			emitOutlineStrip(emitter, face, Math.max(left, right - w), bottom, right, top, depth);
+		});
+	}
+
+	private static void emitOutlineStrip(QuadEmitter emitter, Direction face, float left, float bottom, float right, float top, float depth) {
+		emitter.square(face, left, bottom, right, top, depth - OUTLINE_LIFT);
+		if (Math.abs(depth) < 1.0e-5f) {
+			// Lifted off the face, but hidden with it where a neighbour covers it.
+			emitter.cullFace(face);
+		}
+		emitter.spriteBake(0, BuilderView.outlineSprite(), MutableQuadView.BAKE_LOCK_UV);
+		emitter.colorIndex(-1);
+		emitter.spriteColor(0, OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR);
+		emitter.material(BuilderView.outlineMaterial());
+		emitter.emit();
+	}
+
+	private static void renderDoorCuboid(Square square, Direction faceDirection, Direction cuboidDirection) {
 		switch (cuboidDirection) {
 
 		case NORTH:
 
 			if (faceDirection == Direction.NORTH) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
 			} else if (faceDirection == Direction.SOUTH) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
 			} else if (faceDirection == Direction.EAST) {
-				emitter.square(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.WEST) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.UP) {
-				emitter.square(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.DOWN) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
 			}
 			break;
 
 		case EAST:
 
 			if (faceDirection == Direction.SOUTH) {
-				emitter.square(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.NORTH) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.EAST) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
 			} else if (faceDirection == Direction.WEST) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
 			} else if (faceDirection == Direction.UP) {
-				emitter.square(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.DOWN) {
-				emitter.square(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
 			}
 			break;
 
 		case SOUTH:
 
 			if (faceDirection == Direction.SOUTH) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
 			} else if (faceDirection == Direction.NORTH) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
 			} else if (faceDirection == Direction.WEST) {
-				emitter.square(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.EAST) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.DOWN) {
-				emitter.square(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.UP) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
 			}
 			break;
 
 		case WEST:
 
 			if (faceDirection == Direction.NORTH) {
-				emitter.square(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.SOUTH) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.WEST) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
 			} else if (faceDirection == Direction.EAST) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
 			} else if (faceDirection == Direction.UP) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.DOWN) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
 			}
 			break;
 
 		case UP:
 
 			if (faceDirection == Direction.SOUTH) {
-				emitter.square(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.NORTH) {
-				emitter.square(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.WEST) {
-				emitter.square(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.EAST) {
-				emitter.square(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.UP) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.DOWN) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
 			}
 			break;
 
 		case DOWN:
 
 			if (faceDirection == Direction.SOUTH) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
 			} else if (faceDirection == Direction.NORTH) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
 			} else if (faceDirection == Direction.WEST) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
 			} else if (faceDirection == Direction.EAST) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
 			} else if (faceDirection == Direction.DOWN) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
 			} else if (faceDirection == Direction.UP) {
-				emitter.square(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
+				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
 			}
 			break;
 		}
 	}
 
-	private static void renderDoor(QuadEmitter emitter, BlockState state, Direction direction) {
+	private static void renderDoor(Square square, BlockState state, Direction direction) {
 
 		Direction renderDirection = Direction.EAST;
 
@@ -313,17 +373,17 @@ public final class DisguiseRenderer {
 		} else {
 			renderDirection = Direction.NORTH;
 		}
-		renderDoorCuboid(emitter, direction, renderDirection);
+		renderDoorCuboid(square, direction, renderDirection);
 	}
 
-	private static void renderTrapdoor(QuadEmitter emitter, BlockState state, Direction direction) {
+	private static void renderTrapdoor(Square square, BlockState state, Direction direction) {
 		if (state.getValue(TrapdoorBlock.OPEN)) {
-			renderDoorCuboid(emitter, direction, state.getValue(TrapdoorBlock.FACING).getOpposite());
+			renderDoorCuboid(square, direction, state.getValue(TrapdoorBlock.FACING).getOpposite());
 		} else {
 			if (state.getValue(TrapdoorBlock.HALF) == Half.TOP) {
-				renderDoorCuboid(emitter, direction, Direction.UP);
+				renderDoorCuboid(square, direction, Direction.UP);
 			} else if (state.getValue(TrapdoorBlock.HALF) == Half.BOTTOM) {
-				renderDoorCuboid(emitter, direction, Direction.DOWN);
+				renderDoorCuboid(square, direction, Direction.DOWN);
 			}
 		}
 	}
