@@ -46,6 +46,8 @@ import java.util.List;
  *   open screen (with its title) on the client and, in singleplayer, the
  *   built-in server's copy of the stack: two lines;</li>
  *   <li>{@code close}: close the open screen, as Escape does;</li>
+ *   <li>{@code connect host:port}: at the title screen, join that server, as
+ *   the multiplayer screen's Direct Connect does ({@code quit} leaves it);</li>
  *   <li>{@code sdata x y z}: in singleplayer, the built-in server's block
  *   entity data at that position (what is saved, contents included);</li>
  *   <li>{@code sitems r}: in singleplayer, the dropped items the built-in
@@ -140,10 +142,10 @@ public class DevClientDriver implements ClientModInitializer {
 	}
 
 	/**
-	 * Out of a world only {@code wait} and {@code open} run ({@code open} once
-	 * the title screen is up and resources are loaded). Any other command at
-	 * the head of the queue waits there (and holds up the rest) until a world
-	 * is open.
+	 * Out of a world only {@code wait}, {@code open} and {@code connect} run
+	 * (the last two once the title screen is up and resources are loaded).
+	 * Any other command at the head of the queue waits there (and holds up the
+	 * rest) until a world is open.
 	 */
 	private void openWorldFromTitle(Minecraft mc) {
 		if (waitTicks > 0) {
@@ -156,11 +158,24 @@ public class DevClientDriver implements ClientModInitializer {
 			waitTicks = Integer.parseInt(next.trim().split("\\s+")[1]);
 			return;
 		}
-		if (next == null || !next.startsWith("open ") || mc.getOverlay() != null
+		if (next == null || !(next.startsWith("open ") || next.startsWith("connect ")) || mc.getOverlay() != null
 				|| !(mc.screen instanceof net.minecraft.client.gui.screens.TitleScreen)) {
 			return;
 		}
 		queue.poll();
+		if (next.startsWith("connect ")) {
+			String host = next.substring("connect ".length()).trim();
+			// A malformed address must not crash the client and end the run.
+			try {
+				report("connecting to " + host);
+				net.minecraft.client.gui.screens.ConnectScreen.startConnecting(mc.screen, mc,
+						net.minecraft.client.multiplayer.resolver.ServerAddress.parseString(host),
+						new net.minecraft.client.multiplayer.ServerData("Dedicated", host, false));
+			} catch (RuntimeException e) {
+				report("error in '" + next + "': " + e);
+			}
+			return;
+		}
 		String folder = next.substring("open ".length()).trim();
 		report("opening " + folder);
 		mc.createWorldOpenFlows().loadLevel(mc.screen, folder);
