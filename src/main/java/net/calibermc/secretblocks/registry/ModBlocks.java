@@ -95,11 +95,24 @@ public class ModBlocks {
             new SecretHopper(FabricBlockSettings.copy(SOLID_BLOCK).strength(3.0f, 4.8f).requiresCorrectToolForDrops().sound(SoundType.METAL)),
             SecretBlocks.SECRET_BLOCKS_GROUP);
 
+    // Not conductors, like the vanilla plates they stand in for.
     public static final Block PRESSURE_PLATE = registerBlock("pressure_plate",
-            new PressurePlate(FabricBlockSettings.copy(SOLID_BLOCK), entity -> true), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new PressurePlate(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false), entity -> true),
+            SecretBlocks.SECRET_BLOCKS_GROUP);
 
     public static final Block PLAYER_PRESSURE_PLATE = registerBlock("player_pressure_plate",
-            new PressurePlate(FabricBlockSettings.copy(SOLID_BLOCK), entity -> entity instanceof Player), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new PressurePlate(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false),
+                    entity -> entity instanceof Player), SecretBlocks.SECRET_BLOCKS_GROUP);
+
+    // Vanilla's weighted plates: full signal at 15 entities (light) or 150 (heavy).
+    // Not conductors either.
+    public static final Block LIGHT_WEIGHTED_PRESSURE_PLATE = registerBlock("light_weighted_pressure_plate",
+            new WeightedPressurePlate(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false), 15),
+            SecretBlocks.SECRET_BLOCKS_GROUP);
+
+    public static final Block HEAVY_WEIGHTED_PRESSURE_PLATE = registerBlock("heavy_weighted_pressure_plate",
+            new WeightedPressurePlate(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false), 150),
+            SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // A full block, but not a redstone conductor, like vanilla wire.
     public static final Block SECRET_REDSTONE = registerBlock("secret_redstone",
@@ -169,7 +182,7 @@ public class ModBlocks {
     public static final Block[] secretBlocksList = {
             SOLID_BLOCK, STAIR_BLOCK, SLAB_BLOCK, GHOST_BLOCK, ONE_WAY_GLASS, DOOR_BLOCK,
             IRON_DOOR_BLOCK, TRAPDOOR_BLOCK, IRON_TRAPDOOR_BLOCK, WOODEN_BUTTON, STONE_BUTTON,
-            SECRET_LEVER, SECRET_REDSTONE, SECRET_CHEST, PRESSURE_PLATE, PLAYER_PRESSURE_PLATE, SECRET_OBSERVER, SECRET_CLAMBER, SECRET_DISPENSER, SECRET_HOPPER, SECRET_REDSTONE_WIRE, SECRET_REPEATER, SECRET_COMPARATOR, SECRET_TRAPPED_CHEST, SECRET_DAYLIGHT_DETECTOR, SECRET_DROPPER, SECRET_SCULK_SENSOR, SECRET_GATE_SEGMENT, SECRET_GATE, SECRET_PISTON, SECRET_STICKY_PISTON, SECRET_PISTON_HEAD
+            SECRET_LEVER, SECRET_REDSTONE, SECRET_CHEST, PRESSURE_PLATE, PLAYER_PRESSURE_PLATE, LIGHT_WEIGHTED_PRESSURE_PLATE, HEAVY_WEIGHTED_PRESSURE_PLATE, SECRET_OBSERVER, SECRET_CLAMBER, SECRET_DISPENSER, SECRET_HOPPER, SECRET_REDSTONE_WIRE, SECRET_REPEATER, SECRET_COMPARATOR, SECRET_TRAPPED_CHEST, SECRET_DAYLIGHT_DETECTOR, SECRET_DROPPER, SECRET_SCULK_SENSOR, SECRET_GATE_SEGMENT, SECRET_GATE, SECRET_PISTON, SECRET_STICKY_PISTON, SECRET_PISTON_HEAD
 
     };
 

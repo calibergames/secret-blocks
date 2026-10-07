@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "secretblocks:block/camo_block"
+    }
+  }
+}

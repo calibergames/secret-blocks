@@ -70,6 +70,8 @@ public final class Counterparts {
 		VANILLA.put(ModBlocks.IRON_DOOR_BLOCK, Blocks.IRON_DOOR);
 		VANILLA.put(ModBlocks.IRON_TRAPDOOR_BLOCK, Blocks.IRON_TRAPDOOR);
 		VANILLA.put(ModBlocks.STONE_BUTTON, Blocks.STONE_BUTTON);
+		VANILLA.put(ModBlocks.LIGHT_WEIGHTED_PRESSURE_PLATE, Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
+		VANILLA.put(ModBlocks.HEAVY_WEIGHTED_PRESSURE_PLATE, Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE);
 		VANILLA.put(ModBlocks.SECRET_LEVER, Blocks.LEVER);
 		VANILLA.put(ModBlocks.SECRET_REDSTONE, Blocks.REDSTONE_WIRE);
 		// Lossy: the Secret Chest has no facing, type or waterlogging, so it

@@ -40,6 +40,8 @@
 	"item.secretblocks.switch_probe": "Switch Probe",
 	"item.secretblocks.switch_probe_rotation_mode": "Rotator Probe",
 	"item.secretblocks.camouflage_wand": "Camouflage Wand",
+	"block.secretblocks.light_weighted_pressure_plate": "Secret Light Weighted Pressure Plate",
+	"block.secretblocks.heavy_weighted_pressure_plate": "Secret Heavy Weighted Pressure Plate",
 	"message.secretblocks.camouflage_wand.loaded": "Loaded %s",
 	"message.secretblocks.camouflage_wand.nothing_to_load": "Nothing to load: this face shows no block",
 	"message.secretblocks.camouflage_wand.not_allowed": "The Camouflage Wand works in creative mode or for operators",

@@ -81,6 +81,8 @@ public class WandConversionGameTests implements FabricGameTest {
 				.setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.WEST), ModBlocks.WOODEN_BUTTON);
 		PAIRS.put(Blocks.OAK_PRESSURE_PLATE.defaultBlockState(), ModBlocks.PRESSURE_PLATE);
 		PAIRS.put(Blocks.STONE_PRESSURE_PLATE.defaultBlockState(), ModBlocks.PLAYER_PRESSURE_PLATE);
+		PAIRS.put(Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE.defaultBlockState(), ModBlocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
+		PAIRS.put(Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE.defaultBlockState(), ModBlocks.HEAVY_WEIGHTED_PRESSURE_PLATE);
 		PAIRS.put(Blocks.IRON_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.WEST), ModBlocks.IRON_DOOR_BLOCK);
 		PAIRS.put(Blocks.IRON_TRAPDOOR.defaultBlockState().setValue(BlockStateProperties.HALF, Half.TOP), ModBlocks.IRON_TRAPDOOR_BLOCK);
 		PAIRS.put(Blocks.STONE_BUTTON.defaultBlockState().setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR), ModBlocks.STONE_BUTTON);
