@@ -303,6 +303,17 @@ public class DevClientDriver implements ClientModInitializer {
 			}
 			case "bench" -> bench(mc, Integer.parseInt(a[1]), Integer.parseInt(a[2]), a.length < 4 || !a[3].equals("noflush"));
 			case "fps" -> report("fps " + mc.fpsString);
+			case "saveoptions" -> {
+				// Writes options.txt, which lists every key mapping the Controls screen shows.
+				mc.options.save();
+				report("saveoptions");
+			}
+			case "press" -> {
+				// As a key press reaches the game: every key mapping bound to that key gets a click.
+				com.mojang.blaze3d.platform.InputConstants.Key key = com.mojang.blaze3d.platform.InputConstants.getKey(a[1]);
+				net.minecraft.client.KeyMapping.click(key);
+				report("press " + key.getName());
+			}
 			case "hud" -> {
 				// F1: hide the HUD and hand for clean screenshots.
 				mc.options.hideGui = a[1].equals("off");
@@ -345,7 +356,9 @@ public class DevClientDriver implements ClientModInitializer {
 	 * ending the batches after each round as a frame does ({@code noflush}
 	 * as a third word leaves them, to time the renderer alone). Reports the
 	 * count and nanoseconds per call. {@code fps}: the debug screen's frame
-	 * rate line.
+	 * rate line. {@code press <key>} (e.g. {@code key.keyboard.b}): one press
+	 * of that key for the key mappings bound to it. {@code saveoptions}: write
+	 * options.txt now.
 	 */
 	private void bench(Minecraft mc, int radius, int rounds, boolean flush) {
 		List<BlockEntity> entities = new java.util.ArrayList<>();

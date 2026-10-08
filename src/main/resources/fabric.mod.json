@@ -22,11 +22,17 @@
 		],
 		"client": [
 			"net.calibermc.secretblocks.SecretBlocksClient"
+		],
+		"preLaunch": [
+			"net.calibermc.secretblocks.compat.RendererCheck"
 		]
 	},
 	"mixins": [
 		"secretblocks.mixins.json"
 	],
+	"suggests": {
+		"indium": "*"
+	},
 	"depends": {
 		"fabricloader": ">=0.14.21",
 		"fabric": "*",

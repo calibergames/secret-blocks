@@ -79,7 +79,18 @@ public final class DisguiseRenderer {
 			BlockColors colors = minecraft.getBlockColors();
 			int color = 0xFF00_0000 | colors.getColor(tempState, blockView, pos, 0xFF);
 
-			for (BakedQuad quad : abqList) {
+			boolean ghost = builder && BuilderView.shaderPack() && BuilderView.ghostSprite() != null && !abqList.isEmpty();
+			if (ghost) {
+				// Under a shader pack: the faded block as a translucent ghost face (see BuilderView#shaderPack).
+				emitShape(emitter, state, direction);
+				emitter.spriteBake(0, BuilderView.ghostSprite(), MutableQuadView.BAKE_LOCK_UV);
+				emitter.colorIndex(-1);
+				emitter.spriteColor(0, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
+				emitter.material(BuilderView.fadeMaterial());
+				emitter.emit();
+			}
+
+			for (BakedQuad quad : ghost ? List.<BakedQuad>of() : abqList) {
 
 				TextureAtlasSprite quadSprite = quad.getSprite();
 
