@@ -39,15 +39,15 @@ public class SecretChestScreenHandler extends AbstractContainerMenu {
                 this.addSlot(new Slot(inventory, l + m * 9, 8 + l * 18, 18 + m * 18));
             }
         }
-        //The player inventory
+        //The player inventory, where vanilla's three-row chest puts it
         for (m = 0; m < 3; ++m) {
             for (l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + m * 9 + 9, 8 + l * 18, 84 + m * 18));
+                this.addSlot(new Slot(playerInventory, l + m * 9 + 9, 8 + l * 18, 85 + m * 18));
             }
         }
         //The player Hotbar
         for (m = 0; m < 9; ++m) {
-            this.addSlot(new Slot(playerInventory, m, 8 + m * 18, 142));
+            this.addSlot(new Slot(playerInventory, m, 8 + m * 18, 143));
         }
 
     }

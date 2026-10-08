@@ -4,6 +4,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModEntities;
 import net.calibermc.secretblocks.render.BuilderChestRenderer;
 import net.calibermc.secretblocks.render.BuilderView;
+import net.calibermc.secretblocks.render.DisguiseMaterials;
 import net.calibermc.secretblocks.render.GogglesView;
 import net.calibermc.secretblocks.render.SecretBlockResourceProvider;
 import net.calibermc.secretblocks.screen.ModScreenHandlers;
@@ -33,6 +34,7 @@ public class SecretBlocksClient implements ClientModInitializer {
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), ModBlocks.TORCH_LEVER, ModBlocks.WALL_TORCH_LEVER);
 		GogglesView.register();
 		BuilderView.register();
+		DisguiseMaterials.register();
 		BlockEntityRendererRegistry.register(ModEntities.SECRET_BLOCK_ENTITY, BuilderChestRenderer::new);
 //		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getTranslucent(), SecretBlocks.glassBlocksList);
 	}

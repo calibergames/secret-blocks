@@ -9,13 +9,20 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
+/**
+ * The Secret Chest's screen: drawn as vanilla's single chest is, the chest
+ * texture's top three rows and its inventory part, with the title on the
+ * left.
+ */
 public class SecretChestScreen extends AbstractContainerScreen<SecretChestScreenHandler> {
 
-    //A path to the gui texture.
-    private static final ResourceLocation TEXTURE = new ResourceLocation("minecraft", "textures/gui/container/shulker_box.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation("minecraft", "textures/gui/container/generic_54.png");
+    private static final int ROWS = 3;
 
     public SecretChestScreen(SecretChestScreenHandler handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
+        imageHeight = 114 + ROWS * 18;
+        inventoryLabelY = imageHeight - 94;
     }
 
     @Override
@@ -25,7 +32,8 @@ public class SecretChestScreen extends AbstractContainerScreen<SecretChestScreen
         RenderSystem.setShaderTexture(0, TEXTURE);
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
-        blit(matrices, x, y, 0, 0, imageWidth, imageHeight);
+        blit(matrices, x, y, 0, 0, imageWidth, ROWS * 18 + 17);
+        blit(matrices, x, y + ROWS * 18 + 17, 0, 126, imageWidth, 96);
     }
 
     @Override
@@ -34,14 +42,4 @@ public class SecretChestScreen extends AbstractContainerScreen<SecretChestScreen
         super.render(matrices, mouseX, mouseY, delta);
         renderTooltip(matrices, mouseX, mouseY);
     }
-
-    @Override
-    protected void init() {
-        super.init();
-        // Center the title
-        titleLabelX = (imageWidth - font.width(title)) / 2;
-    }
-
-
-
 }

@@ -29,7 +29,7 @@ public abstract class SodiumOcclusionMixin {
 
 	@Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true, remap = false, require = 0)
 	private void secretblocks$secretFaces(BlockState self, BlockGetter view, BlockPos pos, Direction facing, CallbackInfoReturnable<Boolean> cir) {
-		Boolean draw = SecretCulling.drawFace(self, view.getBlockState(pos.relative(facing)));
+		Boolean draw = SecretCulling.drawFace(self, view, pos, facing, pos.relative(facing));
 		if (draw != null) {
 			cir.setReturnValue(draw);
 		}

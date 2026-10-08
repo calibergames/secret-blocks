@@ -242,4 +242,58 @@ public class ContainerGameTests implements FabricGameTest {
 		check(h, emeralds == 5, "a broken Secret Chest should drop its 5 emeralds once, dropped " + emeralds);
 		h.succeed();
 	}
+
+	/**
+	 * In an explosion the Secret Chest and Trapped Chest drop themselves as
+	 * vanilla's chests do: rarely, in a big one (the chance is 1 in the
+	 * explosion's radius). Out of 50 drops at radius 100 each kind keeps
+	 * fewer than five; without an explosion every one drops.
+	 */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void chestsSurviveExplosionsAsVanilla(GameTestHelper h) {
+		floor(h);
+		BlockPos at = new BlockPos(1, 1, 1);
+		for (Block block : new Block[] {ModBlocks.SECRET_CHEST, ModBlocks.SECRET_TRAPPED_CHEST, Blocks.CHEST}) {
+			h.setBlock(at, block);
+			int exploded = 0;
+			int plain = 0;
+			for (int i = 0; i < 50; i++) {
+				exploded += drops(h, at, 100.0f);
+				plain += drops(h, at, 0);
+			}
+			check(h, exploded < 5, block + " survived " + exploded + " of 50 big explosions");
+			check(h, plain == 50, block + " dropped " + plain + " of 50 times without an explosion");
+		}
+		h.succeed();
+	}
+
+	private static int drops(GameTestHelper h, BlockPos at, float radius) {
+		BlockPos abs = h.absolutePos(at);
+		net.minecraft.world.level.storage.loot.LootContext.Builder loot = new net.minecraft.world.level.storage.loot.LootContext.Builder(h.getLevel())
+				.withRandom(h.getLevel().getRandom())
+				.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN, net.minecraft.world.phys.Vec3.atCenterOf(abs))
+				.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.TOOL, ItemStack.EMPTY)
+				.withOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_ENTITY, h.getLevel().getBlockEntity(abs));
+		if (radius > 0) {
+			loot.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.EXPLOSION_RADIUS, radius);
+		}
+		return h.getBlockState(at).getDrops(loot).stream().mapToInt(ItemStack::getCount).sum();
+	}
+
+	/** The Secret Chest's screen lays out its slots exactly as vanilla's single chest does. */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void chestScreenLaysOutAsVanilla(GameTestHelper h) {
+		net.minecraft.world.entity.player.Player player = h.makeMockPlayer();
+		net.minecraft.world.SimpleContainer box = new net.minecraft.world.SimpleContainer(27);
+		net.minecraft.world.inventory.AbstractContainerMenu secret = new net.calibermc.secretblocks.screen.SecretChestScreenHandler(1, player.getInventory(), box);
+		net.minecraft.world.inventory.AbstractContainerMenu vanilla = net.minecraft.world.inventory.ChestMenu.threeRows(2, player.getInventory(), box);
+		check(h, secret.slots.size() == vanilla.slots.size(), "slot count " + secret.slots.size() + " vs " + vanilla.slots.size());
+		for (int i = 0; i < vanilla.slots.size(); i++) {
+			net.minecraft.world.inventory.Slot a = secret.slots.get(i);
+			net.minecraft.world.inventory.Slot b = vanilla.slots.get(i);
+			check(h, a.x == b.x && a.y == b.y && a.getContainerSlot() == b.getContainerSlot(),
+					"slot " + i + " at " + a.x + "," + a.y + " (" + a.getContainerSlot() + "), vanilla at " + b.x + "," + b.y + " (" + b.getContainerSlot() + ")");
+		}
+		h.succeed();
+	}
 }

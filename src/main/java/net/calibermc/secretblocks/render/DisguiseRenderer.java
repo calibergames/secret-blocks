@@ -11,6 +11,9 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -69,9 +72,10 @@ public final class DisguiseRenderer {
 				tempRotation = tag.getInt(direction.name().toLowerCase() + "Rotation");
 			}
 
-			if (!tempState.isFaceSturdy(blockView, pos, tempDirection)) {
+			if (!drawsAsItself(tempState, blockView, pos, tempDirection)) {
 				tempState = Blocks.STONE.defaultBlockState();
 			}
+			RenderMaterial layer = builder ? null : DisguiseMaterials.forDisguise(tempState);
 
 			BakedModel fullModel = minecraft.getBlockRenderer().getBlockModel(tempState);
 			List<BakedQuad> abqList = fullModel.getQuads(tempState, tempDirection,  randomSupplier.get());
@@ -105,6 +109,9 @@ public final class DisguiseRenderer {
 					// Faded, so the real block drawn below shows through.
 					faceColor = (faceColor & 0x00FF_FFFF) | (BuilderView.DISGUISE_ALPHA << 24);
 					emitter.material(BuilderView.fadeMaterial());
+				} else if (layer != null) {
+					// In the disguise's own pass: stained glass translucent, leaves as the graphics setting has them.
+					emitter.material(layer);
 				}
 				emitter.colorIndex(quad.isTinted() ? 0 : -1);
 				emitter.spriteColor(0, faceColor, faceColor, faceColor, faceColor);
@@ -122,6 +129,17 @@ public final class DisguiseRenderer {
 		if (builder) {
 			emitRealBlock(state, blockView, pos, randomSupplier, context);
 		}
+	}
+
+	/**
+	 * Whether a disguise face is drawn with the disguise's own model, or with
+	 * stone: a face is copied from full blocks only. A block whose face is
+	 * sturdy (stone, glass) or whose shape is a full block (leaves, whose
+	 * faces are not sturdy) draws as itself; anything partial (a torch, a
+	 * slab's side) draws as stone.
+	 */
+	static boolean drawsAsItself(BlockState disguise, BlockGetter level, BlockPos pos, Direction face) {
+		return disguise.isFaceSturdy(level, pos, face) || disguise.isCollisionShapeFullBlock(level, pos);
 	}
 
 	/**

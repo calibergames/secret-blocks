@@ -750,7 +750,7 @@ public class GateGameTests implements FabricGameTest {
 		BlockPos abs = h.absolutePos(rel);
 		check(h, state.getDestroySpeed(h.getLevel(), abs) == Blocks.WHITE_WOOL.defaultBlockState().getDestroySpeed(h.getLevel(), abs),
 				"it should be as hard as wool (0.8), is " + state.getDestroySpeed(h.getLevel(), abs));
-		check(h, state.isRedstoneConductor(h.getLevel(), abs) && state.isCollisionShapeFullBlock(h.getLevel(), abs), "it should be a full block and a conductor");
+		check(h, !state.isRedstoneConductor(h.getLevel(), abs) && state.isCollisionShapeFullBlock(h.getLevel(), abs), "it should be a full block and not a conductor");
 		check(h, h.getBlockEntity(rel) instanceof SecretBlockEntity, "it should have the shared block entity");
 		check(h, Counterparts.hasNone(GATE), "it should have no counterpart");
 		Optional<ItemStack> result = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.PISTON, Items.REDSTONE);

@@ -45,6 +45,7 @@
       "net.calibermc.secretblocks.gametest.PushableGameTests",
       "net.calibermc.secretblocks.gametest.BuildersGogglesGameTests",
       "net.calibermc.secretblocks.gametest.DoorHalvesGameTests",
+      "net.calibermc.secretblocks.gametest.ConductorGameTests",
       "net.calibermc.secretblocks.gametest.WandGameTests",
       "net.calibermc.secretblocks.gametest.WandConversionGameTests",
       "net.calibermc.secretblocks.gametest.WeightedPlateGameTests"

@@ -20,7 +20,7 @@ public class DrawSideMixin {
 
 	@Inject(method = "shouldRenderFace", at = @At("HEAD"), cancellable = true)
 	private static void TSRshouldDrawSide(BlockState state, BlockGetter world, BlockPos pos, Direction side, BlockPos blockPos, CallbackInfoReturnable<Boolean> ci) {
-		Boolean draw = SecretCulling.drawFace(state, world.getBlockState(blockPos));
+		Boolean draw = SecretCulling.drawFace(state, world, pos, side, blockPos);
 		if (draw != null) {
 			ci.setReturnValue(draw);
 		}

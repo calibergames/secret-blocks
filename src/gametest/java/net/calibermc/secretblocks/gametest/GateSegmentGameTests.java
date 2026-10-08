@@ -123,7 +123,7 @@ public class GateSegmentGameTests implements FabricGameTest {
 		BlockPos abs = h.absolutePos(rel);
 		check(h, state.getDestroySpeed(h.getLevel(), abs) == Blocks.WHITE_WOOL.defaultBlockState().getDestroySpeed(h.getLevel(), abs),
 				"it should be as hard as wool (0.8), is " + state.getDestroySpeed(h.getLevel(), abs));
-		check(h, state.isRedstoneConductor(h.getLevel(), abs), "it should be a conductor");
+		check(h, !state.isRedstoneConductor(h.getLevel(), abs), "it should not be a conductor");
 		check(h, state.isCollisionShapeFullBlock(h.getLevel(), abs) && state.getLightEmission() == 0, "it should be a full block with no light");
 		check(h, state.getPistonPushReaction() == PushReaction.BLOCK, "pistons should neither push nor break it, reaction " + state.getPistonPushReaction());
 		check(h, Counterparts.hasNone(SEGMENT), "it should have no counterpart");

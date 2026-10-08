@@ -51,14 +51,15 @@ public class ModBlocks {
     public static final Block IRON_TRAPDOOR_BLOCK = registerBlock("iron_trapdoor_block",
             new TrapdoorBlock(FabricBlockSettings.copy(Blocks.IRON_TRAPDOOR)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
+    // Buttons and the lever are not conductors, like the vanilla ones they stand in for.
     public static final Block WOODEN_BUTTON = registerBlock("wooden_button",
-            new WoodButton(FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new WoodButton(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
     public static final Block STONE_BUTTON = registerBlock("stone_button",
-            new StoneButton(FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new StoneButton(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
     public static final Block SECRET_LEVER = registerBlock("secret_lever",
-            new SecretLever(FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new SecretLever(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // A climbable Ghost Block: climbable through the vanilla minecraft:climbable
     // block tag (data/minecraft/tags/blocks/climbable.json), like the original
@@ -69,8 +70,9 @@ public class ModBlocks {
 //    public static final Block SECRET_LADDER = registerBlock("secret_ladder",
 //            new SecretLadder(SOLID_BLOCK.getDefaultState(), FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
+    // Not a conductor, as vanilla's observer.
     public static final Block SECRET_OBSERVER = registerBlock("secret_observer",
-            new SecretObserver(FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new SecretObserver(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // Has its own block entity type (a vanilla dispenser block entity), see ModEntities.
     public static final Block SECRET_DISPENSER = registerBlock("secret_dispenser",
@@ -90,9 +92,10 @@ public class ModBlocks {
     // Has its own block entity type (a vanilla hopper block entity), see ModEntities.
     // As tough as a vanilla hopper: hardness 3, blast resistance 4.8, needs a
     // pickaxe to drop (data/minecraft/tags/blocks/mineable/pickaxe.json),
-    // metal sound. Still a full, occluding block, unlike the vanilla funnel.
+    // metal sound. Still a full, occluding block, unlike the vanilla funnel, but
+    // not a conductor, as vanilla's.
     public static final Block SECRET_HOPPER = registerBlock("secret_hopper",
-            new SecretHopper(FabricBlockSettings.copy(SOLID_BLOCK).strength(3.0f, 4.8f).requiresCorrectToolForDrops().sound(SoundType.METAL)),
+            new SecretHopper(FabricBlockSettings.copy(SOLID_BLOCK).strength(3.0f, 4.8f).requiresCorrectToolForDrops().sound(SoundType.METAL).isRedstoneConductor((state, level, pos) -> false)),
             SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // Not conductors, like the vanilla plates they stand in for.
@@ -134,8 +137,9 @@ public class ModBlocks {
             new SecretComparator(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)),
             SecretBlocks.SECRET_BLOCKS_GROUP);
 
+    // Not a conductor, as vanilla's chest.
     public static final Block SECRET_CHEST = registerBlock("secret_chest",
-            new SecretChest(FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new SecretChest(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // A Secret Chest that signals how many players look into it; not a conductor, as vanilla.
     public static final Block SECRET_TRAPPED_CHEST = registerBlock("secret_chest_trapped",
@@ -154,9 +158,10 @@ public class ModBlocks {
     public static final Block TORCH_LEVER = registerBlockWithoutBlockItem("torch_lever",
             new TorchLever(FabricBlockSettings.copy(Blocks.TORCH)));
 
-    // Builds a line of segments while open. The shared block entity type; a conductor, wool-like.
+    // Builds a line of segments while open. The shared block entity type; wool-like.
+    // The gate and its segments are not conductors, like the other redstone blocks.
     public static final Block SECRET_GATE = registerBlock("secret_gate",
-            new SecretGate(FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new SecretGate(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // Pistons: vanilla toughness and sound, not conductors (as vanilla). The head has no item and drops nothing.
     public static final Block SECRET_PISTON = registerBlock("secret_piston",
@@ -170,7 +175,7 @@ public class ModBlocks {
 
     // No item: a Secret Gate builds it. Drops nothing; wool-like as the Dummy Block.
     public static final Block SECRET_GATE_SEGMENT = registerBlockWithoutBlockItem("secret_gate_segment",
-            new SecretGateSegment(FabricBlockSettings.copy(SOLID_BLOCK).noLootTable()));
+            new SecretGateSegment(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false).noLootTable()));
 
     public static final Block WALL_TORCH_LEVER = registerBlockWithoutBlockItem("wall_torch_lever",
             new WallTorchLever(FabricBlockSettings.copy(Blocks.WALL_TORCH).dropsLike(TORCH_LEVER)));

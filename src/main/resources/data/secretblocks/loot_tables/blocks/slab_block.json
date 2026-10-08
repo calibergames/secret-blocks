@@ -6,7 +6,23 @@
 			"entries": [
 				{
 					"type": "minecraft:item",
-					"name": "secretblocks:slab_block"
+					"name": "secretblocks:slab_block",
+					"functions": [
+						{
+							"function": "minecraft:set_count",
+							"count": 2,
+							"add": false,
+							"conditions": [
+								{
+									"condition": "minecraft:block_state_property",
+									"block": "secretblocks:slab_block",
+									"properties": {
+										"type": "double"
+									}
+								}
+							]
+						}
+					]
 				}
 			]
 		}

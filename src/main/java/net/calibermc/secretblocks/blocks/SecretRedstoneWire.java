@@ -8,6 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DiodeBlock;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RedStoneWireBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -85,9 +86,17 @@ public class SecretRedstoneWire extends Block implements EntityBlock, SecretBloc
 		return RedstoneWireFamily.signalling ? state.getValue(POWER) : 0;
 	}
 
+	/**
+	 * Weak power only, as dust: no strong power into the blocks around it.
+	 * The one exception is a repeater or comparator beside it: a comparator
+	 * reads its side inputs as direct signals (vanilla names only its own
+	 * dust there), so the Wire gives its power to diodes that ask, as dust
+	 * would. Diodes are not conductors, so nothing else is powered by it.
+	 */
 	@Override
 	public int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-		return 0;
+		BlockState asking = level.getBlockState(pos.relative(direction.getOpposite()));
+		return asking.getBlock() instanceof DiodeBlock ? getSignal(state, level, pos, direction) : 0;
 	}
 
 	// --- updates -----------------------------------------------------------

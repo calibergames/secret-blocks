@@ -300,5 +300,21 @@ public class BehaviourGameTests implements FabricGameTest {
 		check(h, problems.length() == 0, "no disguise block entity after access: " + problems);
 		h.succeed();
 	}
-}
 
+	/** A double Secret Slab drops two slabs, as a double oak slab does; a single one drops one. */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void aDoubleSlabDropsTwo(GameTestHelper h) {
+		floor(h);
+		BlockPos slab = new BlockPos(1, 1, 1);
+		for (SlabType type : SlabType.values()) {
+			for (Block block : new Block[] {ModBlocks.SLAB_BLOCK, Blocks.OAK_SLAB}) {
+				h.setBlock(slab, block.defaultBlockState().setValue(SlabBlock.TYPE, type));
+				int count = Block.getDrops(h.getBlockState(slab), h.getLevel(), h.absolutePos(slab),
+						h.getLevel().getBlockEntity(h.absolutePos(slab))).stream().mapToInt(ItemStack::getCount).sum();
+				int expected = type == SlabType.DOUBLE ? 2 : 1;
+				check(h, count == expected, block + " " + type + " should drop " + expected + ", drops " + count);
+			}
+		}
+		h.succeed();
+	}
+}

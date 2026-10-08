@@ -197,11 +197,14 @@ public class WeightedPlateGameTests implements FabricGameTest {
 		h.setBlock(PLATE, ModBlocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
 		h.setBlock(second, ModBlocks.PRESSURE_PLATE);
 		for (BlockPos plate : new BlockPos[] {PLATE, second}) {
-			h.setBlock(plate.west(2), Blocks.REDSTONE_BLOCK);
 			h.setBlock(plate.west(), Blocks.REPEATER.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.WEST));
 			h.setBlock(plate.east(), Blocks.REDSTONE_LAMP);
+			// Last: a repeater set by command notices its input only when a neighbour changes.
+			h.setBlock(plate.west(2), Blocks.REDSTONE_BLOCK);
 		}
 		h.runAfterDelay(6, () -> {
+			check(h, h.getBlockState(PLATE.west()).getValue(BlockStateProperties.POWERED)
+					&& h.getBlockState(second.west()).getValue(BlockStateProperties.POWERED), "control: both repeaters should be powered");
 			check(h, !h.getBlockState(PLATE.east()).getValue(RedstoneLampBlock.LIT), "a repeater must not power through the weighted plate");
 			check(h, !h.getBlockState(second.east()).getValue(RedstoneLampBlock.LIT), "a repeater must not power through the Secret Pressure Plate");
 			h.succeed();

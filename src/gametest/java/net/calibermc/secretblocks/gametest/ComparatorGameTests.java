@@ -151,6 +151,11 @@ public class ComparatorGameTests implements FabricGameTest {
 		modesWithSideInput(h, ModBlocks.SECRET_REDSTONE);
 	}
 
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void compareAndSubtractWithSecretWireAtTheSide(GameTestHelper h) {
+		modesWithSideInput(h, ModBlocks.SECRET_REDSTONE_WIRE);
+	}
+
 	/** Use toggles compare ↔ subtract and keeps the disguise; a player who may not build changes nothing. */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void useTogglesTheMode(GameTestHelper h) {
