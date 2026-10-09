@@ -36,8 +36,14 @@ import java.util.List;
  * temporary file renamed into place) and appends one result line
  * per command to {@code <dir>/out.txt}:
  * <ul>
- *   <li>{@code break x y z}: hold "attack" on the block until it is gone on
- *   the client (survival mining, or an instant creative break);</li>
+ *   <li>{@code break x y z [face]}: hold "attack" on that face of the block
+ *   (default the top) until it is gone on the client (survival mining, with
+ *   the chips the attack key makes, or an instant creative break);</li>
+ *   <li>{@code record on|off}: start or stop recording the sounds the client
+ *   asks to play and the block particles it adds ({@link Recorder});</li>
+ *   <li>{@code recorded}: report and clear what was recorded: a count line,
+ *   then one line per sound and per particle sprite;</li>
+ *   <li>{@code sprint on|off}: set the player sprinting (sprint dust);</li>
  *   <li>{@code use x y z face}: use the held item on that face (placement);</li>
  *   <li>{@code select n}: select hotbar slot n;</li>
  *   <li>{@code sneak on|off}: hold or release the sneak key (the server
@@ -85,6 +91,7 @@ public class DevClientDriver implements ClientModInitializer {
 	private Path dir;
 	private final Deque<String> queue = new ArrayDeque<>();
 	private BlockPos breaking;
+	private Direction breakFace = Direction.UP;
 	private int breakTicks;
 	private int waitTicks;
 	private Vec3 walkStart;
@@ -199,8 +206,9 @@ public class DevClientDriver implements ClientModInitializer {
 		switch (a[0]) {
 			case "break" -> {
 				breaking = pos(a, 1);
+				breakFace = a.length > 4 ? Direction.byName(a[4]) : Direction.UP;
 				breakTicks = 0;
-				boolean started = mc.gameMode.startDestroyBlock(breaking, Direction.UP);
+				boolean started = mc.gameMode.startDestroyBlock(breaking, breakFace);
 				report("break " + breaking.toShortString() + " started=" + started);
 			}
 			case "use" -> {
@@ -209,6 +217,20 @@ public class DevClientDriver implements ClientModInitializer {
 				Vec3 hit = Vec3.atCenterOf(pos).add(Vec3.atLowerCornerOf(face.getNormal()).scale(0.5));
 				var result = mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, new BlockHitResult(hit, face, pos, false));
 				report("use " + pos.toShortString() + " " + face + " -> " + result);
+			}
+			case "record" -> {
+				Recorder.setOn(a[1].equals("on"));
+				Recorder.drain();
+				report("record " + a[1]);
+			}
+			case "recorded" -> {
+				List<String> lines = Recorder.drain();
+				report("recorded " + lines.size());
+				lines.forEach(this::report);
+			}
+			case "sprint" -> {
+				mc.player.setSprinting(a[1].equals("on"));
+				report("sprint " + a[1]);
 			}
 			case "select" -> {
 				mc.player.getInventory().selected = Integer.parseInt(a[1]);
@@ -468,7 +490,10 @@ public class DevClientDriver implements ClientModInitializer {
 			breaking = null;
 			return;
 		}
-		mc.gameMode.continueDestroyBlock(breaking, Direction.UP);
+		// As the attack key does: chips fly off the face being mined.
+		if (mc.gameMode.continueDestroyBlock(breaking, breakFace)) {
+			mc.particleEngine.crack(breaking, breakFace);
+		}
 		mc.player.swing(InteractionHand.MAIN_HAND);
 	}
 

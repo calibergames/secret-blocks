@@ -8,6 +8,11 @@
 					"type": "minecraft:item",
 					"name": "secretblocks:trapdoor_block"
 				}
+			],
+			"conditions": [
+				{
+					"condition": "minecraft:survives_explosion"
+				}
 			]
 		}
 	]

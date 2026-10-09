@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.ComparatorBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -62,5 +63,11 @@ public class SecretComparator extends ComparatorBlock implements SecretBlock {
 	@Override
 	public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
 		return true;
+	}
+
+	/** A piston breaks it, as it breaks a vanilla comparator. */
+	@Override
+	public PushReaction getPistonPushReaction(BlockState state) {
+		return PushReaction.DESTROY;
 	}
 }

@@ -1,5 +1,7 @@
 package net.calibermc.secretblocks.render;
 
+import net.calibermc.secretblocks.blocks.DisguiseLook;
+import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.calibermc.secretblocks.blocks.DoorBlock;
@@ -72,7 +74,7 @@ public final class DisguiseRenderer {
 				tempRotation = tag.getInt(direction.name().toLowerCase() + "Rotation");
 			}
 
-			if (!drawsAsItself(tempState, blockView, pos, tempDirection)) {
+			if (!DisguiseLook.showsItself(tempState, blockView, pos, tempDirection)) {
 				tempState = Blocks.STONE.defaultBlockState();
 			}
 			RenderMaterial layer = builder ? null : DisguiseMaterials.forDisguise(tempState);
@@ -94,7 +96,16 @@ public final class DisguiseRenderer {
 				emitter.emit();
 			}
 
-			for (BakedQuad quad : ghost ? List.<BakedQuad>of() : abqList) {
+			// A face that shows its look as it is (the same side, unturned, on a
+			// full face) is drawn by the look's own model, as the look would be
+			// drawn here: connected textures and random variants apply.
+			boolean whole = !ghost && tempRotation == 0 && tempDirection == direction
+					&& !(state.getBlock() instanceof DoorBlock) && !(state.getBlock() instanceof TrapdoorBlock);
+			if (whole) {
+				emitWhole(context, emitter, fullModel, abqList, tempState, blockView, pos, randomSupplier, direction, layer, builder);
+			}
+
+			for (BakedQuad quad : ghost || whole ? List.<BakedQuad>of() : abqList) {
 
 				TextureAtlasSprite quadSprite = quad.getSprite();
 
@@ -129,17 +140,6 @@ public final class DisguiseRenderer {
 		if (builder) {
 			emitRealBlock(state, blockView, pos, randomSupplier, context);
 		}
-	}
-
-	/**
-	 * Whether a disguise face is drawn with the disguise's own model, or with
-	 * stone: a face is copied from full blocks only. A block whose face is
-	 * sturdy (stone, glass) or whose shape is a full block (leaves, whose
-	 * faces are not sturdy) draws as itself; anything partial (a torch, a
-	 * slab's side) draws as stone.
-	 */
-	static boolean drawsAsItself(BlockState disguise, BlockGetter level, BlockPos pos, Direction face) {
-		return disguise.isFaceSturdy(level, pos, face) || disguise.isCollisionShapeFullBlock(level, pos);
 	}
 
 	/**
@@ -202,6 +202,73 @@ public final class DisguiseRenderer {
 	}
 
 	/** The shape of one disguise face: a full square, or a door or trapdoor panel face. */
+	/**
+	 * One side of a look drawn by the look's own model. A model that renders
+	 * itself (connected textures, for one) is given a view where secret
+	 * blocks read as their looks, and only its quads on this side are kept;
+	 * a plain model's quads are copied with their own texture coordinates, so
+	 * random variants and rotations show as on the real block. Tints are the
+	 * look's, and the material is the look's pass (or the Builder's Goggles'
+	 * fade).
+	 */
+	private static void emitWhole(RenderContext context, QuadEmitter emitter, BakedModel model, List<BakedQuad> quads, BlockState look,
+			BlockAndTintGetter blockView, BlockPos pos, Supplier<net.minecraft.util.RandomSource> randomSupplier, Direction direction,
+			@org.jetbrains.annotations.Nullable RenderMaterial layer, boolean builder) {
+		if (model instanceof FabricBakedModel fabric && !fabric.isVanillaAdapter()) {
+			context.pushTransform(quad -> {
+				Direction side = quad.cullFace() != null ? quad.cullFace() : quad.lightFace();
+				if (side != direction) {
+					return false;
+				}
+				finishWhole(quad, look, blockView, pos, layer, builder);
+				return true;
+			});
+			try {
+				fabric.emitBlockQuads(new LookView(blockView, direction), look, pos, randomSupplier, context);
+			} finally {
+				context.popTransform();
+			}
+		} else {
+			for (BakedQuad quad : quads) {
+				emitter.fromVanilla(quad, layer, direction);
+				finishWhole(emitter, look, blockView, pos, layer, builder);
+				emitter.emit();
+			}
+		}
+	}
+
+	private static void finishWhole(MutableQuadView quad, BlockState look, BlockAndTintGetter blockView, BlockPos pos,
+			@org.jetbrains.annotations.Nullable RenderMaterial layer, boolean builder) {
+		int tint = 0xFFFF_FFFF;
+		if (quad.colorIndex() != -1) {
+			tint = 0xFF00_0000 | Minecraft.getInstance().getBlockColors().getColor(look, blockView, pos, quad.colorIndex());
+			quad.colorIndex(-1);
+		}
+		for (int i = 0; i < 4; i++) {
+			int color = multiply(quad.spriteColor(i, 0), tint);
+			if (builder) {
+				// Faded, so the real block drawn below shows through.
+				color = (color & 0x00FF_FFFF) | (BuilderView.DISGUISE_ALPHA << 24);
+			}
+			quad.spriteColor(i, 0, color);
+		}
+		if (builder) {
+			quad.material(BuilderView.fadeMaterial());
+		} else if (layer != null) {
+			quad.material(layer);
+		}
+	}
+
+	/** Two ARGB colours multiplied channel by channel. */
+	private static int multiply(int a, int b) {
+		int result = 0;
+		for (int shift = 0; shift < 32; shift += 8) {
+			int channel = ((a >>> shift) & 0xFF) * ((b >>> shift) & 0xFF) / 255;
+			result |= channel << shift;
+		}
+		return result;
+	}
+
 	private static void emitShape(QuadEmitter emitter, BlockState state, Direction direction) {
 		shape(state, direction, emitter::square);
 	}

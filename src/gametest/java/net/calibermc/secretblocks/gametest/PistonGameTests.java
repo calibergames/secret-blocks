@@ -562,7 +562,7 @@ public class PistonGameTests implements FabricGameTest {
 	}
 
 	/**
-	 * What they are made of: vanilla toughness, not conductors, full
+	 * What they are made of: drop without a tool, not conductors, full
 	 * blocks, the shared block entity; the head has no item, drops nothing,
 	 * gives the piston on pick-block and collides as a full block; counterparts
 	 * and recipes.
@@ -575,8 +575,7 @@ public class PistonGameTests implements FabricGameTest {
 			h.setBlock(rel, block);
 			BlockState state = h.getBlockState(rel);
 			BlockPos abs = h.absolutePos(rel);
-			check(h, state.getDestroySpeed(h.getLevel(), abs) == Blocks.PISTON.defaultBlockState().getDestroySpeed(h.getLevel(), abs),
-					block + " should be as hard as a vanilla piston (1.5), is " + state.getDestroySpeed(h.getLevel(), abs));
+			check(h, !state.requiresCorrectToolForDrops(), block + " should drop without a tool");
 			check(h, !state.isRedstoneConductor(h.getLevel(), abs) && state.isCollisionShapeFullBlock(h.getLevel(), abs), block + " should be a full block and not a conductor");
 			check(h, h.getBlockEntity(rel) instanceof SecretBlockEntity, block + " should have the shared block entity");
 		}
@@ -587,8 +586,6 @@ public class PistonGameTests implements FabricGameTest {
 		h.setBlock(rel, head);
 		check(h, h.getBlockState(rel).isCollisionShapeFullBlock(h.getLevel(), h.absolutePos(rel)), "the head should collide as a full block");
 		check(h, h.getBlockState(rel).getPistonPushReaction() == PushReaction.BLOCK, "pistons should neither push nor break the head, as vanilla's");
-		check(h, head.getSoundType() == Blocks.PISTON_HEAD.defaultBlockState().getSoundType() && PISTON.defaultBlockState().getSoundType() == Blocks.PISTON.defaultBlockState().getSoundType(),
-				"base and head should sound as vanilla's");
 		ItemStack picked = HEAD.getCloneItemStack(h.getLevel(), h.absolutePos(rel), head);
 		check(h, picked.is(STICKY.asItem()), "pick-block on a sticky head should give the Secret Sticky Piston, gives " + picked);
 		h.getLevel().destroyBlock(h.absolutePos(rel), true);

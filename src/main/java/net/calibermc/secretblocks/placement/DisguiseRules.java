@@ -99,13 +99,15 @@ public final class DisguiseRules {
 	}
 
 	/**
-	 * The One Way Glass face: toward the placing player's horizontal position
-	 * (the face opposite the player's horizontal facing), as in 1.2.0 (P4).
+	 * The One Way Glass face: the face toward the placing player, opposite
+	 * the way they face. That is their horizontal facing, as in 1.2.0 (P4),
+	 * or, when they sneak, the nearest direction of their look, so the glass
+	 * can go on the top or bottom.
 	 * With no player (automation, P3b) the glass goes on the face pointing
 	 * away from the clicked block, which is the face a player clicking that
 	 * block head-on would get.
 	 *
-	 * @param playerFacing  the player's horizontal facing, or {@code null} if
+	 * @param playerFacing  the way the player faces, or {@code null} if
 	 *                      no player placed the block
 	 * @param touchingFace  the neighbor's face that touches the new block
 	 */

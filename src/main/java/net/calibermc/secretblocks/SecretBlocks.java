@@ -52,6 +52,8 @@ public class SecretBlocks implements ModInitializer {
         registerGogglesLoot();
         // The wand acts before the clicked block's own use.
         UseBlockCallback.EVENT.register(CamouflageWand::onUseBlock);
+        // Older secret blocks learn whether their looks let light through.
+        net.calibermc.secretblocks.blocks.Opacity.register();
 
     }
 }

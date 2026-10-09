@@ -13,13 +13,12 @@ import net.minecraft.world.level.block.Block;
  * too, but only retracted, as vanilla's ({@code PistonBaseBlockMixin}).
  *
  * Not pushable, as in vanilla: the containers (chests, dispenser, dropper,
- * hopper), the sculk sensor and the daylight detector. The Secret Comparator
- * stays unpushable: it stops a piston, which breaks a vanilla comparator.
- * The Secret Gate and its segments stay unpushable (a moved gate would strand
- * its segments). The Secret Trapdoors move, as vanilla's do (found when the
- * game tests compared them). A piston breaks the Secret Doors (vanilla's
- * door code), Buttons, Lever and pressure plates (their own push reaction,
- * matching vanilla's), as it breaks vanilla's.
+ * hopper), the sculk sensor and the daylight detector. The Secret Gate and
+ * its segments stay unpushable (a moved gate would strand its segments). The
+ * Secret Trapdoors move, as vanilla's do. A piston breaks the Secret Doors
+ * (vanilla's door code), Buttons, Lever, pressure plates, Dust, Wire,
+ * Repeater and Comparator (their own push reaction, matching vanilla's), as
+ * it breaks vanilla's.
  */
 public final class SecretPushing {
 
@@ -29,9 +28,8 @@ public final class SecretPushing {
 	/** Built on first use (the blocks are registered by then). */
 	private static final class Holder {
 		private static final Set<Block> PUSHABLE = Set.of(ModBlocks.SOLID_BLOCK, ModBlocks.GHOST_BLOCK, ModBlocks.ONE_WAY_GLASS,
-				ModBlocks.STAIR_BLOCK, ModBlocks.SLAB_BLOCK, ModBlocks.SECRET_CLAMBER, ModBlocks.SECRET_REDSTONE,
-				ModBlocks.SECRET_REDSTONE_WIRE, ModBlocks.SECRET_REPEATER, ModBlocks.SECRET_OBSERVER, ModBlocks.TRAPDOOR_BLOCK,
-				ModBlocks.IRON_TRAPDOOR_BLOCK);
+				ModBlocks.STAIR_BLOCK, ModBlocks.SLAB_BLOCK, ModBlocks.SECRET_CLAMBER, ModBlocks.SECRET_OBSERVER,
+				ModBlocks.TRAPDOOR_BLOCK, ModBlocks.IRON_TRAPDOOR_BLOCK);
 	}
 
 	public static boolean isPushable(Block block) {

@@ -19,9 +19,10 @@ import java.util.Map;
 
 /**
  * Minecraft adapter for {@link DisguiseRules}: reads the placement context,
- * picks the disguise on the server, and writes it to the new block entity.
- * Used by {@link net.calibermc.secretblocks.items.SecretBlockItem}; the
- * vanilla block-entity sync carries the result to clients.
+ * picks the disguise, and (on the server) writes it to the new block entity.
+ * Used by {@link net.calibermc.secretblocks.items.SecretBlockItem}, whose
+ * client side picks it only for the place sound; the vanilla block-entity
+ * sync carries the server's result to clients.
  */
 public final class DisguisePlacement {
 
@@ -53,7 +54,13 @@ public final class DisguisePlacement {
 		}
 		Face glassFace = null;
 		if (placing instanceof OneWayGlassBlock) {
-			Face playerFacing = context.getPlayer() == null ? null : face(context.getPlayer().getDirection());
+			// Sneaking lets the glass go on the top or bottom: the face toward
+			// the player along their look. Otherwise only the sides.
+			Face playerFacing = null;
+			if (context.getPlayer() != null) {
+				playerFacing = face(context.isSecondaryUseActive()
+						? context.getNearestLookingDirection() : context.getPlayer().getDirection());
+			}
 			glassFace = DisguiseRules.glassFace(playerFacing, face(touching));
 		}
 		Map<Face, BlockState> faces = DisguiseRules.select(neighbor(level, neighborPos), face(touching), glassFace,

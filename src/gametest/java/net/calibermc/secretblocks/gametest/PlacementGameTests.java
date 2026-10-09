@@ -6,6 +6,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -161,6 +163,55 @@ public class PlacementGameTests implements FabricGameTest {
 		h.setBlock(target, Blocks.BRICKS);
 		place(h, ModBlocks.ONE_WAY_GLASS.asItem(), new Vec3(1.5, 1, 3.5), target, Direction.WEST, new Vec3(5.0, 1.5, 3.5));
 		checkFaces(h, placed, Blocks.BRICKS, only(Direction.WEST, Blocks.GLASS));
+		h.succeed();
+	}
+
+	/**
+	 * One Way Glass placed on the floor at (3, 1, 3), the player standing at
+	 * {@code feet} and looking at the top of the floor block there: steeply
+	 * down from (3.5, 1, 2.5), mostly across from (3.5, 1, 0.5). Sneaking puts
+	 * the glass on the face toward the player along their look.
+	 */
+	private static void oneWayGlassOnTheFloor(GameTestHelper h, Vec3 feet, boolean sneaking, Direction glass) {
+		floor(h);
+		h.setBlock(new BlockPos(3, 0, 3), Blocks.BRICKS);
+		Vec3 hit = new Vec3(3.5, 1.0, 3.5);
+		ServerPlayer player = player(h, feet, hit);
+		player.setShiftKeyDown(sneaking);
+		useOn(h, player, new ItemStack(ModBlocks.ONE_WAY_GLASS), new BlockPos(3, 0, 3), Direction.UP, hit);
+		checkFaces(h, new BlockPos(3, 1, 3), Blocks.BRICKS, only(glass, Blocks.GLASS));
+		h.succeed();
+	}
+
+	/** Sneaking and looking down at the floor: glass on top. */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void oneWayGlassSneakingLookingDownGoesOnTop(GameTestHelper h) {
+		oneWayGlassOnTheFloor(h, new Vec3(3.5, 1, 2.5), true, Direction.UP);
+	}
+
+	/** The same look without sneaking keeps the glass on the side facing the player (north of the block). */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void oneWayGlassLookingDownWithoutSneakingGoesOnTheSide(GameTestHelper h) {
+		oneWayGlassOnTheFloor(h, new Vec3(3.5, 1, 2.5), false, Direction.NORTH);
+	}
+
+	/** Sneaking but looking more across than down (a far floor block): the side facing the player. */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void oneWayGlassSneakingLookingAcrossGoesOnTheSide(GameTestHelper h) {
+		oneWayGlassOnTheFloor(h, new Vec3(3.5, 1, 0.5), true, Direction.NORTH);
+	}
+
+	/** Sneaking and looking up at a ceiling: glass on the bottom. */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void oneWayGlassSneakingLookingUpGoesOnTheBottom(GameTestHelper h) {
+		floor(h);
+		BlockPos ceiling = new BlockPos(3, 4, 3);
+		h.setBlock(ceiling, Blocks.BRICKS);
+		Vec3 hit = new Vec3(3.5, 4.0, 3.5);
+		ServerPlayer player = player(h, new Vec3(3.5, 1, 2.5), hit);
+		player.setShiftKeyDown(true);
+		useOn(h, player, new ItemStack(ModBlocks.ONE_WAY_GLASS), ceiling, Direction.DOWN, hit);
+		checkFaces(h, ceiling.below(), Blocks.BRICKS, only(Direction.DOWN, Blocks.GLASS));
 		h.succeed();
 	}
 

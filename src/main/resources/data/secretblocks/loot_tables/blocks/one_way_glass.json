@@ -8,6 +8,11 @@
 					"type": "minecraft:item",
 					"name": "secretblocks:one_way_glass"
 				}
+			],
+			"conditions": [
+				{
+					"condition": "minecraft:survives_explosion"
+				}
 			]
 		}
 	]

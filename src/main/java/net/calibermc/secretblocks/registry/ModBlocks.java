@@ -15,10 +15,15 @@ import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
 
 public class ModBlocks {
 
     // Blocks
+    // Wool settings: drops without a tool. How long a secret block takes to
+    // mine, how it sounds and how it stands up to a blast follow its look
+    // (blocks/DisguiseLook), not these settings.
     public static final Block SOLID_BLOCK = registerBlock("solid_block",
             new SolidBlock(FabricBlockSettings.copy(Blocks.WHITE_WOOL)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
@@ -37,19 +42,22 @@ public class ModBlocks {
     public static final Block DOOR_BLOCK = registerBlock("door_block",
             new DoorBlock(FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
-    // Iron door and trapdoor: vanilla iron settings. Metal material is what
-    // makes 1.19.2's DoorBlock/TrapDoorBlock refuse hand use and play the iron
-    // sounds; hardness 5, pickaxe (mineable/pickaxe tag) to drop.
+    // Iron door and trapdoor: vanilla iron settings but for the tool needed to
+    // drop (a secret block always drops; mining time, sounds and blast
+    // resistance follow its look). Metal material is what makes 1.19.2's
+    // DoorBlock/TrapDoorBlock refuse hand use and play the iron door sounds.
     // Our DoorBlock/TrapdoorBlock classes keep the disguised panel rendering
     // (the unused IronDoorBlock extends vanilla's door and would draw a full cube).
     public static final Block IRON_DOOR_BLOCK = registerBlock("iron_door_block",
-            new DoorBlock(FabricBlockSettings.copy(Blocks.IRON_DOOR)), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new DoorBlock(FabricBlockSettings.of(Material.METAL, MaterialColor.METAL).strength(5.0F).sound(SoundType.METAL).noOcclusion()),
+            SecretBlocks.SECRET_BLOCKS_GROUP);
 
     public static final Block TRAPDOOR_BLOCK = registerBlock("trapdoor_block",
             new TrapdoorBlock(FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
     public static final Block IRON_TRAPDOOR_BLOCK = registerBlock("iron_trapdoor_block",
-            new TrapdoorBlock(FabricBlockSettings.copy(Blocks.IRON_TRAPDOOR)), SecretBlocks.SECRET_BLOCKS_GROUP);
+            new TrapdoorBlock(FabricBlockSettings.of(Material.METAL).strength(5.0F).sound(SoundType.METAL).noOcclusion()
+                    .isValidSpawn((state, level, pos, type) -> false)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // Buttons and the lever are not conductors, like the vanilla ones they stand in for.
     public static final Block WOODEN_BUTTON = registerBlock("wooden_button",
@@ -90,12 +98,10 @@ public class ModBlocks {
             SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // Has its own block entity type (a vanilla hopper block entity), see ModEntities.
-    // As tough as a vanilla hopper: hardness 3, blast resistance 4.8, needs a
-    // pickaxe to drop (data/minecraft/tags/blocks/mineable/pickaxe.json),
-    // metal sound. Still a full, occluding block, unlike the vanilla funnel, but
-    // not a conductor, as vanilla's.
+    // A full, occluding block, unlike the vanilla funnel, but not a conductor,
+    // as vanilla's.
     public static final Block SECRET_HOPPER = registerBlock("secret_hopper",
-            new SecretHopper(FabricBlockSettings.copy(SOLID_BLOCK).strength(3.0f, 4.8f).requiresCorrectToolForDrops().sound(SoundType.METAL).isRedstoneConductor((state, level, pos) -> false)),
+            new SecretHopper(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)),
             SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // Not conductors, like the vanilla plates they stand in for.
@@ -163,15 +169,15 @@ public class ModBlocks {
     public static final Block SECRET_GATE = registerBlock("secret_gate",
             new SecretGate(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
-    // Pistons: vanilla toughness and sound, not conductors (as vanilla). The head has no item and drops nothing.
+    // Pistons: not conductors (as vanilla). The head has no item and drops nothing.
     public static final Block SECRET_PISTON = registerBlock("secret_piston",
-            new SecretPiston(false, FabricBlockSettings.copy(SOLID_BLOCK).strength(1.5F).sound(SoundType.STONE).isRedstoneConductor((state, level, pos) -> false)),
+            new SecretPiston(false, FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)),
             SecretBlocks.SECRET_BLOCKS_GROUP);
     public static final Block SECRET_STICKY_PISTON = registerBlock("secret_sticky_piston",
-            new SecretPiston(true, FabricBlockSettings.copy(SOLID_BLOCK).strength(1.5F).sound(SoundType.STONE).isRedstoneConductor((state, level, pos) -> false)),
+            new SecretPiston(true, FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)),
             SecretBlocks.SECRET_BLOCKS_GROUP);
     public static final Block SECRET_PISTON_HEAD = registerBlockWithoutBlockItem("secret_piston_head",
-            new SecretPistonHead(FabricBlockSettings.copy(SOLID_BLOCK).strength(1.5F).sound(SoundType.STONE).isRedstoneConductor((state, level, pos) -> false).noLootTable()));
+            new SecretPistonHead(FabricBlockSettings.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false).noLootTable()));
 
     // No item: a Secret Gate builds it. Drops nothing; wool-like as the Dummy Block.
     public static final Block SECRET_GATE_SEGMENT = registerBlockWithoutBlockItem("secret_gate_segment",

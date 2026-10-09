@@ -206,7 +206,9 @@ public class WandConversionGameTests implements FabricGameTest {
 				Blocks.BIRCH_SLAB.defaultBlockState(),
 				Blocks.ACACIA_TRAPDOOR.defaultBlockState().setValue(BlockStateProperties.OPEN, true),
 				Blocks.DARK_OAK_BUTTON.defaultBlockState().setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR),
-				Blocks.JUNGLE_PRESSURE_PLATE.defaultBlockState())) {
+				Blocks.JUNGLE_PRESSURE_PLATE.defaultBlockState(),
+				Blocks.POLISHED_BLACKSTONE_BUTTON.defaultBlockState().setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR),
+				Blocks.POLISHED_BLACKSTONE_PRESSURE_PLATE.defaultBlockState())) {
 			place(h, vanilla);
 			convert(h, op(h), wand(GRANITE));
 			if (!(h.getBlockEntity(TARGET) instanceof DisguisedBlockEntity entity) || entity.getOriginal() != vanilla.getBlock()) {
@@ -234,6 +236,21 @@ public class WandConversionGameTests implements FabricGameTest {
 			problems.append("door with a stair original back as ").append(h.getBlockState(TARGET)).append("; ");
 		}
 		check(h, problems.length() == 0, problems.toString());
+		h.succeed();
+	}
+
+	/** A chest turned secret with a glass look lets light through, and keeps its contents. */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void aGlassLookConversionLetsLightThrough(GameTestHelper h) {
+		floor(h);
+		place(h, Blocks.CHEST.defaultBlockState());
+		((net.minecraft.world.Container) h.getBlockEntity(TARGET)).setItem(3, new ItemStack(Items.DIAMOND, 2));
+		convert(h, op(h), wand(Blocks.GLASS.defaultBlockState()));
+		BlockState state = h.getBlockState(TARGET);
+		check(h, state.is(ModBlocks.SECRET_CHEST), "the chest should be secret: " + state);
+		check(h, !state.getValue(net.calibermc.secretblocks.blocks.Opacity.OPAQUE)
+				&& state.getLightBlock(h.getLevel(), h.absolutePos(TARGET)) == 0, "it should let light through: " + state);
+		check(h, ((net.minecraft.world.Container) h.getBlockEntity(TARGET)).getItem(3).is(Items.DIAMOND), "it should keep its contents");
 		h.succeed();
 	}
 

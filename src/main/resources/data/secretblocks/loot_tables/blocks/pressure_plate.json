@@ -8,6 +8,11 @@
 					"type": "minecraft:item",
 					"name": "secretblocks:pressure_plate"
 				}
+			],
+			"conditions": [
+				{
+					"condition": "minecraft:survives_explosion"
+				}
 			]
 		}
 	]

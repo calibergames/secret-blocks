@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import static net.calibermc.secretblocks.gametest.TestSupport.*;
@@ -315,6 +316,39 @@ public class BehaviourGameTests implements FabricGameTest {
 				check(h, count == expected, block + " " + type + " should drop " + expected + ", drops " + count);
 			}
 		}
+		h.succeed();
+	}
+
+	/**
+	 * A Secret Slab takes the half a vanilla slab would: clicking the floor's
+	 * top or the lower half of a wall's side gives a bottom slab, the upper
+	 * half of a side a top slab, and a second slab makes a double. Each
+	 * collides as that half (the disguise is drawn as a full block).
+	 */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void slabsTakeTheHalfYouClick(GameTestHelper h) {
+		floor(h);
+		h.setBlock(new BlockPos(4, 1, 2), Blocks.STONE);
+		Vec3 feet = new Vec3(2.5, 1, 0.5);
+		// On the floor: bottom.
+		place(h, ModBlocks.SLAB_BLOCK.asItem(), feet, new BlockPos(1, 0, 2), Direction.UP, new Vec3(1.5, 1.0, 2.5));
+		// Against the stone's west side, lower and upper half.
+		place(h, ModBlocks.SLAB_BLOCK.asItem(), feet, new BlockPos(4, 1, 2), Direction.WEST, new Vec3(4.0, 1.25, 2.5));
+		h.setBlock(new BlockPos(4, 2, 2), Blocks.STONE);
+		place(h, ModBlocks.SLAB_BLOCK.asItem(), feet, new BlockPos(4, 2, 2), Direction.WEST, new Vec3(4.0, 2.75, 2.5));
+		check(h, h.getBlockState(new BlockPos(1, 1, 2)).getValue(SlabBlock.TYPE) == SlabType.BOTTOM, "on the floor: bottom, is " + h.getBlockState(new BlockPos(1, 1, 2)));
+		check(h, h.getBlockState(new BlockPos(3, 1, 2)).getValue(SlabBlock.TYPE) == SlabType.BOTTOM, "lower half of a side: bottom, is " + h.getBlockState(new BlockPos(3, 1, 2)));
+		check(h, h.getBlockState(new BlockPos(3, 2, 2)).getValue(SlabBlock.TYPE) == SlabType.TOP, "upper half of a side: top, is " + h.getBlockState(new BlockPos(3, 2, 2)));
+		// A second slab on the bottom one makes a double.
+		place(h, ModBlocks.SLAB_BLOCK.asItem(), feet, new BlockPos(1, 1, 2), Direction.UP, new Vec3(1.5, 1.5, 2.5));
+		check(h, h.getBlockState(new BlockPos(1, 1, 2)).getValue(SlabBlock.TYPE) == SlabType.DOUBLE, "a second slab makes a double, is " + h.getBlockState(new BlockPos(1, 1, 2)));
+		// Collision per half.
+		VoxelShape top = h.getBlockState(new BlockPos(3, 2, 2)).getCollisionShape(h.getLevel(), h.absolutePos(new BlockPos(3, 2, 2)));
+		VoxelShape bottom = h.getBlockState(new BlockPos(3, 1, 2)).getCollisionShape(h.getLevel(), h.absolutePos(new BlockPos(3, 1, 2)));
+		VoxelShape both = h.getBlockState(new BlockPos(1, 1, 2)).getCollisionShape(h.getLevel(), h.absolutePos(new BlockPos(1, 1, 2)));
+		check(h, top.min(Direction.Axis.Y) == 0.5 && top.max(Direction.Axis.Y) == 1.0, "a top slab collides in the upper half, is " + top);
+		check(h, bottom.min(Direction.Axis.Y) == 0.0 && bottom.max(Direction.Axis.Y) == 0.5, "a bottom slab collides in the lower half, is " + bottom);
+		check(h, both.min(Direction.Axis.Y) == 0.0 && both.max(Direction.Axis.Y) == 1.0, "a double slab collides as a full block, is " + both);
 		h.succeed();
 	}
 }

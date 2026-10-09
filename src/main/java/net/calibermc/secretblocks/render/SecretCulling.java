@@ -1,29 +1,40 @@
 package net.calibermc.secretblocks.render;
 
+import net.calibermc.secretblocks.blocks.DisguiseLook;
+import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.DoorBlock;
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.TrapdoorBlock;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Which faces beside secret blocks are drawn. A secret block can look like
- * anything (glass, a faded disguise under the Builder's Goggles), so a face
- * of any block that touches one is drawn. Between two secret blocks of the
- * same kind the faces they show decide: a face is hidden behind an opaque
- * one (stone), and where vanilla would hide it between the two blocks shown
- * (glass beside glass). Beside a Secret Door or Trapdoor, or with the
- * Builder's Goggles' view on, it is always drawn. Used by vanilla's culling ({@code DrawSideMixin}) and by
- * Sodium's, which does not call vanilla's ({@code SodiumOcclusionMixin}).
+ * anything (glass, a faded disguise under the Builder's Goggles), so the
+ * faces it shows decide, as vanilla decides between the blocks shown:
+ * <ul>
+ * <li>a face where vanilla would hide it between the two blocks shown is
+ * hidden (glass beside glass), whether either block is secret;</li>
+ * <li>a real block's face behind a secret block that looks solid on every
+ * face (stone all round) is hidden, as behind a solid block; so is a face
+ * between two secret blocks of the same kind behind such a block. A block
+ * with any see-through face (One Way Glass) hides nothing, since the face
+ * behind it can be seen through that face;</li>
+ * <li>any other face of a real block beside a secret block is drawn (the
+ * look may be see-through); a secret block's own other faces follow the
+ * renderer's rule.</li>
+ * </ul>
+ * Beside a Secret Door or Trapdoor (thin panels), or with the Builder's
+ * Goggles' view on, faces beside secret blocks are always drawn. Used by
+ * vanilla's culling ({@code DrawSideMixin}) and by Sodium's, which does not
+ * call vanilla's ({@code SodiumOcclusionMixin}).
  */
 @Environment(EnvType.CLIENT)
 public final class SecretCulling {
@@ -39,28 +50,44 @@ public final class SecretCulling {
 	@Nullable
 	public static Boolean drawFace(BlockState self, BlockGetter level, BlockPos pos, Direction side, BlockPos neighbourPos) {
 		BlockState neighbour = level.getBlockState(neighbourPos);
-		if (!(neighbour.getBlock() instanceof SecretBlock)) {
-			return null;
+		boolean selfSecret = self.getBlock() instanceof SecretBlock;
+		boolean neighbourSecret = neighbour.getBlock() instanceof SecretBlock;
+		if (!neighbourSecret) {
+			if (!selfSecret || BuilderView.isActive() || panels(self)) {
+				return null;
+			}
+			// Secret beside real: hidden where vanilla would hide the look's face beside that block.
+			return DisguiseLook.shown(level, pos, side).skipRendering(neighbour, side) ? false : null;
 		}
-		if (self.getBlock() != neighbour.getBlock() || BuilderView.isActive()
-				|| neighbour.getBlock() instanceof DoorBlock || neighbour.getBlock() instanceof TrapdoorBlock) {
+		if (BuilderView.isActive() || panels(neighbour) || (selfSecret && panels(self))) {
 			return true;
 		}
-		BlockState theirs = shown(level, neighbourPos, side.getOpposite());
-		if (theirs.canOcclude() && ItemBlockRenderTypes.getChunkRenderType(theirs) == RenderType.solid()) {
+		BlockState theirs = DisguiseLook.shown(level, neighbourPos, side.getOpposite());
+		boolean vanillaHides = selfSecret ? DisguiseLook.shown(level, pos, side).skipRendering(theirs, side) : self.skipRendering(theirs, side);
+		if (vanillaHides) {
 			return false;
 		}
-		return !shown(level, pos, side).skipRendering(theirs, side);
+		// Hidden behind it only if no face of it can be seen through (One Way Glass's glass face shows this one).
+		boolean behindItsKind = !selfSecret || self.getBlock() == neighbour.getBlock();
+		return !(behindItsKind && allSolid(level, neighbourPos));
 	}
 
-	/** The block the secret block at {@code pos} shows on {@code face}: its disguise there, or stone (no data, or a partial block). */
-	private static BlockState shown(BlockGetter level, BlockPos pos, Direction face) {
-		if (level.getBlockEntity(pos) instanceof DisguisedBlockEntity secret) {
-			BlockState state = secret.getState(face);
-			if (state != null && DisguiseRenderer.drawsAsItself(state, level, pos, secret.getDisguise().getDirection(face))) {
-				return state;
+	/** Whether every face of the secret block at {@code pos} looks like a solid, opaque block (nothing shows through it). */
+	private static boolean allSolid(BlockGetter level, BlockPos pos) {
+		if (!(level.getBlockEntity(pos) instanceof DisguisedBlockEntity secret)) {
+			return true; // no disguise yet: stone all round
+		}
+		for (Direction face : Direction.values()) {
+			BlockState look = DisguiseLook.shown(secret, level, pos, face);
+			if (!look.canOcclude() || ItemBlockRenderTypes.getChunkRenderType(look) != RenderType.solid()) {
+				return false;
 			}
 		}
-		return Blocks.STONE.defaultBlockState();
+		return true;
+	}
+
+	/** Secret Doors and Trapdoors are drawn as thin panels, not full faces. */
+	private static boolean panels(BlockState state) {
+		return state.getBlock() instanceof DoorBlock || state.getBlock() instanceof TrapdoorBlock;
 	}
 }

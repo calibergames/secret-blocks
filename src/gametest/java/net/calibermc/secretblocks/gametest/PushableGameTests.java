@@ -12,6 +12,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -154,8 +155,8 @@ public class PushableGameTests implements FabricGameTest {
 	}
 
 	/**
-	 * Moved blocks keep their state and their own data: a repeater its delay and
-	 * facing, a double slab, an open top trapdoor; a line of three Dummy Blocks
+	 * Moved blocks keep their state and their own data: an upside-down stair
+	 * its facing, a double slab, an open top trapdoor; a line of three Dummy Blocks
 	 * each its own disguise (vanilla moves the front block first); a Dummy Block
 	 * dragged along by a slime block beside the one pushed.
 	 */
@@ -163,8 +164,8 @@ public class PushableGameTests implements FabricGameTest {
 	public void statesLinesAndSlimeMoveIntact(GameTestHelper h) {
 		floor(h);
 		BlockState[] states = {
-				ModBlocks.SECRET_REPEATER.defaultBlockState().setValue(net.minecraft.world.level.block.RepeaterBlock.DELAY, 3)
-						.setValue(net.minecraft.world.level.block.RepeaterBlock.FACING, Direction.SOUTH),
+				ModBlocks.STAIR_BLOCK.defaultBlockState().setValue(net.minecraft.world.level.block.StairBlock.FACING, Direction.SOUTH)
+						.setValue(net.minecraft.world.level.block.StairBlock.HALF, net.minecraft.world.level.block.state.properties.Half.TOP),
 				ModBlocks.SLAB_BLOCK.defaultBlockState().setValue(net.minecraft.world.level.block.SlabBlock.TYPE, net.minecraft.world.level.block.state.properties.SlabType.DOUBLE),
 				ModBlocks.TRAPDOOR_BLOCK.defaultBlockState().setValue(net.minecraft.world.level.block.TrapDoorBlock.OPEN, true)
 						.setValue(net.minecraft.world.level.block.TrapDoorBlock.HALF, net.minecraft.world.level.block.state.properties.Half.TOP)};
@@ -299,7 +300,7 @@ public class PushableGameTests implements FabricGameTest {
 	public void containersSensorsAndTheGateAreRefused(GameTestHelper h) {
 		floor(h);
 		Block[] refused = {ModBlocks.SECRET_CHEST, ModBlocks.SECRET_TRAPPED_CHEST, ModBlocks.SECRET_DISPENSER, ModBlocks.SECRET_DROPPER,
-				ModBlocks.SECRET_HOPPER, ModBlocks.SECRET_COMPARATOR, ModBlocks.SECRET_SCULK_SENSOR, ModBlocks.SECRET_DAYLIGHT_DETECTOR,
+				ModBlocks.SECRET_HOPPER, ModBlocks.SECRET_SCULK_SENSOR, ModBlocks.SECRET_DAYLIGHT_DETECTOR,
 				ModBlocks.SECRET_GATE};
 		for (int i = 0; i < refused.length; i++) {
 			pistonAt(h, slot(i), Blocks.PISTON, Direction.EAST);
@@ -368,6 +369,53 @@ public class PushableGameTests implements FabricGameTest {
 				String vanilla = outcome(h, slot(p * 2 + 1).east(), pairs[p][1]);
 				check(h, secret.equals(vanilla), pairs[p][0] + " was " + secret + ", its vanilla twin " + pairs[p][1] + " was " + vanilla);
 			}
+			h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(BlockPos.ZERO), h.absolutePos(new BlockPos(8, 4, 8))).inflate(2)).forEach(ItemEntity::discard);
+			for (int i = 0; i < pairs.length * 2; i++) {
+				h.setBlock(slot(i).below(), Blocks.STONE);
+			}
+			h.succeed();
+		});
+	}
+
+	/**
+	 * The Secret Dust, Wire, Repeater and Comparator meet a piston as vanilla's
+	 * dust, repeater and comparator do, each beside its twin: the piston breaks
+	 * them, and each secret one drops itself.
+	 */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void redstoneBreaksAsItsVanillaTwins(GameTestHelper h) {
+		floor(h);
+		Block[][] pairs = {
+				{ModBlocks.SECRET_REDSTONE, Blocks.REDSTONE_WIRE}, {ModBlocks.SECRET_REDSTONE_WIRE, Blocks.REDSTONE_WIRE},
+				{ModBlocks.SECRET_REPEATER, Blocks.REPEATER}, {ModBlocks.SECRET_COMPARATOR, Blocks.COMPARATOR}};
+		h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(BlockPos.ZERO), h.absolutePos(new BlockPos(8, 4, 8))).inflate(2)).forEach(ItemEntity::discard);
+		for (int p = 0; p < pairs.length; p++) {
+			for (int side = 0; side < 2; side++) {
+				int i = p * 2 + side;
+				pistonAt(h, slot(i), Blocks.PISTON, Direction.EAST);
+				h.setBlock(slot(i).east(), pairs[p][side]);
+			}
+		}
+		h.runAfterDelay(2, () -> {
+			for (int i = 0; i < pairs.length * 2; i++) {
+				h.setBlock(slot(i).below(), Blocks.REDSTONE_BLOCK);
+			}
+		});
+		h.runAfterDelay(8, () -> {
+			List<String> problems = new ArrayList<>();
+			for (int p = 0; p < pairs.length; p++) {
+				String secret = outcome(h, slot(p * 2).east(), pairs[p][0]);
+				String vanilla = outcome(h, slot(p * 2 + 1).east(), pairs[p][1]);
+				if (!secret.equals("broken") || !vanilla.equals("broken")) {
+					problems.add(pairs[p][0] + " was " + secret + ", its vanilla twin " + pairs[p][1] + " was " + vanilla);
+				}
+				Item item = pairs[p][0].asItem();
+				AABB around = new AABB(h.absolutePos(slot(p * 2).east())).inflate(1.5);
+				if (h.getLevel().getEntitiesOfClass(ItemEntity.class, around, e -> e.getItem().is(item)).isEmpty()) {
+					problems.add(pairs[p][0] + " dropped no " + item);
+				}
+			}
+			check(h, problems.isEmpty(), "pushed redstone: " + problems);
 			h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(BlockPos.ZERO), h.absolutePos(new BlockPos(8, 4, 8))).inflate(2)).forEach(ItemEntity::discard);
 			for (int i = 0; i < pairs.length * 2; i++) {
 				h.setBlock(slot(i).below(), Blocks.STONE);

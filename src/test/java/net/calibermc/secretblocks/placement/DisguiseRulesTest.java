@@ -79,6 +79,13 @@ class DisguiseRulesTest {
 	}
 
 	@Test
+	void glassFacesTheViewerAboveOrBelow() {
+		// Sneak-placing looking down (the player faces down): glass on top; looking up: underneath.
+		assertEquals(Face.UP, DisguiseRules.glassFace(Face.DOWN, Face.UP));
+		assertEquals(Face.DOWN, DisguiseRules.glassFace(Face.UP, Face.DOWN));
+	}
+
+	@Test
 	void glassFacesAwayFromTheClickedBlockWithoutAPlayer() {
 		// P3b: automation places without a player.
 		for (Face touching : Face.values()) {

@@ -297,17 +297,16 @@ public class HopperGameTests implements FabricGameTest {
 		h.succeed();
 	}
 
-	/** As tough as a vanilla hopper: same hardness and blast resistance, needs a pickaxe. */
+	/**
+	 * It drops without a tool, like every secret block: how long it takes to
+	 * mine, how it sounds and how it stands up to a blast follow its look
+	 * ({@code DisguiseLookGameTests}).
+	 */
 	@GameTest(template = EMPTY_STRUCTURE)
-	public void asToughAsAVanillaHopper(GameTestHelper h) {
+	public void dropsWithoutATool(GameTestHelper h) {
 		BlockState secret = ModBlocks.SECRET_HOPPER.defaultBlockState();
-		BlockState vanilla = Blocks.HOPPER.defaultBlockState();
-		BlockPos pos = h.absolutePos(HOPPER);
-		check(h, secret.getDestroySpeed(h.getLevel(), pos) == vanilla.getDestroySpeed(h.getLevel(), pos), "hardness should match a vanilla hopper");
-		check(h, ModBlocks.SECRET_HOPPER.getExplosionResistance() == Blocks.HOPPER.getExplosionResistance(), "blast resistance should match a vanilla hopper");
-		check(h, secret.requiresCorrectToolForDrops(), "it should need the correct tool to drop");
-		check(h, secret.is(net.minecraft.tags.BlockTags.MINEABLE_WITH_PICKAXE), "a pickaxe should be the correct tool");
-		check(h, secret.getSoundType() == net.minecraft.world.level.block.SoundType.METAL, "it should sound like metal");
+		check(h, !secret.requiresCorrectToolForDrops(), "it should drop without a tool");
+		check(h, !secret.is(net.minecraft.tags.BlockTags.MINEABLE_WITH_PICKAXE), "it should not be tagged for a pickaxe");
 		h.succeed();
 	}
 

@@ -56,6 +56,15 @@ public final class Counterparts {
 			Map.entry(BlockTags.WOODEN_BUTTONS, ModBlocks.WOODEN_BUTTON),
 			Map.entry(BlockTags.WOODEN_PRESSURE_PLATES, ModBlocks.PRESSURE_PLATE));
 
+	/**
+	 * Vanilla blocks that are the same block as another one under a different
+	 * look, converting to that one's secret block (the wand's direction
+	 * only). The wand remembers the original and turns it back into it.
+	 */
+	private static final Map<Block, Block> SAME_AS = Map.of(
+			Blocks.POLISHED_BLACKSTONE_BUTTON, ModBlocks.STONE_BUTTON,
+			Blocks.POLISHED_BLACKSTONE_PRESSURE_PLATE, ModBlocks.PLAYER_PRESSURE_PLATE);
+
 	static {
 		// Lossy: the secret block does not know which wood (or stone) it was.
 		VANILLA.put(ModBlocks.STAIR_BLOCK, Blocks.OAK_STAIRS);
@@ -116,12 +125,16 @@ public final class Counterparts {
 		return vanillaOf(secret.getBlock()).map(vanilla -> copyShared(secret, vanilla.defaultBlockState()));
 	}
 
-	/** The secret block that stands in for {@code vanilla}: an exact pair first, then a family. */
+	/** The secret block that stands in for {@code vanilla}: an exact pair first, then a same-as block, then a family. */
 	public static Optional<Block> secretOf(BlockState vanilla) {
 		for (Map.Entry<Block, Block> pair : VANILLA.entrySet()) {
 			if (vanilla.is(pair.getValue())) {
 				return Optional.of(pair.getKey());
 			}
+		}
+		Block same = SAME_AS.get(vanilla.getBlock());
+		if (same != null) {
+			return Optional.of(same);
 		}
 		for (Map.Entry<TagKey<Block>, Block> family : FAMILIES) {
 			if (vanilla.is(family.getKey())) {

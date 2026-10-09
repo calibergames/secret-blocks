@@ -243,15 +243,15 @@ public class ComparatorGameTests implements FabricGameTest {
 	}
 
 	/**
-	 * A piston can neither move nor break it: it blocks the piston. (A vanilla
-	 * comparator is broken by a piston, and stone is pushed: for both the piston
-	 * may extend.)
+	 * A piston may extend into it, as into a vanilla comparator (which it
+	 * breaks) and stone (which it pushes). Breaking is tested with the other
+	 * redstone in {@code PushableGameTests}.
 	 */
 	@GameTest(template = EMPTY_STRUCTURE)
-	public void pistonsCannotMoveIt(GameTestHelper h) {
+	public void pistonsMayExtendIntoItAsVanilla(GameTestHelper h) {
 		floor(h);
 		Block[] blocks = {SECRET, Blocks.COMPARATOR, Blocks.STONE};
-		boolean[] pushable = {false, true, true};
+		boolean[] pushable = {true, true, true};
 		for (int i = 0; i < 3; i++) {
 			BlockPos pos = new BlockPos(1 + 2 * i, 1, 2);
 			h.setBlock(pos, blocks[i]);

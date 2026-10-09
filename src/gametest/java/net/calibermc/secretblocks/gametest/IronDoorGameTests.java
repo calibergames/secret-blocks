@@ -17,7 +17,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -32,7 +31,7 @@ import static net.calibermc.secretblocks.gametest.TestSupport.*;
 
 /**
  * The Secret Iron Door and Secret Iron Trapdoor behave like vanilla iron
- * ones: redstone only, iron sounds, hardness 5, pickaxe to drop. Each check runs on the
+ * ones: redstone only, iron door sounds. Each check runs on the
  * secret block and, beside it, on the vanilla block.
  */
 public class IronDoorGameTests implements FabricGameTest {
@@ -106,27 +105,24 @@ public class IronDoorGameTests implements FabricGameTest {
 		});
 	}
 
-	/** As tough as vanilla iron: same hardness, blast resistance, tool, sound and material (iron sounds). */
+	/**
+	 * Iron material, as vanilla's (iron open and close sounds, no hand use),
+	 * but no tool needed to drop: how long it takes to mine follows its look.
+	 */
 	@GameTest(template = EMPTY_STRUCTURE)
-	public void asToughAsVanillaIron(GameTestHelper h) {
-		BlockPos pos = h.absolutePos(SECRET);
-		Block[][] pairs = {{ModBlocks.IRON_DOOR_BLOCK, Blocks.IRON_DOOR}, {ModBlocks.IRON_TRAPDOOR_BLOCK, Blocks.IRON_TRAPDOOR}};
-		for (Block[] pair : pairs) {
-			BlockState secret = pair[0].defaultBlockState();
-			BlockState vanilla = pair[1].defaultBlockState();
-			check(h, secret.getDestroySpeed(h.getLevel(), pos) == vanilla.getDestroySpeed(h.getLevel(), pos), pair[0] + " hardness");
-			check(h, pair[0].getExplosionResistance() == pair[1].getExplosionResistance(), pair[0] + " blast resistance");
-			check(h, secret.requiresCorrectToolForDrops(), pair[0] + " should need the correct tool");
-			check(h, secret.is(BlockTags.MINEABLE_WITH_PICKAXE), pair[0] + " should be mined with a pickaxe");
-			check(h, secret.getSoundType() == SoundType.METAL, pair[0] + " should sound like metal");
-			check(h, secret.getMaterial() == Material.METAL, pair[0] + " should be metal (iron open/close sounds, no hand use)");
+	public void ironButDropsWithoutATool(GameTestHelper h) {
+		for (Block block : new Block[] {ModBlocks.IRON_DOOR_BLOCK, ModBlocks.IRON_TRAPDOOR_BLOCK}) {
+			BlockState secret = block.defaultBlockState();
+			check(h, !secret.requiresCorrectToolForDrops(), block + " should drop without a tool");
+			check(h, !secret.is(BlockTags.MINEABLE_WITH_PICKAXE), block + " should not be tagged for a pickaxe");
+			check(h, secret.getMaterial() == Material.METAL, block + " should be metal (iron open/close sounds, no hand use)");
 		}
 		h.succeed();
 	}
 
-	/** Broken with a pickaxe it drops itself; by hand it drops nothing (as vanilla iron). */
+	/** Broken with a pickaxe or by hand, it drops itself. */
 	@GameTest(template = EMPTY_STRUCTURE)
-	public void dropsOnlyWithAPickaxe(GameTestHelper h) {
+	public void dropsWithOrWithoutAPickaxe(GameTestHelper h) {
 		floor(h);
 		ServerPlayer player = player(h, new Vec3(3.5, 1, 6.5), new Vec3(3.5, 1.5, 3.5));
 		player.setGameMode(GameType.SURVIVAL);
@@ -141,7 +137,7 @@ public class IronDoorGameTests implements FabricGameTest {
 				player.gameMode.destroyBlock(h.absolutePos(SECRET));
 				AABB around = new AABB(h.absolutePos(SECRET)).inflate(2);
 				boolean dropped = !h.getLevel().getEntitiesOfClass(ItemEntity.class, around, e -> e.getItem().is(block.asItem())).isEmpty();
-				check(h, dropped == pickaxe, block + (pickaxe ? " should drop with a pickaxe" : " should drop nothing by hand"));
+				check(h, dropped, block + (pickaxe ? " should drop with a pickaxe" : " should drop by hand"));
 				h.getLevel().getEntitiesOfClass(ItemEntity.class, around).forEach(ItemEntity::discard);
 				h.setBlock(SECRET, Blocks.AIR);
 				h.setBlock(SECRET.above(), Blocks.AIR);

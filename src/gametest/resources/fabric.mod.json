@@ -26,6 +26,7 @@
       "net.calibermc.secretblocks.gametest.DispenserGameTests",
       "net.calibermc.secretblocks.gametest.HopperGameTests",
       "net.calibermc.secretblocks.gametest.GogglesGameTests",
+      "net.calibermc.secretblocks.gametest.DisguiseLookGameTests",
       "net.calibermc.secretblocks.gametest.IronDoorGameTests",
       "net.calibermc.secretblocks.gametest.RedstoneGameTests",
       "net.calibermc.secretblocks.gametest.RecipeGameTests",
@@ -48,11 +49,16 @@
       "net.calibermc.secretblocks.gametest.ConductorGameTests",
       "net.calibermc.secretblocks.gametest.WandGameTests",
       "net.calibermc.secretblocks.gametest.WandConversionGameTests",
-      "net.calibermc.secretblocks.gametest.WeightedPlateGameTests"
+      "net.calibermc.secretblocks.gametest.WeightedPlateGameTests",
+      "net.calibermc.secretblocks.gametest.LightGameTests"
     ]
   },
   "depends": {
     "secretblocks": "*",
     "fabric-gametest-api-v1": "*"
-  }
+  },
+  "mixins": [
+    "secretblocks-gametest.mixins.json",
+    "secretblocks-gametest-common.mixins.json"
+  ]
 }

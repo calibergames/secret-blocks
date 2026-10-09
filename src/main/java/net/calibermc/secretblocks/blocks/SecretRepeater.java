@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.RepeaterBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -65,5 +66,11 @@ public class SecretRepeater extends RepeaterBlock implements EntityBlock, Secret
 	/** No redstone particles when powered: they would show where it is. */
 	@Override
 	public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+	}
+
+	/** A piston breaks it, as it breaks a vanilla repeater. */
+	@Override
+	public PushReaction getPistonPushReaction(BlockState state) {
+		return PushReaction.DESTROY;
 	}
 }

@@ -175,7 +175,31 @@ public class RecipeGameTests implements FabricGameTest {
 			check(h, made.isPresent() && made.get().is(c.expected().asItem()),
 					"Dummy Block + " + c.ingredient() + " should make " + c.expected().asItem() + ", got " + made);
 		}
-		// The Dummy Block alone makes nothing.
+		h.succeed();
+	}
+
+	/**
+	 * The polished blackstone button and plate are vanilla's stone button
+	 * and stone plate under another look, so they make the same secret blocks.
+	 */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void polishedBlackstoneCountsAsStone(GameTestHelper h) {
+		Item dummy = ModBlocks.SOLID_BLOCK.asItem();
+		for (Item[] c : new Item[][] {
+				{Items.STONE_BUTTON, ModBlocks.STONE_BUTTON.asItem()},
+				{Items.POLISHED_BLACKSTONE_BUTTON, ModBlocks.STONE_BUTTON.asItem()},
+				{Items.STONE_PRESSURE_PLATE, ModBlocks.PLAYER_PRESSURE_PLATE.asItem()},
+				{Items.POLISHED_BLACKSTONE_PRESSURE_PLATE, ModBlocks.PLAYER_PRESSURE_PLATE.asItem()}}) {
+			Optional<ItemStack> made = craft(h, dummy, c[0]);
+			check(h, made.isPresent() && made.get().is(c[1]), "Dummy Block + " + c[0] + " should make " + c[1] + ", got " + made);
+		}
+		h.succeed();
+	}
+
+	/** The Dummy Block alone makes nothing. */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void theDummyBlockAloneMakesNothing(GameTestHelper h) {
+		Item dummy = ModBlocks.SOLID_BLOCK.asItem();
 		check(h, craft(h, dummy).isEmpty(), "the Dummy Block alone should make nothing");
 		h.succeed();
 	}

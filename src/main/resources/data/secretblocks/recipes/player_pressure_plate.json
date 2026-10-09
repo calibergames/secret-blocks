@@ -4,9 +4,14 @@
 		{
 			"item": "secretblocks:solid_block"
 		},
-		{
-			"item": "minecraft:stone_pressure_plate"
-		}
+		[
+			{
+				"item": "minecraft:stone_pressure_plate"
+			},
+			{
+				"item": "minecraft:polished_blackstone_pressure_plate"
+			}
+		]
 	],
 	"result": {
 		"item": "secretblocks:player_pressure_plate",
