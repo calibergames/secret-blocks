@@ -71,6 +71,28 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 		return secretblocks$disguise;
 	}
 
+	/**
+	 * A moving block made during a piston move ({@link PistonCarry#MOVING_LEVEL})
+	 * carries the data of the secret block still at its source, one step back
+	 * along the movement (vanilla moves the farthest block first, so each
+	 * source is still intact here). Taken when the moving block is made, not
+	 * where vanilla places it: Carpet makes its own moving blocks in place of
+	 * vanilla's.
+	 */
+	@Inject(method = "<init>(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;ZZ)V",
+			at = @At("TAIL"), require = 1)
+	private void secretblocks$carryFromSource(CallbackInfo ci) {
+		Level level = PistonCarry.MOVING_LEVEL.get();
+		if (level == null) {
+			return;
+		}
+		PistonMovingBlockEntity self = (PistonMovingBlockEntity) (Object) this;
+		BlockPos source = self.getBlockPos().relative(self.getMovementDirection().getOpposite());
+		if (level.getBlockEntity(source) instanceof DisguisedBlockEntity secret) {
+			secretblocks$setCarried(((BlockEntity) secret).saveWithoutMetadata());
+		}
+	}
+
 	@Inject(method = "saveAdditional", at = @At("TAIL"))
 	private void secretblocks$save(CompoundTag tag, CallbackInfo ci) {
 		if (secretblocks$carried != null) {

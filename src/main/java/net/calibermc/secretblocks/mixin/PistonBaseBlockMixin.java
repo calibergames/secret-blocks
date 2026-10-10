@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
-import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -31,10 +30,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * <li>a Secret Piston can be pushed and pulled as a vanilla piston can (only
  * retracted), and the secret blocks {@link SecretPushing} names as any block,
  * though they have a block entity;</li>
- * <li>a secret block moved by any piston carries its block entity data (the disguise, and any stuck items) in the moving
- * block ({@link PistonCarry}), including a Secret Piston's base while it
- * retracts (vanilla replaces the base with a moving block for the 2 ticks)
- * and the head it builds (the base's disguise).</li>
+ * <li>a secret block moved by any piston carries its block entity data (the
+ * disguise, and any stuck items) in the moving block ({@link PistonCarry}:
+ * this marks the move, and the moving block takes the data when it is made),
+ * including a Secret Piston's base while it retracts (vanilla replaces the
+ * base with a moving block for the 2 ticks) and the head it builds (the
+ * base's disguise).</li>
  * </ul>
  * Injects and argument changes where other mods are likely to change the
  * same code (pushability, the moving blocks); a redirect only for the read of
@@ -46,9 +47,6 @@ public abstract class PistonBaseBlockMixin {
 	/** The retracting base's disguise, read before vanilla replaces the base (per thread: client and server both run this). */
 	@Unique
 	private static final ThreadLocal<CompoundTag> secretblocks$retracting = new ThreadLocal<>();
-	/** The level of the move in progress, for {@link #secretblocks$carryMoved}. */
-	@Unique
-	private static final ThreadLocal<Level> secretblocks$movingLevel = new ThreadLocal<>();
 
 	@Redirect(method = "moveBlocks", require = 3,
 			at = @At(value = "FIELD", target = "Lnet/minecraft/world/level/block/Blocks;PISTON_HEAD:Lnet/minecraft/world/level/block/Block;"))
@@ -94,36 +92,19 @@ public abstract class PistonBaseBlockMixin {
 
 	@Inject(method = "moveBlocks", at = @At("HEAD"))
 	private void secretblocks$beginMove(Level level, BlockPos pos, Direction facing, boolean extending, CallbackInfoReturnable<Boolean> cir) {
-		secretblocks$movingLevel.set(level);
+		PistonCarry.MOVING_LEVEL.set(level);
 	}
 
 	@Inject(method = "moveBlocks", at = @At("RETURN"))
 	private void secretblocks$endMove(Level level, BlockPos pos, Direction facing, boolean extending, CallbackInfoReturnable<Boolean> cir) {
-		secretblocks$movingLevel.remove();
-	}
-
-	/**
-	 * Every moving block made by {@code moveBlocks} (the blocks pushed or
-	 * pulled, and a new head): carry the disguise of the secret block that is
-	 * still at its source, one step back along the movement. (Vanilla handles
-	 * the farthest block first, so each source is still intact here.)
-	 */
-	@ModifyArg(method = "moveBlocks", require = 2, index = 0,
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlockEntity(Lnet/minecraft/world/level/block/entity/BlockEntity;)V"))
-	private BlockEntity secretblocks$carryMoved(BlockEntity entity) {
-		Level level = secretblocks$movingLevel.get();
-		if (level != null && entity instanceof PistonMovingBlockEntity moving) {
-			BlockPos source = moving.getBlockPos().relative(moving.getMovementDirection().getOpposite());
-			if (level.getBlockEntity(source) instanceof DisguisedBlockEntity secret) {
-				((PistonCarry) moving).secretblocks$setCarried(((BlockEntity) secret).saveWithoutMetadata());
-			}
-		}
-		return entity;
+		PistonCarry.MOVING_LEVEL.remove();
 	}
 
 	/** A retracting base: keep its disguise before vanilla replaces it with a moving block (which drops its block entity). */
 	@Inject(method = "triggerEvent", at = @At("HEAD"))
 	private void secretblocks$keepRetracting(BlockState state, Level level, BlockPos pos, int type, int data, CallbackInfoReturnable<Boolean> cir) {
+		// Not inside a move yet: a mark left by a move that threw must not reach the base's moving block.
+		PistonCarry.MOVING_LEVEL.remove();
 		secretblocks$retracting.remove();
 		if ((type == PistonBaseBlock.TRIGGER_CONTRACT || type == PistonBaseBlock.TRIGGER_DROP)
 				&& level.getBlockEntity(pos) instanceof DisguisedBlockEntity secret) {
@@ -136,7 +117,7 @@ public abstract class PistonBaseBlockMixin {
 		secretblocks$retracting.remove();
 	}
 
-	@ModifyArg(method = "triggerEvent", require = 1, index = 0,
+	@ModifyArg(method = "triggerEvent", require = 1,
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlockEntity(Lnet/minecraft/world/level/block/entity/BlockEntity;)V"))
 	private BlockEntity secretblocks$carryRetracting(BlockEntity entity) {
 		CompoundTag kept = secretblocks$retracting.get();

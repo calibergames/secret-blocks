@@ -413,7 +413,8 @@ public class SculkSensorGameTests implements FabricGameTest {
 	}
 
 	/**
-	 * What it is made of: light 1 as vanilla's, wool-like toughness,
+	 * What it is made of: no light (vanilla's gives 1, which would give it
+	 * away), wool-like toughness,
 	 * not a conductor, a full block with a block entity (pistons cannot move
 	 * it), a signal source that comparators read, and the server ticker for
 	 * its own block entity type only.
@@ -426,7 +427,7 @@ public class SculkSensorGameTests implements FabricGameTest {
 		BlockState secret = h.getBlockState(rel);
 		BlockState vanilla = Blocks.SCULK_SENSOR.defaultBlockState();
 		BlockPos abs = h.absolutePos(rel);
-		check(h, vanilla.getLightEmission() == 1 && secret.getLightEmission() == 1, "it should give light 1 as a vanilla sensor does, gives " + secret.getLightEmission());
+		check(h, vanilla.getLightEmission() == 1 && secret.getLightEmission() == 0, "it should give no light (a vanilla sensor gives 1), gives " + secret.getLightEmission());
 		check(h, secret.getDestroySpeed(h.getLevel(), abs) == Blocks.WHITE_WOOL.defaultBlockState().getDestroySpeed(h.getLevel(), abs),
 				"it should be as hard as wool (0.8), is " + secret.getDestroySpeed(h.getLevel(), abs));
 		check(h, !secret.requiresCorrectToolForDrops(), "it should drop without a tool");

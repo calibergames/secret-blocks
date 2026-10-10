@@ -44,6 +44,9 @@ import java.util.List;
  *   <li>{@code recorded}: report and clear what was recorded: a count line,
  *   then one line per sound and per particle sprite;</li>
  *   <li>{@code sprint on|off}: set the player sprinting (sprint dust);</li>
+ *   <li>{@code size w h}: resize the window to w by h pixels (screenshots
+ *   at a set size); the reply is the size before the resize, which takes
+ *   effect a frame later;</li>
  *   <li>{@code use x y z face}: use the held item on that face (placement);</li>
  *   <li>{@code select n}: select hotbar slot n;</li>
  *   <li>{@code sneak on|off}: hold or release the sneak key (the server
@@ -227,6 +230,10 @@ public class DevClientDriver implements ClientModInitializer {
 				List<String> lines = Recorder.drain();
 				report("recorded " + lines.size());
 				lines.forEach(this::report);
+			}
+			case "size" -> {
+				mc.getWindow().setWindowed(Integer.parseInt(a[1]), Integer.parseInt(a[2]));
+				report("size " + mc.getWindow().getWidth() + "x" + mc.getWindow().getHeight());
 			}
 			case "sprint" -> {
 				mc.player.setSprinting(a[1].equals("on"));

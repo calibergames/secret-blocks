@@ -91,9 +91,9 @@ public class ModBlocks {
             new SecretDropper(FabricBlockSettings.copy(SOLID_BLOCK)), SecretBlocks.SECRET_BLOCKS_GROUP);
 
     // Has its own block entity type (a vanilla sculk sensor block entity), see ModEntities.
-    // Light 1 as vanilla's; not a conductor.
+    // No light (vanilla's sensor gives 1, which would show where it is hidden); not a conductor.
     public static final Block SECRET_SCULK_SENSOR = registerBlock("secret_sculk_sensor",
-            new SecretSculkSensor(FabricBlockSettings.copy(SOLID_BLOCK).lightLevel(state -> 1)
+            new SecretSculkSensor(FabricBlockSettings.copy(SOLID_BLOCK).lightLevel(state -> 0)
                     .isRedstoneConductor((state, level, pos) -> false)),
             SecretBlocks.SECRET_BLOCKS_GROUP);
 

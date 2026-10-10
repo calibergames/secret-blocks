@@ -1,6 +1,7 @@
 package net.calibermc.secretblocks.blocks.entity;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +14,14 @@ import org.jetbrains.annotations.Nullable;
  * the moving block, and gives them to the block placed at the end.
  */
 public interface PistonCarry {
+
+	/**
+	 * The level of the piston move in progress on this thread (client and
+	 * server both run moves), set for the length of {@code
+	 * PistonBaseBlock.moveBlocks}: a moving block made then carries the data
+	 * of the secret block still at its source.
+	 */
+	ThreadLocal<Level> MOVING_LEVEL = new ThreadLocal<>();
 
 	/** The carried block entity data (without id and position), or {@code null}. */
 	@Nullable
