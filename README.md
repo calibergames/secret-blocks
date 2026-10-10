@@ -1,5 +1,5 @@
 # Secret Blocks
-**Like the Secret Rooms Mod but for Fabric!**
+**Hidden blocks that look like the blocks around them.**
 
 [![FabricAPI](https://img.shields.io/static/v1?label=modloader&message=fabric&color=brightgreen)](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
 ![Mod Environment](https://img.shields.io/static/v1?label=environment&message=client%2Fserver&color=yellow)
