@@ -1,0 +1,75 @@
+# Publishes a release to Modrinth and CurseForge, and attaches the jar to the
+# GitHub release, when a GitHub release is published.
+#
+# The release tag must match the build's version: <minecraft_version>-<mod_version>
+# from gradle.properties (for example 1.19.2-2.0.0). The release notes become
+# the changelog on both sites.
+#
+# A GitHub pre-release is uploaded as a beta.
+#
+# The job runs in the "release" environment, which holds the upload tokens and
+# waits for a maintainer's approval before it starts. Actions are pinned to
+# full commit SHAs.
+#
+# If one site takes the upload and the other fails, a re-run is refused by the
+# site that already has the version: upload the jar to the other site by hand.
+
+name: release
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write # attach the jar to the GitHub release
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    environment: release
+    timeout-minutes: 60
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - name: setup jdk 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: read the version
+        id: version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          minecraft=$(sed -n 's/^minecraft_version *= *//p' gradle.properties | tr -d '[:space:]')
+          mod=$(sed -n 's/^mod_version *= *//p' gradle.properties | tr -d '[:space:]')
+          version="$minecraft-$mod"
+          if [ "$TAG" != "$version" ]; then
+            echo "The release tag '$TAG' does not match the build version '$version'." >&2
+            exit 1
+          fi
+          echo "minecraft=$minecraft" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: build
+        shell: bash
+        run: ./gradlew build
+      - name: publish
+        uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3.1
+        with:
+          modrinth-id: wChSsP4D
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          curseforge-id: 844758
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          files: build/libs/secret-blocks-${{ steps.version.outputs.version }}.jar
+          name: Secret Blocks ${{ steps.version.outputs.version }}
+          version: ${{ steps.version.outputs.version }}
+          version-type: ${{ github.event.release.prerelease && 'beta' || 'release' }}
+          changelog: ${{ github.event.release.body }}
+          loaders: fabric
+          game-versions: ${{ steps.version.outputs.minecraft }}
+          dependencies: fabric-api(required){modrinth:P7dR8mSH}{curseforge:306612}
+          java: 17

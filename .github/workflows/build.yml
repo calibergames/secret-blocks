@@ -1,39 +1,33 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
+# Builds the project and runs the tests (JUnit and the game tests) for every
+# push and pull request, on Linux and Windows. Actions are pinned to full
+# commit SHAs.
 
 name: build
 on: [pull_request, push]
+
+permissions:
+  contents: read
 
 jobs:
   build:
     strategy:
       matrix:
-        # Use these Java versions
-        java: [
-          17
-        ]
-        # and run on both Linux and Windows
-        os: [ubuntu-20.04, windows-latest]
+        java: [17]
+        os: [ubuntu-24.04, windows-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
       - name: checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: validate gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
       - name: setup jdk ${{ matrix.java }}
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
+          distribution: temurin
           java-version: ${{ matrix.java }}
-      - name: make gradle wrapper executable
-        if: ${{ runner.os != 'Windows' }}
-        run: chmod +x ./gradlew
       - name: build
+        shell: bash
         run: ./gradlew build
-      - name: capture build artifacts
-        if: ${{ runner.os == 'Linux' && matrix.java == '16' }} # Only upload artifacts built from LTS java on one OS
-        uses: actions/upload-artifact@v2
-        with:
-          name: Artifacts
-          path: build/libs/
