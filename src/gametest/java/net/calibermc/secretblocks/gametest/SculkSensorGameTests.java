@@ -58,6 +58,10 @@ import static net.calibermc.secretblocks.gametest.TestSupport.*;
  */
 public class SculkSensorGameTests implements FabricGameTest {
 
+	/** Vanilla's frequency for each game event, the one a sensor reports. */
+	private static final java.util.function.ToIntFunction<GameEvent> FREQUENCY =
+			net.minecraft.world.level.gameevent.vibrations.VibrationSystem.VIBRATION_FREQUENCY_FOR_EVENT;
+
 	private static final Block SECRET = ModBlocks.SECRET_SCULK_SENSOR;
 
 	private static SculkSensorPhase phase(GameTestHelper h, BlockPos rel) {
@@ -111,8 +115,8 @@ public class SculkSensorGameTests implements FabricGameTest {
 
 	/**
 	 * A block placed 3 blocks away sets both off: power 10 (15 less 15/8 per
-	 * block, rounded down), frequency 12, which the comparator behind each
-	 * passes to a lamp.
+	 * block, rounded down), the block-place frequency, which the comparator
+	 * behind each passes to a lamp.
 	 */
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_place")
 	public void aPlacedBlockSetsItOff(GameTestHelper h) {
@@ -128,11 +132,13 @@ public class SculkSensorGameTests implements FabricGameTest {
 		h.runAfterDelay(5, () -> place(h, Items.STONE, new Vec3(4.5, 1, 5.5), new BlockPos(4, 0, 2), Direction.UP, new Vec3(4.5, 1.0, 2.5)));
 		h.runAfterDelay(20, () -> {
 			checkBlock(h, new BlockPos(4, 1, 2), Blocks.STONE);
-			bothActive(h, secret, vanilla, 12);
+			int placed = FREQUENCY.applyAsInt(GameEvent.BLOCK_PLACE);
+			check(h, placed == 13, "control: Minecraft 1.20.1's block-place frequency is 13, the table gives " + placed);
+			bothActive(h, secret, vanilla, placed);
 			check(h, power(h, vanilla) == 10, "control: a vanilla sensor 3 blocks away gives 10, gives " + power(h, vanilla));
 			for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
 				int out = ((ComparatorBlockEntity) h.getBlockEntity(pos.south())).getOutputSignal();
-				check(h, out == 12, "the comparator behind " + name(h, pos) + " should give 12 (the frequency), gives " + out);
+				check(h, out == placed, "the comparator behind " + name(h, pos) + " should give " + placed + " (the frequency), gives " + out);
 				check(h, h.getBlockState(pos.south(2)).getValue(RedstoneLampBlock.LIT), "the lamp behind " + name(h, pos) + "'s comparator should light");
 			}
 			h.succeed();
@@ -140,9 +146,9 @@ public class SculkSensorGameTests implements FabricGameTest {
 	}
 
 	/**
-	 * An arrow landing between them sets both off alike, with frequency 8. It
-	 * starts 12 blocks up, out of their hearing: an arrow's first tick makes a
-	 * "shot" vibration (frequency 7) where it is.
+	 * An arrow landing between them sets both off alike, with the
+	 * projectile-land frequency. It starts 12 blocks up, out of their hearing:
+	 * an arrow's first tick makes a "shot" vibration where it is.
 	 */
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_arrow")
 	public void anArrowLandingSetsItOff(GameTestHelper h) {
@@ -164,7 +170,8 @@ public class SculkSensorGameTests implements FabricGameTest {
 			double floorTop = abs(h, new Vec3(0, 1, 0)).y;
 			// An arrow stuck in the ground keeps its last motion, so only its height tells.
 			check(h, arrows.get(0).getY() < floorTop + 0.5, "control: the arrow should have landed on the floor, it is at " + arrows.get(0).position());
-			bothActive(h, secret, vanilla, 8);
+			check(h, FREQUENCY.applyAsInt(GameEvent.PROJECTILE_LAND) == 2, "control: Minecraft 1.20.1's projectile-land frequency is 2");
+			bothActive(h, secret, vanilla, FREQUENCY.applyAsInt(GameEvent.PROJECTILE_LAND));
 			arrows.forEach(Arrow::discard);
 			h.succeed();
 		});
@@ -193,7 +200,7 @@ public class SculkSensorGameTests implements FabricGameTest {
 		h.setBlock(vanillaOpen, Blocks.SCULK_SENSOR);
 		h.runAfterDelay(5, () -> vibration(h, GameEvent.BLOCK_PLACE, event));
 		h.runAfterDelay(20, () -> {
-			bothActive(h, secretOpen, vanillaOpen, 12);
+			bothActive(h, secretOpen, vanillaOpen, FREQUENCY.applyAsInt(GameEvent.BLOCK_PLACE));
 			for (BlockPos pos : new BlockPos[] {secretWalled, vanillaWalled}) {
 				check(h, phase(h, pos) == SculkSensorPhase.INACTIVE, name(h, pos) + " behind wool should not have heard it, is " + phase(h, pos));
 			}
@@ -228,17 +235,17 @@ public class SculkSensorGameTests implements FabricGameTest {
 		}
 		h.runAfterDelay(5, () -> vibration(h, GameEvent.BLOCK_PLACE, event));
 		h.runAfterDelay(20, () -> {
-			bothActive(h, secret, vanilla, 12);
-			vibration(h, GameEvent.PISTON_EXTEND, event);
+			bothActive(h, secret, vanilla, FREQUENCY.applyAsInt(GameEvent.BLOCK_PLACE));
+			vibration(h, GameEvent.BLOCK_ACTIVATE, event);
 		});
-		h.runAfterDelay(30, () -> bothActive(h, secret, vanilla, 12));
+		h.runAfterDelay(30, () -> bothActive(h, secret, vanilla, FREQUENCY.applyAsInt(GameEvent.BLOCK_PLACE)));
 		h.runAfterDelay(60, () -> {
 			for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
 				check(h, phase(h, pos) == SculkSensorPhase.INACTIVE && power(h, pos) == 0, name(h, pos) + " should be listening again with no power, is " + phase(h, pos) + "/" + power(h, pos));
 			}
 			vibration(h, GameEvent.BLOCK_DESTROY, event);
 		});
-		h.runAfterDelay(75, () -> bothActive(h, secret, vanilla, 13));
+		h.runAfterDelay(75, () -> bothActive(h, secret, vanilla, FREQUENCY.applyAsInt(GameEvent.BLOCK_DESTROY)));
 		h.runAfterDelay(131, () -> {
 			check(h, activeTicks[0] == SculkSensorBlock.ACTIVE_TICKS, "control: the vanilla sensor should stay active " + SculkSensorBlock.ACTIVE_TICKS + " ticks, stayed " + activeTicks[0]);
 			check(h, secretLog.equals(vanillaLog), "tick by tick, phase/power should match the vanilla sensor:\n secret  " + secretLog + "\n vanilla " + vanillaLog);
@@ -278,7 +285,7 @@ public class SculkSensorGameTests implements FabricGameTest {
 		h.runAfterDelay(25, () -> {
 			check(h, h.getBlockEntity(secret) == reloaded.get(0) && h.getBlockEntity(vanilla) == reloaded.get(1), "the loaded block entities should be the ones in the world");
 			check(h, reloaded.get(0) instanceof SecretSculkSensorBlockEntity, "it should load as a Secret Sculk Sensor, got " + reloaded.get(0));
-			bothActive(h, secret, vanilla, 12);
+			bothActive(h, secret, vanilla, FREQUENCY.applyAsInt(GameEvent.BLOCK_PLACE));
 			check(h, power(h, vanilla) == 4, "control: a vanilla sensor 6 blocks away gives 4, gives " + power(h, vanilla));
 			checkFaces(h, secret, Blocks.BRICKS);
 			h.succeed();
@@ -286,9 +293,11 @@ public class SculkSensorGameTests implements FabricGameTest {
 	}
 
 	/**
-	 * A pig dropped onto each lands on it and sets it off at full power with
-	 * frequency 1 (vanilla's step: the block's {@code stepOn}, reached through
-	 * the pig's own movement). A warden stepping on either does nothing.
+	 * A pig dropped onto each lands on it and sets it off at full power (the
+	 * block's {@code stepOn}, reached through the pig's own movement, hears it
+	 * from where it stands). Its step and its landing reach the sensor at
+	 * once from the same distance, and the higher frequency, the landing's,
+	 * is the one heard. A warden stepping on either does nothing.
 	 */
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_step")
 	public void landingOnItSetsItOff(GameTestHelper h) {
@@ -297,6 +306,14 @@ public class SculkSensorGameTests implements FabricGameTest {
 		BlockPos vanilla = new BlockPos(7, 1, 2);
 		h.setBlock(secret, SECRET);
 		h.setBlock(vanilla, Blocks.SCULK_SENSOR);
+		// Wool between them, so each hears only the pig on it: the first
+		// vibration a sensor hears wins, and the pig on the taller Secret
+		// Sculk Sensor lands a tick sooner.
+		for (int y = 1; y <= 4; y++) {
+			for (int z = 0; z < 8; z++) {
+				h.setBlock(4, y, z, Blocks.WHITE_WOOL);
+			}
+		}
 		// A warden first: vanilla's step ignores it.
 		Warden warden = EntityType.WARDEN.create(h.getLevel());
 		for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
@@ -315,9 +332,35 @@ public class SculkSensorGameTests implements FabricGameTest {
 			}
 		});
 		h.runAfterDelay(25, () -> {
-			bothActive(h, secret, vanilla, 1);
+			check(h, FREQUENCY.applyAsInt(GameEvent.HIT_GROUND) == 2, "control: Minecraft 1.20.1's hit-ground frequency is 2");
+			bothActive(h, secret, vanilla, FREQUENCY.applyAsInt(GameEvent.HIT_GROUND));
 			check(h, power(h, secret) == 15 && power(h, vanilla) == 15, "landed on, both should give 15 (stepOn), give " + power(h, secret) + " and " + power(h, vanilla));
 			pigs.forEach(Pig::discard);
+			h.succeed();
+		});
+	}
+
+	/**
+	 * A block placed on top of each, by a player standing beside them, is one
+	 * block away for both: power 14 and the block-place frequency. Only a mob
+	 * standing on the Secret Sculk Sensor counts as at it.
+	 */
+	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_on_top")
+	public void aBlockPlacedOnTopIsABlockAway(GameTestHelper h) {
+		floor(h);
+		BlockPos secret = new BlockPos(1, 1, 2);
+		BlockPos vanilla = new BlockPos(7, 1, 2);
+		h.setBlock(secret, SECRET);
+		h.setBlock(vanilla, Blocks.SCULK_SENSOR);
+		h.runAfterDelay(5, () -> {
+			place(h, Items.STONE, new Vec3(1.5, 1, 4.5), secret, Direction.UP, new Vec3(1.5, 2.0, 2.5));
+			place(h, Items.STONE, new Vec3(7.5, 1, 4.5), vanilla, Direction.UP, new Vec3(7.5, 1.5, 2.5));
+		});
+		h.runAfterDelay(20, () -> {
+			checkBlock(h, secret.above(), Blocks.STONE);
+			checkBlock(h, vanilla.above(), Blocks.STONE);
+			bothActive(h, secret, vanilla, FREQUENCY.applyAsInt(GameEvent.BLOCK_PLACE));
+			check(h, power(h, vanilla) == 14, "control: a block placed on a vanilla sensor gives 14, gives " + power(h, vanilla));
 			h.succeed();
 		});
 	}
@@ -456,7 +499,7 @@ public class SculkSensorGameTests implements FabricGameTest {
 		SecretSculkSensorBlockEntity sensor = (SecretSculkSensorBlockEntity) sensor(h, rel);
 		sensor.setDisguise(all(Blocks.BRICKS));
 		sensor.setLastVibrationFrequency(9);
-		SculkSensorBlock.activate(null, h.getLevel(), h.absolutePos(rel), h.getBlockState(rel), 7);
+		((SculkSensorBlock) h.getBlockState(rel).getBlock()).activate(null, h.getLevel(), h.absolutePos(rel), h.getBlockState(rel), 7, 9);
 		check(h, phase(h, rel) == SculkSensorPhase.ACTIVE && power(h, rel) == 7, "it should be active at 7, is " + phase(h, rel) + "/" + power(h, rel));
 		check(h, h.getBlockEntity(rel) == sensor, "going active should keep the block entity");
 		checkFaces(h, rel, Blocks.BRICKS);

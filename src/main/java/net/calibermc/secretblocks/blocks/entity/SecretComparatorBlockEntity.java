@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * (vanilla's comparator code looks for exactly that class and keeps the
  * output signal in it), plus the {@link Disguise}.
  *
- * 1.19.2's {@code ComparatorBlockEntity} constructor hard-wires the vanilla
+ * 1.20.1's {@code ComparatorBlockEntity} constructor hard-wires the vanilla
  * type. This one sets its own type ({@link ModEntities#SECRET_COMPARATOR})
  * through {@link BlockEntityTypeAccessor}, as the Secret Hopper does, so it
  * saves and loads as a Secret Comparator and keeps its disguise.

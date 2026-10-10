@@ -1,6 +1,7 @@
 # Builds the project and runs the tests (JUnit and the game tests) for every
-# push and pull request, on Linux and Windows. Actions are pinned to full
-# commit SHAs.
+# push and pull request, on Linux and Windows. Gradle runs on Java 25 (the
+# Loom version needs it); the mod compiles and its tests run on the Java 17
+# toolchain. Actions are pinned to full commit SHAs.
 
 name: build
 on: [pull_request, push]
@@ -12,7 +13,6 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [17]
         os: [ubuntu-24.04, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -23,11 +23,13 @@ jobs:
           persist-credentials: false
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
-      - name: setup jdk ${{ matrix.java }}
+      - name: setup jdk 17 and 25
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
-          java-version: ${{ matrix.java }}
+          java-version: |
+            17
+            25
       - name: build
         shell: bash
-        run: ./gradlew build
+        run: ./gradlew build -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64

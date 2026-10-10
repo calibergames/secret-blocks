@@ -392,7 +392,7 @@ public class DropperGameTests implements FabricGameTest {
 		for (BlockPos pos : BOTH) {
 			List<ResourceLocation> stats = new ArrayList<>();
 			List<MenuProvider> opened = new ArrayList<>();
-			Player player = new Player(h.getLevel(), h.absolutePos(pos.north()), 0.0F, new GameProfile(UUID.randomUUID(), "test_dropper"), null) {
+			Player player = new Player(h.getLevel(), h.absolutePos(pos.north()), 0.0F, new GameProfile(UUID.randomUUID(), "test_dropper")) {
 				@Override
 				public boolean isSpectator() {
 					return false;

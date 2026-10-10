@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -180,7 +180,7 @@ public class DevClientDriver implements ClientModInitializer {
 				report("connecting to " + host);
 				net.minecraft.client.gui.screens.ConnectScreen.startConnecting(mc.screen, mc,
 						net.minecraft.client.multiplayer.resolver.ServerAddress.parseString(host),
-						new net.minecraft.client.multiplayer.ServerData("Dedicated", host, false));
+						new net.minecraft.client.multiplayer.ServerData("Dedicated", host, false), false);
 			} catch (RuntimeException e) {
 				report("error in '" + next + "': " + e);
 			}
@@ -251,7 +251,7 @@ public class DevClientDriver implements ClientModInitializer {
 				var stack = mc.player.getMainHandItem();
 				var tooltip = stack.getTooltipLines(mc.player, net.minecraft.world.item.TooltipFlag.Default.NORMAL)
 						.stream().map(net.minecraft.network.chat.Component::getString).toList();
-				report("held client " + Registry.ITEM.getKey(stack.getItem()) + " " + stack.getTag() + " tooltip=" + tooltip
+				report("held client " + BuiltInRegistries.ITEM.getKey(stack.getItem()) + " " + stack.getTag() + " tooltip=" + tooltip
 						+ " screen=" + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName() + " title=" + mc.screen.getTitle().getString()));
 				var server = mc.getSingleplayerServer();
 				var uuid = mc.player.getUUID();
@@ -291,7 +291,7 @@ public class DevClientDriver implements ClientModInitializer {
 					server.execute(() -> {
 						var player = server.getPlayerList().getPlayer(uuid);
 						var items = player == null ? List.<net.minecraft.world.entity.item.ItemEntity>of()
-								: player.level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, player.getBoundingBox().inflate(r));
+								: player.level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, player.getBoundingBox().inflate(r));
 						report("sitems " + items.size() + " " + items.stream().map(e -> e.getItem() + "@" + e.blockPosition().toShortString()).toList());
 					});
 				}
@@ -300,7 +300,7 @@ public class DevClientDriver implements ClientModInitializer {
 			case "look" -> report("look " + describe(mc, pos(a, 1)));
 			case "cmd" -> {
 				String command = String.join(" ", java.util.Arrays.copyOfRange(a, 1, a.length));
-				report("cmd " + command + " -> sent=" + mc.player.commandUnsigned(command));
+				report("cmd " + command + " -> sent=" + mc.player.connection.sendUnsignedCommand(command));
 			}
 			case "slook" -> {
 				BlockPos pos = pos(a, 1);
@@ -352,7 +352,7 @@ public class DevClientDriver implements ClientModInitializer {
 					message -> report("shot " + a[1] + " -> " + message.getString()));
 			case "render" -> renderIcon(mc, a[1], Integer.parseInt(a[2]), a[3]);
 			case "quit" -> {
-				// The pause screen's "Save and Quit to Title" (1.19.2 PauseScreen).
+				// The pause screen's "Save and Quit to Title" (PauseScreen.onDisconnect).
 				boolean local = mc.isLocalServer();
 				mc.level.disconnect();
 				if (local) {
@@ -436,7 +436,7 @@ public class DevClientDriver implements ClientModInitializer {
 	 */
 	private void renderIcon(Minecraft mc, String itemId, int size, String name) {
 		var id = new net.minecraft.resources.ResourceLocation(itemId);
-		if (!Registry.ITEM.containsKey(id)) {
+		if (!BuiltInRegistries.ITEM.containsKey(id)) {
 			report("render " + itemId + " failed: no such item");
 			return;
 		}
@@ -450,7 +450,7 @@ public class DevClientDriver implements ClientModInitializer {
 			report("render " + itemId + " failed: '" + name + "' leaves the icons folder");
 			return;
 		}
-		var stack = new net.minecraft.world.item.ItemStack(Registry.ITEM.get(id));
+		var stack = new net.minecraft.world.item.ItemStack(BuiltInRegistries.ITEM.get(id));
 		var target = new com.mojang.blaze3d.pipeline.TextureTarget(size, size, true, Minecraft.ON_OSX);
 		try {
 			target.setClearColor(0, 0, 0, 0);
@@ -461,11 +461,14 @@ public class DevClientDriver implements ClientModInitializer {
 			modelView.pushPose();
 			try {
 				com.mojang.blaze3d.systems.RenderSystem.setProjectionMatrix(
-						com.mojang.math.Matrix4f.orthographic(0, 16, 0, 16, 1000, 3000));
+						new org.joml.Matrix4f().setOrtho(0, 16, 16, 0, 1000, 3000),
+						com.mojang.blaze3d.vertex.VertexSorting.ORTHOGRAPHIC_Z);
 				modelView.setIdentity();
 				modelView.translate(0, 0, -2000);
 				com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
-				mc.getItemRenderer().renderGuiItem(stack, 0, 0);
+				var graphics = new net.minecraft.client.gui.GuiGraphics(mc, mc.renderBuffers().bufferSource());
+				graphics.renderItem(stack, 0, 0);
+				graphics.flush();
 				try (var image = new com.mojang.blaze3d.platform.NativeImage(size, size, false)) {
 					com.mojang.blaze3d.systems.RenderSystem.bindTexture(target.getColorTextureId());
 					image.downloadTexture(0, false);
@@ -514,11 +517,11 @@ public class DevClientDriver implements ClientModInitializer {
 		// block entity (vanilla creates one on main-thread access).
 		BlockEntity entity = level.getChunkAt(pos).getBlockEntity(pos, net.minecraft.world.level.chunk.LevelChunk.EntityCreationType.CHECK);
 		StringBuilder out = new StringBuilder(pos.toShortString()).append(" state=")
-				.append(Registry.BLOCK.getKey(state.getBlock())).append(state.getValues().isEmpty() ? "" : state.getValues().toString())
+				.append(BuiltInRegistries.BLOCK.getKey(state.getBlock())).append(state.getValues().isEmpty() ? "" : state.getValues().toString())
 				.append(" blockEntity=").append(entity == null ? "none" : entity.getClass().getSimpleName());
 		if (entity instanceof DisguisedBlockEntity disguised) {
-			out.append(" north=").append(Registry.BLOCK.getKey(disguised.getState(Direction.NORTH).getBlock()))
-					.append(" up=").append(Registry.BLOCK.getKey(disguised.getState(Direction.UP).getBlock()));
+			out.append(" north=").append(BuiltInRegistries.BLOCK.getKey(disguised.getState(Direction.NORTH).getBlock()))
+					.append(" up=").append(BuiltInRegistries.BLOCK.getKey(disguised.getState(Direction.UP).getBlock()));
 		}
 		return out.toString();
 	}

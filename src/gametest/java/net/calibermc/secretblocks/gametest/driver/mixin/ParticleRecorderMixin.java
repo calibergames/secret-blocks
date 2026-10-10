@@ -16,7 +16,7 @@ public abstract class ParticleRecorderMixin {
 	@Inject(method = "add", at = @At("HEAD"))
 	private void secretblocksTest$record(Particle particle, CallbackInfo ci) {
 		if (Recorder.isOn() && particle instanceof TerrainParticle terrain) {
-			Recorder.particle(String.valueOf(((TextureSheetParticleAccessor) terrain).secretblocksTest$getSprite().getName()));
+			Recorder.particle(String.valueOf(((TextureSheetParticleAccessor) terrain).secretblocksTest$getSprite().contents().name()));
 		}
 	}
 }

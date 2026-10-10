@@ -14,16 +14,19 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class WoodButton extends net.minecraft.world.level.block.WoodButtonBlock implements EntityBlock, SecretBlock {
+public class WoodButton extends net.minecraft.world.level.block.ButtonBlock implements EntityBlock, SecretBlock {
 
     public WoodButton(Properties settings) {
-        super(settings);
+        // A piston breaks it, as it breaks a vanilla button. Pressed for as long as
+        // a vanilla wooden button, with its sounds; arrows press it.
+        super(settings.pushReaction(PushReaction.DESTROY), BlockSetType.OAK, 30, true);
     }
 
 //    private static final VoxelShape SHAPE = VoxelShapes.cuboid(0.0d, 0.0d, 0.0d, 1.0d, 1.0d, 1.0d);
@@ -63,9 +66,4 @@ public class WoodButton extends net.minecraft.world.level.block.WoodButtonBlock 
 //        return SHAPE;
 //    }
 
-	/** A piston breaks it, as it breaks a vanilla button (vanilla's comes from its material, which this one does not share). */
-	@Override
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.DESTROY;
-	}
 }

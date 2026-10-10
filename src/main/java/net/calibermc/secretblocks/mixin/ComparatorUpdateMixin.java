@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 /**
  * When a container's contents change (or an item frame's item or rotation),
  * {@code Level.updateNeighbourForOutputSignal} tells the comparators beside
- * it, and those one solid block further on. In 1.19.2 it asks "is this
+ * it, and those one solid block further on. In 1.20.1 it asks "is this
  * {@code Blocks.COMPARATOR}?", so a Secret Comparator would never hear of a
  * change and would keep its old output. Both questions also accept the
  * Secret Comparator. Nothing changes for vanilla comparators.

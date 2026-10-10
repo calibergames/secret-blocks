@@ -22,6 +22,6 @@ public abstract class HorseStepLookMixin extends Animal {
 
 	@ModifyVariable(method = "playStepSound", at = @At("HEAD"), argsOnly = true)
 	private BlockState secretblocks$stepLook(BlockState state, BlockPos pos) {
-		return DisguiseLook.looks(level, pos, state, Direction.UP);
+		return DisguiseLook.looks(level(), pos, state, Direction.UP);
 	}
 }

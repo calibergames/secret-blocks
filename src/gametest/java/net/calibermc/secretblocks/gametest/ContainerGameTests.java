@@ -6,7 +6,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -65,13 +65,13 @@ public class ContainerGameTests implements FabricGameTest {
 		floor(h);
 		BlockPos rel = new BlockPos(1, 1, 1);
 		int checked = 0;
-		for (Block block : Registry.BLOCK) {
-			if (!Registry.BLOCK.getKey(block).getNamespace().equals(SecretBlocks.MOD_ID) || !(block instanceof EntityBlock)) {
+		for (Block block : BuiltInRegistries.BLOCK) {
+			if (!BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(SecretBlocks.MOD_ID) || !(block instanceof EntityBlock)) {
 				continue;
 			}
 			h.setBlock(rel, block.defaultBlockState());
 			boolean isContainer = container(h, rel) != null;
-			check(h, isContainer == CONTAINERS.contains(block), Registry.BLOCK.getKey(block)
+			check(h, isContainer == CONTAINERS.contains(block), BuiltInRegistries.BLOCK.getKey(block)
 					+ (isContainer ? " is a container (hoppers would feed it)" : " should be a container"));
 			h.setBlock(rel, Blocks.AIR);
 			checked++;
@@ -229,7 +229,7 @@ public class ContainerGameTests implements FabricGameTest {
 			entity.load(stuck.copy());
 			h.setBlock(rel, Blocks.AIR);
 			int dropped = diamondsAround(h, rel, Items.DIAMOND);
-			check(h, dropped == 4, Registry.BLOCK.getKey(block) + " should drop the 4 stuck diamonds when broken, dropped " + dropped);
+			check(h, dropped == 4, BuiltInRegistries.BLOCK.getKey(block) + " should drop the 4 stuck diamonds when broken, dropped " + dropped);
 			h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(rel)).inflate(3)).forEach(ItemEntity::discard);
 			checked++;
 		}
@@ -269,8 +269,7 @@ public class ContainerGameTests implements FabricGameTest {
 
 	private static int drops(GameTestHelper h, BlockPos at, float radius) {
 		BlockPos abs = h.absolutePos(at);
-		net.minecraft.world.level.storage.loot.LootContext.Builder loot = new net.minecraft.world.level.storage.loot.LootContext.Builder(h.getLevel())
-				.withRandom(h.getLevel().getRandom())
+		net.minecraft.world.level.storage.loot.LootParams.Builder loot = new net.minecraft.world.level.storage.loot.LootParams.Builder(h.getLevel())
 				.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN, net.minecraft.world.phys.Vec3.atCenterOf(abs))
 				.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.TOOL, ItemStack.EMPTY)
 				.withOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_ENTITY, h.getLevel().getBlockEntity(abs));

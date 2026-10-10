@@ -18,13 +18,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * {@code Block.shouldRenderFace}, so {@link DrawSideMixin} does not reach it:
  * the floor under a faded block (Builder's Goggles) showed the sky through
  * it, and a face beside a secret block disguised as glass would too. This
- * applies the same rule ({@link SecretCulling}) to Sodium 0.4's
+ * applies the same rule ({@link SecretCulling}) to Sodium 0.5's
  * {@code BlockOcclusionCache}. A pseudo mixin: skipped when Sodium is not
  * installed; no build dependency on Sodium.
  */
 @Environment(EnvType.CLIENT)
 @Pseudo
-@Mixin(targets = "me.jellysquid.mods.sodium.client.render.occlusion.BlockOcclusionCache")
+@Mixin(targets = "me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockOcclusionCache")
 public abstract class SodiumOcclusionMixin {
 
 	@Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true, remap = false, require = 0)

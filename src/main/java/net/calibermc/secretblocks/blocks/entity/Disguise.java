@@ -1,7 +1,7 @@
 package net.calibermc.secretblocks.blocks.entity;
 
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
@@ -97,7 +97,7 @@ public final class Disguise {
 	public CompoundTag save(CompoundTag tag) {
 		saveForClients(tag);
 		if (original != null) {
-			tag.putString(ORIGINAL, Registry.BLOCK.getKey(original).toString());
+			tag.putString(ORIGINAL, BuiltInRegistries.BLOCK.getKey(original).toString());
 		}
 		return tag;
 	}
@@ -124,12 +124,12 @@ public final class Disguise {
 		}
 		if (tag.contains(ORIGINAL, Tag.TAG_STRING)) {
 			ResourceLocation id = ResourceLocation.tryParse(tag.getString(ORIGINAL));
-			original = id != null && Registry.BLOCK.containsKey(id) ? Registry.BLOCK.get(id) : null;
+			original = id != null && BuiltInRegistries.BLOCK.containsKey(id) ? BuiltInRegistries.BLOCK.get(id) : null;
 		}
 		for (Direction face : FACES) {
 			String name = face.getName();
 			if (tag.contains(name + "State")) {
-				states.put(face, NbtUtils.readBlockState(tag.getCompound(name + "State")));
+				states.put(face, NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(name + "State")));
 			}
 			if (tag.contains(name + "Direction")) {
 				directions.put(face, byName(tag.getString(name + "Direction")));

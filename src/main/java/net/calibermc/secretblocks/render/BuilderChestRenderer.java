@@ -1,7 +1,7 @@
 package net.calibermc.secretblocks.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
@@ -58,7 +58,7 @@ public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEnti
 		ChestBlockEntity chest = entity.getBlockState().is(ModBlocks.SECRET_TRAPPED_CHEST) ? trappedStandIn : standIn;
 		poseStack.pushPose();
 		poseStack.translate(0.5, 0.0, 0.5);
-		poseStack.mulPose(Vector3f.YP.rotationDegrees(180.0f));
+		poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
 		poseStack.translate(-0.5, 0.0, -0.5);
 		Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
 		chestRenderer.render(chest, partialTick, poseStack, buffers, seenSideLight(entity.getLevel(), entity.getBlockPos(), camera), overlay);

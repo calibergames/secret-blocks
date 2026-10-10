@@ -40,7 +40,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class SecretGateSegment extends Block implements EntityBlock, SecretBlock {
 
 	public SecretGateSegment(Properties settings) {
-		super(settings);
+		// Pistons can neither push nor break it, though they push some other secret
+		// blocks (SecretPushing).
+		super(settings.pushReaction(PushReaction.BLOCK));
 	}
 
 	@Override
@@ -91,9 +93,4 @@ public class SecretGateSegment extends Block implements EntityBlock, SecretBlock
 		return ItemStack.EMPTY;
 	}
 
-	/** Pistons can neither push nor break it, though they push some other secret blocks ({@link SecretPushing}). */
-	@Override
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.BLOCK;
-	}
 }

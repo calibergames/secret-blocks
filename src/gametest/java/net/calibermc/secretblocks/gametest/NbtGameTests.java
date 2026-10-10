@@ -1,5 +1,8 @@
 package net.calibermc.secretblocks.gametest;
 
+import com.mojang.math.Axis;
+import net.minecraft.core.registries.BuiltInRegistries;
+
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
@@ -65,7 +68,7 @@ public class NbtGameTests implements FabricGameTest {
 		be.load(input);
 		for (Direction dir : Direction.values()) {
 			String name = dir.getName();
-			check(h, be.getState(dir) == NbtUtils.readBlockState(input.getCompound(name + "State")), name + "State read back wrong: " + be.getState(dir));
+			check(h, be.getState(dir) == NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), input.getCompound(name + "State")), name + "State read back wrong: " + be.getState(dir));
 			check(h, be.getDir(dir).getName().equals(input.getString(name + "Direction")), name + "Direction read back wrong: " + be.getDir(dir));
 			check(h, be.getRotation(dir) == input.getInt(name + "Rotation"), name + "Rotation read back wrong: " + be.getRotation(dir));
 		}

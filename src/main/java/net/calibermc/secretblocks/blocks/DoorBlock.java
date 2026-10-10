@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
+import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
@@ -17,8 +18,8 @@ import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 
 public class DoorBlock extends net.minecraft.world.level.block.DoorBlock implements EntityBlock, SecretBlock {
 
-	public DoorBlock(Properties settings) {
-		super(settings);
+	public DoorBlock(Properties settings, BlockSetType type) {
+		super(settings, type);
 	}
 
 	@Override

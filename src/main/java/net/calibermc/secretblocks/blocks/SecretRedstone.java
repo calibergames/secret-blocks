@@ -23,7 +23,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class SecretRedstone extends net.minecraft.world.level.block.RedStoneWireBlock implements EntityBlock, SecretBlock {
 
     public SecretRedstone(Properties settings) {
-        super(settings);
+        // A piston breaks it, as it breaks vanilla redstone dust.
+        super(settings.pushReaction(PushReaction.DESTROY));
     }
 
 //    private static final VoxelShape SHAPE = VoxelShapes.cuboid(0.0d, 0.0d, 0.0d, 1.0d, 1.0d, 1.0d);
@@ -62,9 +63,4 @@ public class SecretRedstone extends net.minecraft.world.level.block.RedStoneWire
 //        return SHAPE;
 //    }
 
-	/** A piston breaks it, as it breaks vanilla redstone dust. */
-	@Override
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.DESTROY;
-	}
 }

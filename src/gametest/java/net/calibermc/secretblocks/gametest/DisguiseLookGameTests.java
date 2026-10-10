@@ -9,7 +9,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
@@ -26,7 +26,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
-import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -80,8 +79,8 @@ public class DisguiseLookGameTests implements FabricGameTest {
 	/** Every registered secret block (the ones that wear a disguise once set). */
 	private static List<Block> disguisedBlocks() {
 		List<Block> blocks = new ArrayList<>();
-		for (Block block : Registry.BLOCK) {
-			if (block instanceof SecretBlock && Registry.BLOCK.getKey(block).getNamespace().equals(SecretBlocks.MOD_ID)) {
+		for (Block block : BuiltInRegistries.BLOCK) {
+			if (block instanceof SecretBlock && BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(SecretBlocks.MOD_ID)) {
 				blocks.add(block);
 			}
 		}
@@ -111,7 +110,7 @@ public class DisguiseLookGameTests implements FabricGameTest {
 					float mine = progress(h, player, SECRET);
 					float theirs = progress(h, player, VANILLA);
 					if (mine != theirs) {
-						problems.add(Registry.BLOCK.getKey(block).getPath() + " as " + Registry.BLOCK.getKey(look).getPath()
+						problems.add(BuiltInRegistries.BLOCK.getKey(block).getPath() + " as " + BuiltInRegistries.BLOCK.getKey(look).getPath()
 								+ " with " + tool + ": " + mine + " per tick, the block " + theirs);
 					}
 				}
@@ -254,7 +253,7 @@ public class DisguiseLookGameTests implements FabricGameTest {
 			player.gameMode.destroyBlock(h.absolutePos(SECRET));
 			AABB around = new AABB(h.absolutePos(SECRET)).inflate(2);
 			if (h.getLevel().getEntitiesOfClass(ItemEntity.class, around, e -> e.getItem().is(block.asItem())).isEmpty()) {
-				problems.add(Registry.BLOCK.getKey(block).getPath());
+				problems.add(BuiltInRegistries.BLOCK.getKey(block).getPath());
 			}
 			h.getLevel().getEntitiesOfClass(ItemEntity.class, around).forEach(ItemEntity::discard);
 			h.setBlock(SECRET, Blocks.AIR);
@@ -266,8 +265,7 @@ public class DisguiseLookGameTests implements FabricGameTest {
 	/** How many items the block at {@code rel} drops, blown up by an explosion of {@code radius} (0: broken without one). */
 	private static int drops(GameTestHelper h, BlockPos rel, float radius) {
 		BlockPos abs = h.absolutePos(rel);
-		LootContext.Builder loot = new LootContext.Builder(h.getLevel())
-				.withRandom(h.getLevel().getRandom())
+		net.minecraft.world.level.storage.loot.LootParams.Builder loot = new net.minecraft.world.level.storage.loot.LootParams.Builder(h.getLevel())
 				.withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(abs))
 				.withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
 				.withOptionalParameter(LootContextParams.BLOCK_ENTITY, h.getLevel().getBlockEntity(abs));
@@ -301,7 +299,7 @@ public class DisguiseLookGameTests implements FabricGameTest {
 			}
 			checked++;
 			if (exploded >= 5 || plain != 50) {
-				problems.add(Registry.BLOCK.getKey(block).getPath() + ": " + exploded + " of 50 survived a big blast, " + plain + " of 50 dropped without one");
+				problems.add(BuiltInRegistries.BLOCK.getKey(block).getPath() + ": " + exploded + " of 50 survived a big blast, " + plain + " of 50 dropped without one");
 			}
 			h.setBlock(SECRET, Blocks.AIR);
 		}
@@ -312,7 +310,7 @@ public class DisguiseLookGameTests implements FabricGameTest {
 
 	private static float resistance(GameTestHelper h, Vec3 centerRel) {
 		Vec3 center = abs(h, centerRel);
-		Explosion explosion = new Explosion(h.getLevel(), null, center.x, center.y, center.z, 4.0F);
+		Explosion explosion = new Explosion(h.getLevel(), null, center.x, center.y, center.z, 4.0F, false, Explosion.BlockInteraction.DESTROY);
 		BlockPos pos = h.absolutePos(SECRET);
 		return new ExplosionDamageCalculator()
 				.getBlockExplosionResistance(explosion, h.getLevel(), pos, h.getLevel().getBlockState(pos), Fluids.EMPTY.defaultFluidState())
@@ -348,7 +346,7 @@ public class DisguiseLookGameTests implements FabricGameTest {
 		h.setBlock(obsidian, ModBlocks.SOLID_BLOCK);
 		secret(h, obsidian).setDisguise(all(Blocks.OBSIDIAN.defaultBlockState()));
 		Vec3 center = abs(h, new Vec3(3.5, 1.5, 3.5));
-		h.getLevel().explode(null, center.x, center.y, center.z, 4.0F, Explosion.BlockInteraction.BREAK);
+		h.getLevel().explode(null, center.x, center.y, center.z, 4.0F, net.minecraft.world.level.Level.ExplosionInteraction.TNT);
 		checkBlock(h, dirt, Blocks.AIR);
 		checkBlock(h, obsidian, ModBlocks.SOLID_BLOCK);
 		h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(BlockPos.ZERO)).inflate(8)).forEach(ItemEntity::discard);

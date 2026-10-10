@@ -31,7 +31,7 @@ public class SecretGoggles extends ArmorItem {
 	public static final float WEAR_CHANCE = 0.2f;
 
 	public SecretGoggles(Properties properties) {
-		super(Material.INSTANCE, EquipmentSlot.HEAD, properties);
+		super(Material.INSTANCE, ArmorItem.Type.HELMET, properties);
 	}
 
 	/** No armor or toughness modifiers at all (not even "+0 Armor"). */
@@ -60,12 +60,12 @@ public class SecretGoggles extends ArmorItem {
 		INSTANCE;
 
 		@Override
-		public int getDurabilityForSlot(EquipmentSlot slot) {
+		public int getDurabilityForType(ArmorItem.Type type) {
 			return DURABILITY;
 		}
 
 		@Override
-		public int getDefenseForSlot(EquipmentSlot slot) {
+		public int getDefenseForType(ArmorItem.Type type) {
 			return 0;
 		}
 

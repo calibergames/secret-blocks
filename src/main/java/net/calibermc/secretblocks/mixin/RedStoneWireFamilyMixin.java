@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Vanilla redstone wire and Secret Redstone Dust behave as one wire family.
- * In 1.19.2 each {@link RedStoneWireBlock} instance
+ * In 1.20.1 each {@link RedStoneWireBlock} instance
  * (a) switches off only its own {@code shouldSignal} while computing its
  * power, and (b) recognises only its own block as wire. With two instances
  * each read the other as a full-strength source: no loss per block, and a

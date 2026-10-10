@@ -42,7 +42,7 @@ final class WandTestPlayer extends ServerPlayer {
 	final List<Component> messages = new ArrayList<>();
 
 	WandTestPlayer(ServerLevel level, boolean creative, int permission) {
-		super(level.getServer(), level, PROFILE, null);
+		super(level.getServer(), level, PROFILE);
 		this.creative = creative;
 		this.permission = permission;
 	}

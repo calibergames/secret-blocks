@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
- * Continuity (connected textures, 2.x on 1.19.2) decides whether a block's
+ * Continuity (connected textures, 2.0.x) decides whether a block's
  * texture joins its neighbour by reading the neighbour's block state. Here a
  * secret neighbour reads as the look of its face on the same side, so real
  * glass joins secret glass beside it. A pseudo mixin, applied only with

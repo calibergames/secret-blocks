@@ -48,9 +48,34 @@ public class TrappedChestGameTests implements FabricGameTest {
 
 	private static final Block SECRET = ModBlocks.SECRET_TRAPPED_CHEST;
 
-	/** A mock player standing in the level at {@code rel}; every viewer is discarded by {@link #cleanUp}. */
+	/**
+	 * A mock player standing in the level at {@code rel}; every viewer is
+	 * discarded by {@link #cleanUp}. Leaving the game closes its open menu, as
+	 * a server player's does ({@code ServerPlayer.doCloseContainer}).
+	 */
 	private static Player viewer(GameTestHelper h, List<Player> viewers, Vec3 rel) {
-		Player player = h.makeMockPlayer();
+		Player player = new Player(h.getLevel(), BlockPos.ZERO, 0.0F, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "test-viewer")) {
+			@Override
+			public boolean isSpectator() {
+				return false;
+			}
+
+			@Override
+			public boolean isCreative() {
+				return true;
+			}
+
+			@Override
+			public boolean isLocalPlayer() {
+				return true;
+			}
+
+			@Override
+			protected void doCloseContainer() {
+				containerMenu.removed(this);
+				containerMenu = inventoryMenu;
+			}
+		};
 		Vec3 at = abs(h, rel);
 		player.moveTo(at.x, at.y, at.z, 0, 0);
 		h.getLevel().addFreshEntity(player);

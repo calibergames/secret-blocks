@@ -5,7 +5,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -110,7 +110,7 @@ public class RecipeGameTests implements FabricGameTest {
 	public void everyLootTableLoads(GameTestHelper h) {
 		MinecraftServer server = h.getLevel().getServer();
 		checkLoads(h, "loot table", dataFiles(server, "loot_tables"), name -> PARKED.stream().anyMatch(p -> name.equals("blocks/" + p)),
-				name -> server.getLootTables().getIds().contains(new ResourceLocation(SecretBlocks.MOD_ID, name)));
+				name -> server.getLootData().getKeys(net.minecraft.world.level.storage.loot.LootDataType.TABLE).contains(new ResourceLocation(SecretBlocks.MOD_ID, name)));
 		h.succeed();
 	}
 
@@ -119,12 +119,12 @@ public class RecipeGameTests implements FabricGameTest {
 	public void everyItemHasARecipe(GameTestHelper h) {
 		List<CraftingRecipe> recipes = h.getLevel().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING);
 		int items = 0;
-		for (Item item : Registry.ITEM) {
-			if (!Registry.ITEM.getKey(item).getNamespace().equals(SecretBlocks.MOD_ID) || NO_RECIPE.contains(item)) {
+		for (Item item : BuiltInRegistries.ITEM) {
+			if (!BuiltInRegistries.ITEM.getKey(item).getNamespace().equals(SecretBlocks.MOD_ID) || NO_RECIPE.contains(item)) {
 				continue;
 			}
 			items++;
-			check(h, recipes.stream().anyMatch(r -> r.getResultItem().is(item)), "no crafting recipe makes " + Registry.ITEM.getKey(item));
+			check(h, recipes.stream().anyMatch(r -> r.getResultItem(h.getLevel().registryAccess()).is(item)), "no crafting recipe makes " + BuiltInRegistries.ITEM.getKey(item));
 		}
 		check(h, items >= 20, "expected the mod's items, found " + items);
 		h.succeed();
@@ -153,8 +153,8 @@ public class RecipeGameTests implements FabricGameTest {
 				grid[(i / width) * 3 + i % width] = accepted.length > 0 ? accepted[0].copy() : ItemStack.EMPTY;
 			}
 			Optional<ItemStack> made = craft(h, grid);
-			check(h, made.isPresent() && made.get().is(recipe.getResultItem().getItem()),
-					recipe.getId() + " should make " + recipe.getResultItem() + " from its ingredients, got " + made);
+			check(h, made.isPresent() && made.get().is(recipe.getResultItem(h.getLevel().registryAccess()).getItem()),
+					recipe.getId() + " should make " + recipe.getResultItem(h.getLevel().registryAccess()) + " from its ingredients, got " + made);
 		}
 		check(h, crafted >= 20, "expected the mod's crafting recipes, found " + crafted);
 		h.succeed();

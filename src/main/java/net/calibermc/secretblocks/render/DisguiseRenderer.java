@@ -13,9 +13,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -63,7 +61,7 @@ public final class DisguiseRenderer {
 			int tempRotation = 0;
 
 			if (tag.contains(direction.name().toLowerCase() + "State")) {
-				tempState = NbtUtils.readBlockState(tag.getCompound(direction.name().toLowerCase() + "State"));
+				tempState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(direction.name().toLowerCase() + "State"));
 			}
 
 			if (tag.contains(direction.name().toLowerCase() + "Direction")) {
@@ -214,7 +212,9 @@ public final class DisguiseRenderer {
 	private static void emitWhole(RenderContext context, QuadEmitter emitter, BakedModel model, List<BakedQuad> quads, BlockState look,
 			BlockAndTintGetter blockView, BlockPos pos, Supplier<net.minecraft.util.RandomSource> randomSupplier, Direction direction,
 			@org.jetbrains.annotations.Nullable RenderMaterial layer, boolean builder) {
-		if (model instanceof FabricBakedModel fabric && !fabric.isVanillaAdapter()) {
+		// Every baked model is a FabricBakedModel; a plain vanilla one is its adapter.
+		FabricBakedModel fabric = (FabricBakedModel) model;
+		if (!fabric.isVanillaAdapter()) {
 			context.pushTransform(quad -> {
 				Direction side = quad.cullFace() != null ? quad.cullFace() : quad.lightFace();
 				if (side != direction) {

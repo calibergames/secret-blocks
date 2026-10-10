@@ -232,7 +232,7 @@ public class SecretGate extends Block implements EntityBlock, SecretBlock, GateS
 		if (state.is(ModBlocks.SECRET_GATE_SEGMENT)) {
 			return !isOwnSegment(level, pos, gatePos);
 		}
-		return !state.getMaterial().isReplaceable();
+		return !state.canBeReplaced();
 	}
 
 	/** A segment broken while open is built again a second later. */
@@ -269,7 +269,7 @@ public class SecretGate extends Block implements EntityBlock, SecretBlock, GateS
 		if (state.is(ModBlocks.SECRET_GATE_SEGMENT)) {
 			return isOwnSegment(level, pos, gatePos) ? Spot.OWN : Spot.FOREIGN;
 		}
-		if (!state.getMaterial().isReplaceable()) {
+		if (!state.canBeReplaced()) {
 			return Spot.BLOCKED;
 		}
 		// The rule a player's block placement follows: no living entity, vehicle or the like inside.
@@ -342,7 +342,7 @@ public class SecretGate extends Block implements EntityBlock, SecretBlock, GateS
 			}
 			if (isOwnSegment(level, pos, gatePos)) {
 				level.removeBlock(pos, false);
-			} else if (state.is(ModBlocks.SECRET_GATE_SEGMENT) || !state.getMaterial().isReplaceable()) {
+			} else if (state.is(ModBlocks.SECRET_GATE_SEGMENT) || !state.canBeReplaced()) {
 				return;
 			}
 			if (chain) {

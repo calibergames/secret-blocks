@@ -3,6 +3,7 @@ package net.calibermc.secretblocks.gametest.support;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -14,7 +15,7 @@ public class TestBlocks implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		TEST_GATE_OWNER = Registry.register(Registry.BLOCK, new ResourceLocation("secretblocks-gametest", "test_gate_owner"),
-				new TestGateOwner(FabricBlockSettings.copy(Blocks.STONE)));
+		TEST_GATE_OWNER = Registry.register(BuiltInRegistries.BLOCK, new ResourceLocation("secretblocks-gametest", "test_gate_owner"),
+				new TestGateOwner(FabricBlockSettings.copyOf(Blocks.STONE)));
 	}
 }

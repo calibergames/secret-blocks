@@ -6,6 +6,7 @@ import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.InteractionHand;
@@ -84,7 +85,7 @@ public class SwitchProbe extends Item {
 	}
 
 	private static BlockState getState(ItemStack itemStack) {
-		return NbtUtils.readBlockState(itemStack.getOrCreateTagElement("setState"));
+		return NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), itemStack.getOrCreateTagElement("setState"));
 	}
 
 	private static Direction getDirection(ItemStack itemStack) {

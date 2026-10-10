@@ -4,14 +4,13 @@ import net.calibermc.secretblocks.items.BuildersGoggles;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
@@ -24,7 +23,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -66,7 +64,7 @@ public class BuildersGogglesGameTests implements FabricGameTest {
 		player.setItemSlot(EquipmentSlot.HEAD, goggles());
 		for (int hit = 0; hit < 20; hit++) {
 			player.invulnerableTime = 0;
-			player.hurt(DamageSource.GENERIC, 1.0f);
+			player.hurt(player.damageSources().generic(), 1.0f);
 			player.setHealth(player.getMaxHealth());
 		}
 		for (int tick = 0; tick < 200; tick++) {
@@ -89,7 +87,7 @@ public class BuildersGogglesGameTests implements FabricGameTest {
 		check(h, ModItems.BUILDERS_GOGGLES.getEnchantmentValue() == 0, "enchantability should be 0");
 		check(h, EnchantmentHelper.selectEnchantment(RandomSource.create(1), goggles(), 30, true).isEmpty(),
 				"the enchanting table should offer nothing");
-		for (Enchantment enchantment : Registry.ENCHANTMENT) {
+		for (Enchantment enchantment : BuiltInRegistries.ENCHANTMENT) {
 			check(h, !enchantment.canEnchant(goggles()), enchantment.getDescriptionId() + " must not apply to them");
 		}
 		Player player = h.makeMockPlayer();
@@ -108,26 +106,25 @@ public class BuildersGogglesGameTests implements FabricGameTest {
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void noRecipeOrLoot(GameTestHelper h) {
 		MinecraftServer server = h.getLevel().getServer();
-		check(h, server.getRecipeManager().getRecipes().stream().noneMatch(r -> r.getResultItem().is(ModItems.BUILDERS_GOGGLES)),
+		check(h, server.getRecipeManager().getRecipes().stream().noneMatch(r -> r.getResultItem(server.registryAccess()).is(ModItems.BUILDERS_GOGGLES)),
 				"no recipe may make them");
 		int tables = 0;
-		for (ResourceLocation id : server.getLootTables().getIds()) {
-			LootTable table = server.getLootTables().get(id);
+		for (ResourceLocation id : server.getLootData().getKeys(net.minecraft.world.level.storage.loot.LootDataType.TABLE)) {
+			LootTable table = server.getLootData().getLootTable(id);
 			if (table.getParamSet() != LootContextParamSets.CHEST) {
 				continue;
 			}
 			tables++;
 			for (int roll = 0; roll < 20; roll++) {
-				LootContext context = new LootContext.Builder(h.getLevel())
+				net.minecraft.world.level.storage.loot.LootParams params = new net.minecraft.world.level.storage.loot.LootParams.Builder(h.getLevel())
 						.withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(h.absolutePos(BlockPos.ZERO)))
-						.withRandom(RandomSource.create(roll))
 						.create(LootContextParamSets.CHEST);
-				check(h, table.getRandomItems(context).stream().noneMatch(stack -> stack.is(ModItems.BUILDERS_GOGGLES)),
+				check(h, table.getRandomItems(params, roll).stream().noneMatch(stack -> stack.is(ModItems.BUILDERS_GOGGLES)),
 						"chest loot " + id + " must not hold them");
 			}
 		}
 		check(h, tables >= 20, "expected vanilla's chest loot tables, found " + tables);
-		check(h, Registry.ITEM.getKey(ModItems.BUILDERS_GOGGLES).getPath().equals("builders_goggles"), "registered as secretblocks:builders_goggles");
+		check(h, BuiltInRegistries.ITEM.getKey(ModItems.BUILDERS_GOGGLES).getPath().equals("builders_goggles"), "registered as secretblocks:builders_goggles");
 		check(h, ModItems.BUILDERS_GOGGLES instanceof BuildersGoggles, "the Builder's Goggles item");
 		h.succeed();
 	}

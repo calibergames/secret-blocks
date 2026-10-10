@@ -45,7 +45,8 @@ public class SecretRedstoneWire extends Block implements EntityBlock, SecretBloc
 	public static final IntegerProperty POWER = RedStoneWireBlock.POWER;
 
 	public SecretRedstoneWire(Properties settings) {
-		super(settings);
+		// A piston breaks it, as it breaks vanilla redstone dust.
+		super(settings.pushReaction(PushReaction.DESTROY));
 		registerDefaultState(stateDefinition.any().setValue(POWER, 0));
 	}
 
@@ -167,9 +168,4 @@ public class SecretRedstoneWire extends Block implements EntityBlock, SecretBloc
 		}
 	}
 
-	/** A piston breaks it, as it breaks vanilla redstone dust. */
-	@Override
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.DESTROY;
-	}
 }

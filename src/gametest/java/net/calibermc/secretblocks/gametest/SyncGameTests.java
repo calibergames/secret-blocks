@@ -6,6 +6,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -43,7 +44,7 @@ public class SyncGameTests implements FabricGameTest {
 	private static void checkCarriesDisguise(GameTestHelper h, CompoundTag tag, Map<Direction, BlockState> faces, String what) {
 		for (Map.Entry<Direction, BlockState> face : faces.entrySet()) {
 			String key = face.getKey().getName() + "State";
-			String expected = net.minecraft.core.Registry.BLOCK.getKey(face.getValue().getBlock()).toString();
+			String expected = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(face.getValue().getBlock()).toString();
 			check(h, tag != null && expected.equals(tag.getCompound(key).getString("Name")),
 					what + " should carry " + key + "=" + expected + ", got " + (tag == null ? null : tag.get(key)));
 		}

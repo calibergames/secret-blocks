@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * on), the hopper screen, comparators and dropping the contents are all
  * vanilla, plus the {@link Disguise}.
  *
- * 1.19.2's {@code HopperBlockEntity} constructor hard-wires the vanilla type.
+ * 1.20.1's {@code HopperBlockEntity} constructor hard-wires the vanilla type.
  * This one sets its own type ({@link ModEntities#SECRET_HOPPER}) through
  * {@link BlockEntityTypeAccessor}, so it saves and loads as a Secret Hopper
  * (keeping its disguise) and the Secret Hopper block's ticker runs it.

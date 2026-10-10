@@ -9,7 +9,7 @@ import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -91,7 +91,7 @@ public class GateSegmentGameTests implements FabricGameTest {
 		floor(h);
 		owner(h, true);
 		check(h, SEGMENT.asItem() == Items.AIR, "the segment should have no item, has " + SEGMENT.asItem());
-		check(h, !Registry.ITEM.containsKey(new ResourceLocation("secretblocks", "secret_gate_segment")), "no item should be registered for the segment");
+		check(h, !BuiltInRegistries.ITEM.containsKey(new ResourceLocation("secretblocks", "secret_gate_segment")), "no item should be registered for the segment");
 		BlockPos first = OWNER.east();
 		segment(h, first, h.absolutePos(OWNER));
 		check(h, h.getBlockState(first).getBlock().getCloneItemStack(h.getLevel(), h.absolutePos(first), h.getBlockState(first)).isEmpty(),

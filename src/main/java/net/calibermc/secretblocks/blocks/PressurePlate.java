@@ -47,7 +47,8 @@ public class PressurePlate extends Block implements EntityBlock, SecretBlock {
 	private final Predicate<Entity> trigger;
 
 	public PressurePlate(Properties settings, Predicate<Entity> trigger) {
-		super(settings);
+		// A piston breaks it, as it breaks a vanilla pressure plate.
+		super(settings.pushReaction(PushReaction.DESTROY));
 		this.trigger = trigger;
 		registerDefaultState(stateDefinition.any().setValue(POWERED, false));
 	}
@@ -133,9 +134,4 @@ public class PressurePlate extends Block implements EntityBlock, SecretBlock {
 		}
 	}
 
-	/** A piston breaks it, as it breaks a vanilla pressure plate. */
-	@Override
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.DESTROY;
-	}
 }

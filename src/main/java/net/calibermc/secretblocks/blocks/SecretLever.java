@@ -23,7 +23,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class SecretLever extends net.minecraft.world.level.block.LeverBlock implements EntityBlock, SecretBlock {
 
     public SecretLever(Properties settings) {
-        super(settings);
+        // A piston breaks it, as it breaks a vanilla lever.
+        super(settings.pushReaction(PushReaction.DESTROY));
     }
 
 //    private static final VoxelShape SHAPE = VoxelShapes.cuboid(0.0d, 0.0d, 0.0d, 1.0d, 1.0d, 1.0d);
@@ -62,9 +63,4 @@ public class SecretLever extends net.minecraft.world.level.block.LeverBlock impl
 //        return SHAPE;
 //    }
 
-	/** A piston breaks it, as it breaks a vanilla lever (vanilla's comes from its material, which this one does not share). */
-	@Override
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.DESTROY;
-	}
 }

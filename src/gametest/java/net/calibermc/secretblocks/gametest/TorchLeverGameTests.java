@@ -1,5 +1,8 @@
 package net.calibermc.secretblocks.gametest;
 
+import com.mojang.math.Axis;
+import net.minecraft.core.registries.BuiltInRegistries;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -223,7 +226,7 @@ public class TorchLeverGameTests implements FabricGameTest {
 				check(h, torch.getPistonPushReaction() == vanilla.getPistonPushReaction() && vanilla.getPistonPushReaction() == net.minecraft.world.level.material.PushReaction.DESTROY,
 						torch + " should be broken by a piston, as a torch is; its reaction is " + torch.getPistonPushReaction());
 				check(h, torch.getSoundType() == vanilla.getSoundType(), torch + " should sound like a torch");
-				check(h, torch.getMaterial() == vanilla.getMaterial(), torch + " should have the torch's material (water breaks it)");
+				check(h, !torch.blocksMotion() && !vanilla.blocksMotion(), torch + " should not block motion, as a torch (water washes it away)");
 			}
 		}
 		// On, the wall form's outline keeps its wall edge and reaches 8.5 pixels from the wall (a wall torch: 5), on every facing.
@@ -411,7 +414,7 @@ public class TorchLeverGameTests implements FabricGameTest {
 		CompoundTag properties = new CompoundTag();
 		properties.putString("powered", "true");
 		saved.put("Properties", properties);
-		BlockState loaded = NbtUtils.readBlockState(saved);
+		BlockState loaded = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), saved);
 		check(h, loaded.is(FLOOR) && loaded.getValue(BlockStateProperties.POWERED), "it should load as an on floor Torch Lever, got " + loaded);
 		check(h, loaded.getValue(TorchLever.FACING) == Direction.EAST, "it should face east, faces " + loaded.getValue(TorchLever.FACING));
 		// Turned or mirrored with a structure, it turns as a lever would.

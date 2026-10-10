@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -106,7 +106,7 @@ public class IronDoorGameTests implements FabricGameTest {
 	}
 
 	/**
-	 * Iron material, as vanilla's (iron open and close sounds, no hand use),
+	 * The iron block set type, as vanilla's (iron open and close sounds, no hand use),
 	 * but no tool needed to drop: how long it takes to mine follows its look.
 	 */
 	@GameTest(template = EMPTY_STRUCTURE)
@@ -115,7 +115,9 @@ public class IronDoorGameTests implements FabricGameTest {
 			BlockState secret = block.defaultBlockState();
 			check(h, !secret.requiresCorrectToolForDrops(), block + " should drop without a tool");
 			check(h, !secret.is(BlockTags.MINEABLE_WITH_PICKAXE), block + " should not be tagged for a pickaxe");
-			check(h, secret.getMaterial() == Material.METAL, block + " should be metal (iron open/close sounds, no hand use)");
+			BlockSetType type = block instanceof net.calibermc.secretblocks.blocks.DoorBlock door ? door.type()
+					: ((net.calibermc.secretblocks.blocks.TrapdoorBlock) block).type();
+			check(h, type == BlockSetType.IRON, block + " should be of the iron set (iron open/close sounds, no hand use), is " + type.name());
 		}
 		h.succeed();
 	}

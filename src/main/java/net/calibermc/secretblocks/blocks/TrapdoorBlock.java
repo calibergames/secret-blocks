@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
+import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
@@ -17,8 +18,16 @@ import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 
 public class TrapdoorBlock extends net.minecraft.world.level.block.TrapDoorBlock implements EntityBlock, SecretBlock {
 
-	public TrapdoorBlock(Properties settings) {
-		super(settings);
+	private final BlockSetType type;
+
+	public TrapdoorBlock(Properties settings, BlockSetType type) {
+		super(settings, type);
+		this.type = type;
+	}
+
+	/** Its block set type (iron: no hand use, iron sounds), as {@code DoorBlock.type()}. */
+	public BlockSetType type() {
+		return type;
 	}
 
 	@Override

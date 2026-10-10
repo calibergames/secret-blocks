@@ -14,7 +14,6 @@ import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -28,6 +27,12 @@ import org.jetbrains.annotations.Nullable;
 
 @Environment(EnvType.CLIENT)
 public class SecretBlockBakedModel implements FabricBakedModel, BakedModel {
+
+	private final ItemTransforms transforms;
+
+	public SecretBlockBakedModel(ItemTransforms transforms) {
+		this.transforms = transforms;
+	}
 
 
 
@@ -65,7 +70,7 @@ public class SecretBlockBakedModel implements FabricBakedModel, BakedModel {
 
 	@Override
 	public ItemTransforms getTransforms() {
-		return Minecraft.getInstance().getModelManager().getModel(new ModelResourceLocation("minecraft:block/block")).getTransforms();
+		return transforms;
 	}
 
 	@Override

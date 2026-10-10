@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
+import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -18,7 +19,7 @@ import net.minecraft.world.phys.BlockHitResult;
 public class IronDoorBlock extends net.minecraft.world.level.block.DoorBlock implements EntityBlock, SecretBlock {
 
 	public IronDoorBlock(Properties settings) {
-		super(settings);
+		super(settings, BlockSetType.IRON);
 	}
 
 	@Override

@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Block;
@@ -66,18 +66,18 @@ public class ConductorGameTests implements FabricGameTest {
 		TWINS.forEach((secret, vanilla) -> {
 			boolean expected = conducts(h, vanilla);
 			if (conducts(h, secret) != expected) {
-				wrong.append(Registry.BLOCK.getKey(secret)).append(" should ").append(expected ? "" : "not ").append("conduct, as ")
-						.append(Registry.BLOCK.getKey(vanilla)).append("; ");
+				wrong.append(BuiltInRegistries.BLOCK.getKey(secret)).append(" should ").append(expected ? "" : "not ").append("conduct, as ")
+						.append(BuiltInRegistries.BLOCK.getKey(vanilla)).append("; ");
 			}
 		});
 		for (Block block : new Block[] {ModBlocks.SECRET_GATE, ModBlocks.SECRET_GATE_SEGMENT}) {
 			if (conducts(h, block)) {
-				wrong.append(Registry.BLOCK.getKey(block)).append(" should not conduct; ");
+				wrong.append(BuiltInRegistries.BLOCK.getKey(block)).append(" should not conduct; ");
 			}
 		}
 		for (Block block : new Block[] {ModBlocks.SOLID_BLOCK, Blocks.STONE}) {
 			if (!conducts(h, block)) {
-				wrong.append(Registry.BLOCK.getKey(block)).append(" should conduct, as stone; ");
+				wrong.append(BuiltInRegistries.BLOCK.getKey(block)).append(" should conduct, as stone; ");
 			}
 		}
 		check(h, wrong.length() == 0, wrong.toString());
@@ -103,7 +103,7 @@ public class ConductorGameTests implements FabricGameTest {
 				boolean dummy = blocks[i] == ModBlocks.SOLID_BLOCK;
 				BlockPos block = new BlockPos(3, 1, 1 + i * 2);
 				check(h, h.getBlockState(block.west()).getValue(BlockStateProperties.POWERED), "control: the repeater should be powered");
-				check(h, lit == dummy, Registry.BLOCK.getKey(blocks[i]) + (dummy ? " should pass the power to the lamp" : " must not pass the power to the lamp")
+				check(h, lit == dummy, BuiltInRegistries.BLOCK.getKey(blocks[i]) + (dummy ? " should pass the power to the lamp" : " must not pass the power to the lamp")
 						+ " (repeater " + h.getBlockState(block.west()) + ", signal into the lamp " + h.getLevel().getSignal(h.absolutePos(block), Direction.EAST) + ")");
 			}
 			h.succeed();

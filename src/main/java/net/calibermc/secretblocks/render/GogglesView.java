@@ -6,7 +6,6 @@ import net.calibermc.secretblocks.registry.ModItems;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
@@ -45,7 +44,7 @@ public final class GogglesView {
 	}
 
 	public static void register() {
-		ClientSpriteRegistryCallback.event(InventoryMenu.BLOCK_ATLAS).register((atlas, registry) -> registry.register(OVERLAY_SPRITE));
+		// OVERLAY_SPRITE is in textures/block/, which the block atlas takes in whole.
 		ClientTickEvents.END_CLIENT_TICK.register(GogglesView::tick);
 	}
 

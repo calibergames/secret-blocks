@@ -18,13 +18,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * accept nothing (as armour they would take Protection, Thorns, Respiration
  * and the curses). {@code canEnchant} is what the anvil (books) and
  * {@code /enchant} check; the enchanting table offers nothing because the
- * goggles' enchantability is 0. 1.19.2 has no loader hook for this; later
+ * goggles' enchantability is 0. 1.20.1 has no loader hook for this; later
  * versions can use enchantment tags.
  *
- * Targets every class that declares {@code canEnchant(ItemStack)} in 1.19.2.
+ * Targets the classes that declare {@code canEnchant(ItemStack)} in 1.20.1.
  * Thorns and Unbreaking return true for armor before reaching the base
  * method, so the base alone is not enough (a mutation run confirmed it for
- * Thorns); the other two are covered for uniformity.
+ * Thorns); the other two are covered for uniformity. Binding Curse's
+ * override calls the base method, so the base covers it.
  */
 @Mixin({Enchantment.class, ThornsEnchantment.class, DamageEnchantment.class, DiggingEnchantment.class, DigDurabilityEnchantment.class})
 public abstract class GogglesEnchantmentMixin {

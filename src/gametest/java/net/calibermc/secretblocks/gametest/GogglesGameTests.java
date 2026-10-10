@@ -16,7 +16,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
-import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -185,14 +184,13 @@ public class GogglesGameTests implements FabricGameTest {
 	/** End City treasure: about 10% of chests hold a pair (400 rolls → about 40). */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void foundInEndCityTreasure(GameTestHelper h) {
-		LootTable table = h.getLevel().getServer().getLootTables().get(BuiltInLootTables.END_CITY_TREASURE);
+		LootTable table = h.getLevel().getServer().getLootData().getLootTable(BuiltInLootTables.END_CITY_TREASURE);
 		int withGoggles = 0;
 		for (int roll = 0; roll < 400; roll++) {
-			LootContext context = new LootContext.Builder(h.getLevel())
+			net.minecraft.world.level.storage.loot.LootParams params = new net.minecraft.world.level.storage.loot.LootParams.Builder(h.getLevel())
 					.withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(h.absolutePos(BlockPos.ZERO)))
-					.withRandom(RandomSource.create(roll))
 					.create(LootContextParamSets.CHEST);
-			if (table.getRandomItems(context).stream().anyMatch(stack -> stack.is(ModItems.SECRET_GOGGLES))) {
+			if (table.getRandomItems(params, roll).stream().anyMatch(stack -> stack.is(ModItems.SECRET_GOGGLES))) {
 				withGoggles++;
 			}
 		}

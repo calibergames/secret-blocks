@@ -269,11 +269,11 @@ public class DispenserGameTests implements FabricGameTest {
 				return true;
 			}
 		};
-		CraftingContainer grid = new CraftingContainer(menu, 3, 3);
+		CraftingContainer grid = new net.minecraft.world.inventory.TransientCraftingContainer(menu, 3, 3);
 		grid.setItem(0, new ItemStack(ModBlocks.SOLID_BLOCK));
 		grid.setItem(1, new ItemStack(Items.DISPENSER));
 		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, h.getLevel())
-				.map((CraftingRecipe recipe) -> recipe.assemble(grid));
+				.map((CraftingRecipe recipe) -> recipe.assemble(grid, h.getLevel().registryAccess()));
 		check(h, result.isPresent() && result.get().is(ModBlocks.SECRET_DISPENSER.asItem()),
 				"Dummy Block + dispenser should craft a Secret Dispenser, got " + result);
 		h.succeed();

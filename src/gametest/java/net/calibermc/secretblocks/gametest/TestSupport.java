@@ -67,7 +67,7 @@ final class TestSupport {
 	/** A server player standing at {@code feetRel} whose eyes look exactly at {@code lookAtRel}. */
 	static ServerPlayer player(GameTestHelper h, Vec3 feetRel, Vec3 lookAtRel) {
 		ServerLevel level = h.getLevel();
-		ServerPlayer player = new ServerPlayer(level.getServer(), level, PROFILE, null);
+		ServerPlayer player = new ServerPlayer(level.getServer(), level, PROFILE);
 		Vec3 feet = abs(h, feetRel);
 		Vec3 eye = feet.add(0, player.getEyeHeight(), 0);
 		Vec3 d = abs(h, lookAtRel).subtract(eye);
@@ -146,12 +146,12 @@ final class TestSupport {
 				return true;
 			}
 		};
-		CraftingContainer grid = new CraftingContainer(menu, 3, 3);
+		CraftingContainer grid = new net.minecraft.world.inventory.TransientCraftingContainer(menu, 3, 3);
 		for (int i = 0; i < stacks.length; i++) {
 			grid.setItem(i, stacks[i]);
 		}
 		return h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, h.getLevel())
-				.map((CraftingRecipe recipe) -> recipe.assemble(grid));
+				.map((CraftingRecipe recipe) -> recipe.assemble(grid, h.getLevel().registryAccess()));
 	}
 
 	/** {@link #craft(GameTestHelper, ItemStack...)} with one of each item. */

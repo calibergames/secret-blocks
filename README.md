@@ -39,8 +39,8 @@ More in [Tools](https://github.com/calibergames/secret-blocks/wiki/Tools).
 
 ## Requirements
 
-- Minecraft 1.19.2
-- Fabric Loader 0.14.21 or later
+- Minecraft 1.20.1
+- Fabric Loader 0.16.10 or later
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 - With Sodium, you also need [Indium](https://modrinth.com/mod/indium). See [Compatibility](https://github.com/calibergames/secret-blocks/wiki/Compatibility) for shader packs, connected textures and Carpet.
 

@@ -11,6 +11,7 @@ import net.calibermc.secretblocks.blocks.entity.SecretHopperBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretSculkSensorBlockEntity;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
@@ -36,29 +37,29 @@ public class ModEntities {
                 .toArray(Block[]::new);
         // One type for all of them; the Secret Chest gets the container subclass,
         // both when placed and when loaded from a save.
-        SECRET_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        SECRET_BLOCK_ENTITY = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 id("secret_block_entity_type"), FabricBlockEntityTypeBuilder.<SecretBlockEntity>create(
                         (pos, state) -> state.getBlock() instanceof SecretChest
                                 ? new SecretChestBlockEntity(pos, state) : new SecretBlockEntity(pos, state),
                         plainSecretBlocks).build());
 
-        SECRET_DISPENSER = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        SECRET_DISPENSER = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 id("secret_dispenser"), FabricBlockEntityTypeBuilder.create(SecretDispenserBlockEntity::new,
                         ModBlocks.SECRET_DISPENSER, ModBlocks.SECRET_DROPPER).build());
 
-        SECRET_HOPPER = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        SECRET_HOPPER = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 id("secret_hopper"), FabricBlockEntityTypeBuilder.create(SecretHopperBlockEntity::new,
                         ModBlocks.SECRET_HOPPER).build());
 
-        SECRET_COMPARATOR = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        SECRET_COMPARATOR = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 id("secret_comparator"), FabricBlockEntityTypeBuilder.create(SecretComparatorBlockEntity::new,
                         ModBlocks.SECRET_COMPARATOR).build());
 
-        SECRET_SCULK_SENSOR = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        SECRET_SCULK_SENSOR = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 id("secret_sculk_sensor"), FabricBlockEntityTypeBuilder.create(SecretSculkSensorBlockEntity::new,
                         ModBlocks.SECRET_SCULK_SENSOR).build());
 
-        SECRET_GATE_SEGMENT = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        SECRET_GATE_SEGMENT = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 id("secret_gate_segment"), FabricBlockEntityTypeBuilder.create(SecretGateSegmentBlockEntity::new,
                         ModBlocks.SECRET_GATE_SEGMENT).build());
 

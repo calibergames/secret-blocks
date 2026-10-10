@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 /**
  * Lets a subclass of a vanilla block entity whose constructor hard-wires the
- * vanilla type (1.19.2's {@code HopperBlockEntity}) carry its own type, so it
+ * vanilla type (1.20.1's {@code HopperBlockEntity}) carry its own type, so it
  * saves and loads as ours and our block's ticker accepts it. Used only in
  * constructors ({@link net.calibermc.secretblocks.blocks.entity.SecretHopperBlockEntity}).
  */

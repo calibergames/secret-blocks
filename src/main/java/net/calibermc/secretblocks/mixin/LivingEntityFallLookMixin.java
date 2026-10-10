@@ -26,7 +26,7 @@ public abstract class LivingEntityFallLookMixin extends Entity {
 	@ModifyVariable(method = "playBlockFallSound", at = @At("STORE"))
 	private BlockState secretblocks$fallSoundLook(BlockState state) {
 		BlockPos pos = new BlockPos(Mth.floor(getX()), Mth.floor(getY() - 0.2F), Mth.floor(getZ()));
-		return DisguiseLook.looks(level, pos, state, Direction.UP);
+		return DisguiseLook.looks(level(), pos, state, Direction.UP);
 	}
 
 	/**
@@ -36,6 +36,6 @@ public abstract class LivingEntityFallLookMixin extends Entity {
 	@ModifyArg(method = "checkFallDamage", index = 1,
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/core/particles/BlockParticleOption;<init>(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;)V"))
 	private BlockState secretblocks$landingLook(BlockState state) {
-		return DisguiseLook.looks(level, getOnPosLegacy(), state, Direction.UP);
+		return DisguiseLook.looks(level(), getOnPosLegacy(), state, Direction.UP);
 	}
 }

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.0 (Minecraft 1.20.1, Fabric) — beta
+
+Secret Blocks 2.0.0 for Minecraft 1.20.1: the same blocks and tools as
+2.0.0 for 1.19.2 (below). Blocks that copy vanilla ones follow Minecraft
+1.20's own changes: for example, sculk sensors report the new vibration
+frequencies.
+
+- **Requires Minecraft 1.20.1 exactly,** Fabric Loader 0.16.10 or later,
+  and Fabric API.
+- **Secret Sculk Sensor:** a mob stepping or landing on it gives full
+  power, as on a vanilla sensor.
+- **Sodium 0.5 needs Indium,** as on 1.19.2. Iris shader packs work.
+- **Continuity 3** runs alongside, but its connected textures do not use
+  a secret block's look yet.
+- Worlds from 1.19.2 keep their secret blocks and disguises.
+
 ## 2.0.0 (Minecraft 1.19.2, Fabric) — beta
 
 The biggest update yet: a full set of secret redstone, containers, pistons and

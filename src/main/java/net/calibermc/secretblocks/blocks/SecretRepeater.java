@@ -33,7 +33,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class SecretRepeater extends RepeaterBlock implements EntityBlock, SecretBlock {
 
 	public SecretRepeater(Properties settings) {
-		super(settings);
+		// A piston breaks it, as it breaks a vanilla repeater.
+		super(settings.pushReaction(PushReaction.DESTROY));
 	}
 
 	@Override
@@ -68,9 +69,4 @@ public class SecretRepeater extends RepeaterBlock implements EntityBlock, Secret
 	public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
 	}
 
-	/** A piston breaks it, as it breaks a vanilla repeater. */
-	@Override
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.DESTROY;
-	}
 }

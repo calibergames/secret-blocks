@@ -5,7 +5,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -430,7 +430,7 @@ public class ComparatorGameTests implements FabricGameTest {
 			BlockEntity entity = h.getBlockEntity(pos);
 			CompoundTag saved = entity.saveWithFullMetadata();
 			check(h, "secretblocks:secret_comparator".equals(saved.getString("id")), "saved id should be secretblocks:secret_comparator, is " + saved.getString("id"));
-			check(h, Registry.BLOCK_ENTITY_TYPE.getKey(entity.getType()).toString().equals("secretblocks:secret_comparator"), "its type should be ours, is " + Registry.BLOCK_ENTITY_TYPE.getKey(entity.getType()));
+			check(h, BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(entity.getType()).toString().equals("secretblocks:secret_comparator"), "its type should be ours, is " + BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(entity.getType()));
 			check(h, saved.getInt("OutputSignal") == 15, "the saved data should hold OutputSignal 15: " + saved);
 			check(h, saved.contains("northState"), "the saved data should hold the disguise: " + saved);
 			BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(pos), h.getBlockState(pos), saved);

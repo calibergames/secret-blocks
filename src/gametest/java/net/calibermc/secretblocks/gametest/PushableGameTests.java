@@ -7,6 +7,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -43,7 +44,7 @@ public class PushableGameTests implements FabricGameTest {
 
 	/** Every pushable secret block, from the mod's own list, in a fixed order. */
 	private static final Block[] PUSHABLE = SecretPushing.pushableBlocks().stream()
-			.sorted(java.util.Comparator.comparing(block -> net.minecraft.core.Registry.BLOCK.getKey(block).toString())).toArray(Block[]::new);
+			.sorted(java.util.Comparator.comparing(block -> net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).toString())).toArray(Block[]::new);
 
 	private static Map<Direction, BlockState> all(Block block) {
 		Map<Direction, BlockState> faces = new EnumMap<>(Direction.class);

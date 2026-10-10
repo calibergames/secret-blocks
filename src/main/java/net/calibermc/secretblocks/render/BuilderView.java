@@ -5,7 +5,6 @@ import net.calibermc.secretblocks.registry.ModItems;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
@@ -64,10 +63,7 @@ public final class BuilderView {
 	public static void register() {
 		toggleKey = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.secretblocks.builder_view",
 				InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, "key.categories.secretblocks"));
-		ClientSpriteRegistryCallback.event(InventoryMenu.BLOCK_ATLAS).register((atlas, registry) -> {
-			registry.register(OUTLINE_SPRITE);
-			registry.register(GHOST_SPRITE);
-		});
+		// OUTLINE_SPRITE and GHOST_SPRITE are in textures/block/, which the block atlas takes in whole.
 		ClientTickEvents.END_CLIENT_TICK.register(BuilderView::tick);
 	}
 

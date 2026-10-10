@@ -27,7 +27,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class SecretPistonHead extends PistonHeadBlock implements EntityBlock, SecretBlock {
 
 	public SecretPistonHead(Properties settings) {
-		super(settings);
+		// Pistons can neither push nor break it, as vanilla's head (although many secret
+		// blocks can be pushed).
+		super(settings.pushReaction(PushReaction.BLOCK));
 	}
 
 	@Override
@@ -51,11 +53,6 @@ public class SecretPistonHead extends PistonHeadBlock implements EntityBlock, Se
 		return stateFrom.getBlock() instanceof SecretBlock || super.skipRendering(state, stateFrom, direction);
 	}
 
-	/** Pistons can neither push nor break it, as vanilla's head (although many secret blocks can be pushed). */
-	@Override
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.BLOCK;
-	}
 
 	/** Pick-block gives the piston it belongs to, as vanilla's head does. */
 	@Override

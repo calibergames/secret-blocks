@@ -7,7 +7,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.LightLayer;
@@ -76,8 +76,8 @@ public class LightGameTests implements FabricGameTest {
 	public void theRightBlocksCarryIt(GameTestHelper h) {
 		List<String> problems = new ArrayList<>();
 		int carriers = 0;
-		for (Block block : Registry.BLOCK) {
-			if (!(block instanceof SecretBlock) || !Registry.BLOCK.getKey(block).getNamespace().equals(SecretBlocks.MOD_ID)) {
+		for (Block block : BuiltInRegistries.BLOCK) {
+			if (!(block instanceof SecretBlock) || !BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(SecretBlocks.MOD_ID)) {
 				continue;
 			}
 			boolean has = block.defaultBlockState().hasProperty(Opacity.OPAQUE);
@@ -85,12 +85,12 @@ public class LightGameTests implements FabricGameTest {
 					|| block == ModBlocks.IRON_TRAPDOOR_BLOCK || block == ModBlocks.ONE_WAY_GLASS || block == ModBlocks.GHOST_BLOCK
 					|| block == ModBlocks.SECRET_CLAMBER;
 			if (has == exempt) {
-				problems.add(Registry.BLOCK.getKey(block).getPath() + (has ? " carries it" : " lacks it"));
+				problems.add(BuiltInRegistries.BLOCK.getKey(block).getPath() + (has ? " carries it" : " lacks it"));
 			}
 			if (has) {
 				carriers++;
 				if (!block.defaultBlockState().getValue(Opacity.OPAQUE)) {
-					problems.add(Registry.BLOCK.getKey(block).getPath() + " starts see-through");
+					problems.add(BuiltInRegistries.BLOCK.getKey(block).getPath() + " starts see-through");
 				}
 			}
 		}

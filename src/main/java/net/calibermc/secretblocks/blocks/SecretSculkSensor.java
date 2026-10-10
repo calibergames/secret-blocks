@@ -22,6 +22,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.level.gameevent.vibrations.VibrationSystem;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -41,11 +42,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class SecretSculkSensor extends SculkSensorBlock implements SecretBlock {
 
-	/** Vanilla's sculk sensor hears within 8 blocks. */
-	public static final int LISTENER_RANGE = 8;
-
 	public SecretSculkSensor(Properties settings) {
-		super(settings, LISTENER_RANGE);
+		super(settings);
 	}
 
 	@Override
@@ -57,7 +55,7 @@ public class SecretSculkSensor extends SculkSensorBlock implements SecretBlock {
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
 		return level.isClientSide() ? null : createTickerHelper(type, ModEntities.SECRET_SCULK_SENSOR,
-				(tickLevel, pos, tickState, sensor) -> sensor.getListener().tick(tickLevel));
+				(tickLevel, pos, tickState, sensor) -> VibrationSystem.Ticker.tick(tickLevel, sensor.getVibrationData(), sensor.getVibrationUser()));
 	}
 
 	@Override

@@ -1,13 +1,12 @@
 plugins {
-	id 'fabric-loom' version '0.11-SNAPSHOT'
+	id 'fabric-loom' version '1.18.2'
 	id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
-archivesBaseName = project.archives_base_name
-version = project.minecraft_version+ "-" +project.mod_version
+base {
+	archivesName = project.archives_base_name
+}
+version = project.minecraft_version + "-" + project.mod_version
 group = project.maven_group
 
 repositories {
@@ -19,12 +18,11 @@ repositories {
 		}
 	}
 	maven {
-		name= "CurseMaven"
-		url "https://cursemaven.com"
+		name = "CurseMaven"
+		url = "https://cursemaven.com"
 		content {
 			includeGroup "curse.maven"
 		}
-
 	}
 	maven {
 		name = "Modrinth"
@@ -46,13 +44,15 @@ sourceSets {
 	}
 }
 
+def buildDirPath = layout.buildDirectory.get().asFile.path
+
 loom {
 	runs {
 		gametest {
 			server()
 			name "Game Test"
 			vmArg "-Dfabric-api.gametest"
-			vmArg "-Dfabric-api.gametest.report-file=${project.buildDir}/gametest/junit.xml"
+			vmArg "-Dfabric-api.gametest.report-file=${buildDirPath}/gametest/junit.xml"
 			runDir "build/gametest"
 			source sourceSets.gametest
 		}
@@ -61,7 +61,7 @@ loom {
 		devClient {
 			client()
 			name "Dev Client (driver)"
-			vmArg "-Dsecretblocks.driver=${project.buildDir}/devclient"
+			vmArg "-Dsecretblocks.driver=${buildDirPath}/devclient"
 			source sourceSets.gametest
 		}
 	}
@@ -71,7 +71,7 @@ loom {
 // in build/gametest, and items or item frames left by a failed test would reach the next run.
 tasks.matching { it.name == "runGametest" }.configureEach {
 	doFirst {
-		delete "${project.buildDir}/gametest/world"
+		delete "${buildDirPath}/gametest/world"
 	}
 }
 
@@ -85,11 +85,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.9.1"
-}
-
-def includeMod(String dep) {
-	dependencies.modImplementation(dep)
-	dependencies.include(dep)
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.9.1"
 }
 
 processResources {
@@ -100,13 +96,17 @@ processResources {
 	}
 }
 
+// Gradle itself may run on a newer Java; the mod is compiled, tested and run on Java 17.
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+	withSourcesJar()
+}
+
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
 	it.options.release = 17
-}
-
-java {
-	withSourcesJar()
 }
 
 // Plain JUnit tests (src/test) for logic with no Minecraft dependency.
@@ -120,23 +120,19 @@ tasks.named("check") {
 
 jar {
 	// The licence, and the notice naming what the mod contains from other projects.
+	def name = base.archivesName.get()
 	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}"}
+		rename { "${it}_${name}" }
 	}
 	from("NOTICE") {
-		rename { "${it}_${project.archivesBaseName}"}
+		rename { "${it}_${name}" }
 	}
 }
 
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
+			from components.java
 		}
 	}
 }

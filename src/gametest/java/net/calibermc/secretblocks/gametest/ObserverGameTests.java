@@ -199,11 +199,11 @@ public class ObserverGameTests implements FabricGameTest {
 				return true;
 			}
 		};
-		CraftingContainer grid = new CraftingContainer(menu, 3, 3);
+		CraftingContainer grid = new net.minecraft.world.inventory.TransientCraftingContainer(menu, 3, 3);
 		grid.setItem(0, new ItemStack(ModBlocks.SOLID_BLOCK));
 		grid.setItem(1, new ItemStack(Items.OBSERVER));
 		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, h.getLevel())
-				.map((CraftingRecipe recipe) -> recipe.assemble(grid));
+				.map((CraftingRecipe recipe) -> recipe.assemble(grid, h.getLevel().registryAccess()));
 		Item expected = ModBlocks.SECRET_OBSERVER.asItem();
 		check(h, result.isPresent() && result.get().is(expected), "Dummy Block + observer should craft a Secret Observer, got " + result);
 		h.succeed();

@@ -5,6 +5,7 @@ import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
@@ -127,7 +128,7 @@ public class CamouflageWand extends Item {
 		if (!disguise.contains("Name", Tag.TAG_STRING) || ResourceLocation.tryParse(disguise.getString("Name")) == null) {
 			return Optional.empty();
 		}
-		BlockState state = NbtUtils.readBlockState(disguise);
+		BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), disguise);
 		return isLoadable(state) ? Optional.of(state) : Optional.empty();
 	}
 

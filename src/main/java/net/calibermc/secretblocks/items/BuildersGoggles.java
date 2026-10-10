@@ -21,7 +21,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 public class BuildersGoggles extends ArmorItem {
 
 	public BuildersGoggles(Properties properties) {
-		super(Material.INSTANCE, EquipmentSlot.HEAD, properties);
+		super(Material.INSTANCE, ArmorItem.Type.HELMET, properties);
 	}
 
 	/** No armour or toughness modifiers at all (not even "+0 Armor"). */
@@ -35,12 +35,12 @@ public class BuildersGoggles extends ArmorItem {
 		INSTANCE;
 
 		@Override
-		public int getDurabilityForSlot(EquipmentSlot slot) {
+		public int getDurabilityForType(ArmorItem.Type type) {
 			return 0;
 		}
 
 		@Override
-		public int getDefenseForSlot(EquipmentSlot slot) {
+		public int getDefenseForType(ArmorItem.Type type) {
 			return 0;
 		}
 

@@ -11,7 +11,7 @@ import net.calibermc.secretblocks.registry.ModItems;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -136,7 +136,7 @@ public class WandConversionGameTests implements FabricGameTest {
 	}
 
 	private static String name(Block block) {
-		return Registry.BLOCK.getKey(block).toString();
+		return BuiltInRegistries.BLOCK.getKey(block).toString();
 	}
 
 	/** Every row both ways: the secret block with the state and the disguise on every face, then back to the same vanilla state. */
@@ -144,8 +144,8 @@ public class WandConversionGameTests implements FabricGameTest {
 	public void everyPairConvertsBothWays(GameTestHelper h) {
 		floor(h);
 		Set<Block> covered = PAIRS.values().stream().collect(Collectors.toSet());
-		List<Block> missing = Registry.BLOCK.stream()
-				.filter(b -> Registry.BLOCK.getKey(b).getNamespace().equals(SecretBlocks.MOD_ID))
+		List<Block> missing = BuiltInRegistries.BLOCK.stream()
+				.filter(b -> BuiltInRegistries.BLOCK.getKey(b).getNamespace().equals(SecretBlocks.MOD_ID))
 				.filter(b -> Counterparts.vanillaOf(b).isPresent() && !covered.contains(b) && b != ModBlocks.SECRET_REDSTONE_WIRE)
 				.toList();
 		check(h, missing.isEmpty(), "rows without a conversion test: " + missing);

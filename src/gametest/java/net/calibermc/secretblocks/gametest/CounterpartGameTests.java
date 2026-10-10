@@ -8,7 +8,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -61,8 +61,8 @@ public class CounterpartGameTests implements FabricGameTest {
 
 	private static List<Block> modBlocks() {
 		List<Block> blocks = new ArrayList<>();
-		for (Block block : Registry.BLOCK) {
-			if (Registry.BLOCK.getKey(block).getNamespace().equals(SecretBlocks.MOD_ID)) {
+		for (Block block : BuiltInRegistries.BLOCK) {
+			if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(SecretBlocks.MOD_ID)) {
 				blocks.add(block);
 			}
 		}
@@ -81,7 +81,7 @@ public class CounterpartGameTests implements FabricGameTest {
 		for (Block block : modBlocks()) {
 			if (block instanceof net.calibermc.secretblocks.blocks.SecretBlock) {
 				secretBlocks++;
-				check(h, listed.contains(block), Registry.BLOCK.getKey(block) + " is a secret block but is not in secretBlocksList");
+				check(h, listed.contains(block), BuiltInRegistries.BLOCK.getKey(block) + " is a secret block but is not in secretBlocksList");
 			}
 		}
 		check(h, secretBlocks >= 20, "expected the mod's secret blocks, found " + secretBlocks);
@@ -94,15 +94,15 @@ public class CounterpartGameTests implements FabricGameTest {
 		List<Block> blocks = modBlocks();
 		check(h, blocks.size() >= 20, "expected the mod's blocks, found " + blocks.size());
 		for (Block block : blocks) {
-			check(h, Counterparts.isListed(block), Registry.BLOCK.getKey(block) + " has no row in Counterparts");
+			check(h, Counterparts.isListed(block), BuiltInRegistries.BLOCK.getKey(block) + " has no row in Counterparts");
 			Counterparts.vanillaOf(block).ifPresent(vanilla -> check(h, vanilla != Blocks.AIR
-					&& !Registry.BLOCK.getKey(vanilla).getNamespace().equals(SecretBlocks.MOD_ID),
-					Registry.BLOCK.getKey(block) + " must map to a vanilla block, maps to " + vanilla));
+					&& !BuiltInRegistries.BLOCK.getKey(vanilla).getNamespace().equals(SecretBlocks.MOD_ID),
+					BuiltInRegistries.BLOCK.getKey(block) + " must map to a vanilla block, maps to " + vanilla));
 			check(h, !(Counterparts.hasNone(block) && Counterparts.vanillaOf(block).isPresent()),
-					Registry.BLOCK.getKey(block) + " is listed both with and without a counterpart");
+					BuiltInRegistries.BLOCK.getKey(block) + " is listed both with and without a counterpart");
 		}
 		for (Block block : ModBlocks.secretBlocksList) {
-			check(h, Counterparts.isListed(block), Registry.BLOCK.getKey(block) + " (in secretBlocksList) is not listed");
+			check(h, Counterparts.isListed(block), BuiltInRegistries.BLOCK.getKey(block) + " (in secretBlocksList) is not listed");
 		}
 		h.succeed();
 	}
@@ -169,7 +169,7 @@ public class CounterpartGameTests implements FabricGameTest {
 				// for redstone wire); then it leads back to the one listed first.
 				boolean shared = SHARED.contains(block);
 				check(h, back.isPresent() && (back.get() == block || shared && back.get() == ModBlocks.SECRET_REDSTONE),
-						Registry.BLOCK.getKey(block) + " → " + vanilla.get() + " → " + back + " does not lead back");
+						BuiltInRegistries.BLOCK.getKey(block) + " → " + vanilla.get() + " → " + back + " does not lead back");
 				pairs++;
 			}
 		}
@@ -223,7 +223,7 @@ public class CounterpartGameTests implements FabricGameTest {
 			}
 			h.setBlock(rel, block.defaultBlockState());
 			BlockEntity entity = h.getBlockEntity(rel);
-			check(h, entity instanceof DisguisedBlockEntity, Registry.BLOCK.getKey(block) + " has no disguise block entity, has " + entity);
+			check(h, entity instanceof DisguisedBlockEntity, BuiltInRegistries.BLOCK.getKey(block) + " has no disguise block entity, has " + entity);
 			((DisguisedBlockEntity) entity).setState(Direction.NORTH, Blocks.BRICKS.defaultBlockState());
 			if (entity instanceof Container container && container.getContainerSize() > 0) {
 				container.setItem(0, new ItemStack(Items.DIAMOND, 3));
@@ -232,11 +232,11 @@ public class CounterpartGameTests implements FabricGameTest {
 			CompoundTag update = entity.getUpdateTag();
 			var packet = entity.getUpdatePacket();
 			CompoundTag packetTag = packet instanceof ClientboundBlockEntityDataPacket data ? data.getTag() : null;
-			check(h, packetTag != null, Registry.BLOCK.getKey(block) + " sends no block-entity update packet");
+			check(h, packetTag != null, BuiltInRegistries.BLOCK.getKey(block) + " sends no block-entity update packet");
 			for (CompoundTag tag : new CompoundTag[] {update, packetTag}) {
-				check(h, tag.contains("northState"), Registry.BLOCK.getKey(block) + " sends no disguise: " + tag);
+				check(h, tag.contains("northState"), BuiltInRegistries.BLOCK.getKey(block) + " sends no disguise: " + tag);
 				for (String key : tag.getAllKeys()) {
-					check(h, allowed.contains(key), Registry.BLOCK.getKey(block) + " sends '" + key + "' to clients: " + tag);
+					check(h, allowed.contains(key), BuiltInRegistries.BLOCK.getKey(block) + " sends '" + key + "' to clients: " + tag);
 				}
 			}
 			h.setBlock(rel, Blocks.AIR);

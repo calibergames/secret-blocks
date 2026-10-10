@@ -35,7 +35,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class SecretComparator extends ComparatorBlock implements SecretBlock {
 
 	public SecretComparator(Properties settings) {
-		super(settings);
+		// A piston breaks it, as it breaks a vanilla comparator.
+		super(settings.pushReaction(PushReaction.DESTROY));
 	}
 
 	@Override
@@ -65,9 +66,4 @@ public class SecretComparator extends ComparatorBlock implements SecretBlock {
 		return true;
 	}
 
-	/** A piston breaks it, as it breaks a vanilla comparator. */
-	@Override
-	public PushReaction getPistonPushReaction(BlockState state) {
-		return PushReaction.DESTROY;
-	}
 }
