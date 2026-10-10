@@ -1,0 +1,46 @@
+Secret Blocks
+Licensed under the GNU Lesser General Public License v3.0 (see LICENSE).
+
+This mod contains material from other projects.
+
+Secret Rooms Mod
+  by AbrarSyed, wyn_price and Sindavar33
+  https://www.curseforge.com/minecraft/mc-mods/secretroomsmod
+  https://github.com/Wyn-Price/SecretRooms
+  Published on CurseForge under the GNU Lesser General Public License v3.0.
+
+  The item textures in src/main/resources/assets/secretblocks/textures/item/
+  are the Secret Rooms Mod's item textures, or are made from them:
+
+  Its textures, mirrored left to right:
+    camouflage_paste, door, ghost_block, iron_door, iron_trapdoor,
+    one_way_glass, pressure_plate, secret_chest, secret_clamber,
+    secret_daylight_detector, secret_dispenser, secret_goggles,
+    secret_heavy_pressure_plate, secret_inverted_light_detector,
+    secret_lever, secret_light_pressure_plate, secret_observer,
+    secret_player_pressure_plate, secret_redstone, solid_block,
+    stair_block, stone_button, torch_lever, trapdoor, wooden_button
+
+  Its textures, unchanged:
+    base_block, switch_probe
+
+  Recoloured or edited from its textures:
+    builders_goggles (from its goggles), camouflage_wand (from its switch
+    probe), secret_chest_trapped (from its chest), secret_redstone_wire
+    (from its redstone)
+
+  New symbols drawn on its half-grass-block template:
+    secret_comparator, secret_dropper, secret_gate, secret_piston,
+    secret_repeater, secret_sculk_sensor, secret_sticky_piston
+
+  The designs of the Secret Gate, the Torch Lever, the Secret Trapped Chest,
+  the Secret Daylight Detector and the six-sided Secret Redstone Wire follow
+  the Secret Rooms Mod's blocks. Their code is written for this mod.
+
+True Secret Rooms
+  by LudoCrypt
+  https://github.com/LudoCrypt/True-Secret-Rooms
+  Licensed under the GNU Lesser General Public License v3.0.
+
+  This mod began as a port of True Secret Rooms to Minecraft 1.18.2 and has
+  since been rewritten.

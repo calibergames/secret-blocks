@@ -119,7 +119,11 @@ tasks.named("check") {
 }
 
 jar {
+	// The licence, and the notice naming what the mod contains from other projects.
 	from("LICENSE") {
+		rename { "${it}_${project.archivesBaseName}"}
+	}
+	from("NOTICE") {
 		rename { "${it}_${project.archivesBaseName}"}
 	}
 }
