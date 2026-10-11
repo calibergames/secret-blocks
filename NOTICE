@@ -9,7 +9,7 @@ Secret Rooms Mod
   https://github.com/Wyn-Price/SecretRooms
   Published on CurseForge under the GNU Lesser General Public License v3.0.
 
-  The item textures in src/main/resources/assets/secretblocks/textures/item/
+  The item textures in common/src/main/resources/assets/secretblocks/textures/item/
   are the Secret Rooms Mod's item textures, or are made from them:
 
   Its textures, mirrored left to right:
@@ -44,3 +44,11 @@ True Secret Rooms
 
   This mod began as a port of True Secret Rooms to Minecraft 1.18.2 and has
   since been rewritten.
+
+MixinExtras
+  by LlamaLad7
+  https://github.com/LlamaLad7/MixinExtras
+  Licensed under the MIT License.
+
+  The Fabric jar bundles an unmodified MixinExtras jar (with its licence,
+  LICENSE_MixinExtras) so that loaders shipping an older copy use this one.

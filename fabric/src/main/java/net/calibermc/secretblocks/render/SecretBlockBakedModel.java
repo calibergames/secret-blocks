@@ -58,9 +58,18 @@ public class SecretBlockBakedModel implements FabricBakedModel, BakedModel {
 		return true;
 	}
 
+	/**
+	 * True so that a model-wrapping mod leaves this model alone: Continuity
+	 * wraps every block model that is not a custom renderer, and its wrapper
+	 * gives the whole block a single look (the bottom face's) and switches
+	 * off its connected textures inside, so a face whose look differs from the
+	 * bottom face's never connects. Unwrapped, each face is drawn by its
+	 * look's own model (see DisguiseRenderer), which connects as the look
+	 * would. Minecraft reads this only for items, which use their own models.
+	 */
 	@Override
 	public boolean isCustomRenderer() {
-		return false;
+		return true;
 	}
 
 	@Override

@@ -2,10 +2,14 @@ package net.calibermc.secretblocks.gametest.neoforge;
 
 import com.google.gson.JsonObject;
 import net.calibermc.secretblocks.gametest.support.GameTestPlatform;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.crafting.CraftingHelper;
@@ -26,9 +30,8 @@ public class NeoForgeGameTestPlatform implements GameTestPlatform {
 		return CraftingHelper.processConditions(json, "conditions", ICondition.IContext.EMPTY);
 	}
 
-	/** The build leaves the parked files out of this jar. */
 	@Override
-	public boolean shipsParkedData() {
-		return false;
+	public BlockState appearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side) {
+		return state.getAppearance(level, pos, side, null, null);
 	}
 }

@@ -11,19 +11,19 @@ import net.minecraft.gametest.framework.StructureUtils;
 import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.forgespi.language.ModFileScanData;
 import org.slf4j.Logger;
 
-import java.lang.reflect.Field;
+import java.lang.annotation.ElementType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 
 /**
@@ -32,48 +32,67 @@ import java.util.function.Consumer;
  * ({@code secretblocks_gametest:empty}). Forge's own registration would turn
  * the structure into {@code <namespace>:<class>.<template>}. The classes are
  * the test mod's classes with {@link GameTest} methods, from Forge's scan.
- * Development only: the game test server never runs in a production game.
+ * Only game test servers (development, or a production server started with
+ * {@code forge.gameTestServer}) register them; a game never does.
  */
 final class SharedGameTests {
 
 	private static final Logger LOGGER = LogUtils.getLogger();
 	private static final String PACKAGE = "net.calibermc.secretblocks.gametest.";
+	private static final Set<String> KINDS = Set.of(GameTest.class.getName(), BeforeBatch.class.getName(), AfterBatch.class.getName());
 
 	private SharedGameTests() {
 	}
 
-	static void register() {
-		Set<String> classes = new TreeSet<>();
+	private static boolean registered;
+
+	/** Registers the tests once; both the development event and the production start-up call it. */
+	static synchronized void register() {
+		if (registered) {
+			return;
+		}
+		registered = true;
+		// The annotations as the class files hold them, from Forge's scan, by class
+		// and method name. Their values are read from there, not through the
+		// annotation getters: in production those carry SRG names, while the
+		// values in the test classes keep the names they were written with.
+		Map<String, Map<String, Map<String, Map<String, Object>>>> found = new TreeMap<>();
 		for (ModFileScanData scan : ModList.get().getAllScanData()) {
 			for (ModFileScanData.AnnotationData annotation : scan.getAnnotations()) {
 				String owner = annotation.clazz().getClassName();
-				if (annotation.annotationType().getClassName().equals(GameTest.class.getName()) && owner.startsWith(PACKAGE)) {
-					classes.add(owner);
+				String kind = annotation.annotationType().getClassName();
+				if (annotation.targetType() == ElementType.METHOD && owner.startsWith(PACKAGE) && KINDS.contains(kind)) {
+					String member = annotation.memberName();
+					String method = member.substring(0, member.indexOf('('));
+					found.computeIfAbsent(owner, key -> new TreeMap<>())
+							.computeIfAbsent(method, key -> new HashMap<>())
+							.put(kind, annotation.annotationData());
 				}
 			}
 		}
 		try {
-			Collection<TestFunction> functions = field("TEST_FUNCTIONS");
-			Set<String> classNames = field("TEST_CLASS_NAMES");
-			Map<String, Consumer<ServerLevel>> before = field("BEFORE_BATCH_FUNCTIONS");
-			Map<String, Consumer<ServerLevel>> after = field("AFTER_BATCH_FUNCTIONS");
-			for (String name : classes) {
-				Class<?> type = Class.forName(name, true, SharedGameTests.class.getClassLoader());
-				Method[] methods = type.getDeclaredMethods();
-				Arrays.sort(methods, Comparator.comparing(Method::getName));
-				for (Method method : methods) {
-					GameTest test = method.getAnnotation(GameTest.class);
+			// By SRG name, which Forge maps to the running names (Mojang's in development).
+			Collection<TestFunction> functions = field("f_177495_"); // TEST_FUNCTIONS
+			Set<String> classNames = field("f_177496_"); // TEST_CLASS_NAMES
+			Map<String, Consumer<ServerLevel>> before = field("f_177497_"); // BEFORE_BATCH_FUNCTIONS
+			Map<String, Consumer<ServerLevel>> after = field("f_177498_"); // AFTER_BATCH_FUNCTIONS
+			for (Map.Entry<String, Map<String, Map<String, Map<String, Object>>>> byClass : found.entrySet()) {
+				Class<?> type = Class.forName(byClass.getKey(), true, SharedGameTests.class.getClassLoader());
+				for (Map.Entry<String, Map<String, Map<String, Object>>> byMethod : byClass.getValue().entrySet()) {
+					String name = byMethod.getKey();
+					Map<String, Map<String, Object>> kinds = byMethod.getValue();
+					Map<String, Object> test = kinds.get(GameTest.class.getName());
 					if (test != null) {
-						functions.add(function(type, method, test));
+						functions.add(function(type, type.getDeclaredMethod(name, GameTestHelper.class), test));
 						classNames.add(type.getSimpleName());
 					}
-					BeforeBatch beforeBatch = method.getAnnotation(BeforeBatch.class);
+					Map<String, Object> beforeBatch = kinds.get(BeforeBatch.class.getName());
 					if (beforeBatch != null) {
-						batchHook(before, beforeBatch.batch(), type, method);
+						batchHook(before, (String) beforeBatch.get("batch"), type, type.getDeclaredMethod(name, ServerLevel.class));
 					}
-					AfterBatch afterBatch = method.getAnnotation(AfterBatch.class);
+					Map<String, Object> afterBatch = kinds.get(AfterBatch.class.getName());
 					if (afterBatch != null) {
-						batchHook(after, afterBatch.batch(), type, method);
+						batchHook(after, (String) afterBatch.get("batch"), type, type.getDeclaredMethod(name, ServerLevel.class));
 					}
 				}
 			}
@@ -89,11 +108,20 @@ final class SharedGameTests {
 		}
 	}
 
-	private static TestFunction function(Class<?> type, Method method, GameTest test) {
+	/** A test from its {@link GameTest} values; absent ones take the annotation's defaults. */
+	private static TestFunction function(Class<?> type, Method method, Map<String, Object> test) {
 		String name = type.getSimpleName().toLowerCase() + "." + method.getName().toLowerCase();
 		Consumer<GameTestHelper> run = helper -> invoke(type, method, helper);
-		return new TestFunction(test.batch(), name, test.template(), StructureUtils.getRotationForRotationSteps(test.rotationSteps()),
-				test.timeoutTicks(), test.setupTicks(), test.required(), test.requiredSuccesses(), test.attempts(), run);
+		return new TestFunction(value(test, "batch", "defaultBatch"), name, value(test, "template", ""),
+				StructureUtils.getRotationForRotationSteps(value(test, "rotationSteps", 0)),
+				value(test, "timeoutTicks", 100), value(test, "setupTicks", 0L), value(test, "required", true),
+				value(test, "requiredSuccesses", 1), value(test, "attempts", 1), run);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> T value(Map<String, Object> values, String name, T fallback) {
+		Object value = values.get(name);
+		return value == null ? fallback : (T) value;
 	}
 
 	private static void invoke(Class<?> type, Method method, Object argument) {
@@ -117,9 +145,7 @@ final class SharedGameTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> T field(String name) throws ReflectiveOperationException {
-		Field field = GameTestRegistry.class.getDeclaredField(name);
-		field.setAccessible(true);
-		return (T) field.get(null);
+	private static <T> T field(String srgName) throws ReflectiveOperationException {
+		return (T) ObfuscationReflectionHelper.findField(GameTestRegistry.class, srgName).get(null);
 	}
 }

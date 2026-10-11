@@ -26,6 +26,7 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.ChunkRenderTypeSet;
+import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -139,9 +140,25 @@ final class DisguiseQuads {
 			boolean whole = !ghost && rotation == 0 && lookSide == direction
 					&& !(state.getBlock() instanceof DoorBlock) && !(state.getBlock() instanceof TrapdoorBlock);
 			if (whole) {
-				for (BakedQuad quad : lookQuads) {
-					int tint = quad.isTinted() ? 0xFF00_0000 | colors.getColor(look, level, pos, quad.getTintIndex()) : WHITE;
-					out.add(builder ? RenderType.translucent() : layer, direction, recolored(quad, tint, builder));
+				// With the look's own model data here, a connected-texture model
+				// (Fusion, for one) works out its connections as for the look itself.
+				// Each layer the look's model draws in, with its quads for that layer.
+				Map<RenderType, List<BakedQuad>> wholeQuads = new LinkedHashMap<>();
+				if (level != null) {
+					ModelData lookData = lookModel.getModelData(level, pos, look, ModelData.EMPTY);
+					random.setSeed(look.getSeed(pos));
+					for (RenderType lookLayer : lookModel.getRenderTypes(look, random, lookData)) {
+						random.setSeed(look.getSeed(pos));
+						wholeQuads.put(lookLayer, lookModel.getQuads(look, lookSide, random, lookData, lookLayer));
+					}
+				} else {
+					wholeQuads.put(layer, lookQuads);
+				}
+				for (Map.Entry<RenderType, List<BakedQuad>> entry : wholeQuads.entrySet()) {
+					for (BakedQuad quad : entry.getValue()) {
+						int tint = quad.isTinted() ? 0xFF00_0000 | colors.getColor(look, level, pos, quad.getTintIndex()) : WHITE;
+						out.add(builder ? RenderType.translucent() : entry.getKey(), direction, recolored(quad, tint, builder));
+					}
 				}
 			} else if (!ghost) {
 				for (BakedQuad quad : lookQuads) {

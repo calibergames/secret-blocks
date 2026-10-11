@@ -39,9 +39,9 @@ import static net.calibermc.secretblocks.gametest.TestSupport.*;
 public class RecipeGameTests {
 
 	/**
-	 * Data files kept for content that is not registered yet (the wall ladder,
-	 * dropped for now). A load condition keeps them from loading where the jar
-	 * ships them, so they log no errors; some jars leave them out.
+	 * Data files kept in the sources for content that is not registered yet
+	 * (the wall ladder, dropped for now). The build leaves them out of every
+	 * jar, so they log no parse errors.
 	 */
 	private static final Set<String> PARKED = Set.of("secret_ladder");
 
@@ -76,23 +76,14 @@ public class RecipeGameTests {
 		return files;
 	}
 
-	/**
-	 * Every file loads, except the parked ones: those must be rejected by their
-	 * load condition (not merely fail to parse, which logs an error) and stay
-	 * unloaded.
-	 */
+	/** Every file loads; the parked ones must not be in the jar at all. */
 	private static void checkLoads(GameTestHelper h, String kind, List<DataFile> files, Predicate<String> parked, Predicate<String> loaded) {
 		check(h, files.size() >= 20, "expected the mod's " + kind + " files, found " + files);
 		for (DataFile file : files) {
 			String name = file.name();
-			if (parked.test(name)) {
-				check(h, GameTestPlatform.INSTANCE.shipsParkedData(), kind + " " + name + " is parked and must not be in this jar");
-				check(h, !file.conditionsPass(), kind + " " + name + " is parked: its load condition must reject it");
-				check(h, !loaded.test(name), kind + " " + name + " is parked and must not load");
-			} else {
-				check(h, file.conditionsPass(), kind + " " + name + " is rejected by its load conditions");
-				check(h, loaded.test(name), kind + " " + name + " failed to load");
-			}
+			check(h, !parked.test(name), kind + " " + name + " is parked and must not be in this jar");
+			check(h, file.conditionsPass(), kind + " " + name + " is rejected by its load conditions");
+			check(h, loaded.test(name), kind + " " + name + " failed to load");
 		}
 	}
 

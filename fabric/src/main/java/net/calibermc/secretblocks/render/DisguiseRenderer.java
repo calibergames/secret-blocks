@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
 import java.util.function.Supplier;
 import net.calibermc.secretblocks.blocks.entity.Disguise;
+import net.calibermc.secretblocks.platform.Services;
 
 /**
  * Client-only disguise rendering: turns a secret block's per-face disguise
@@ -35,6 +36,14 @@ import net.calibermc.secretblocks.blocks.entity.Disguise;
  */
 @Environment(EnvType.CLIENT)
 public final class DisguiseRenderer {
+
+	/**
+	 * Sodium 0.5 reads a vertex colour's alpha as ambient-occlusion shading,
+	 * never as transparency, so a face faded by vertex alpha comes out dark and
+	 * opaque there: with Sodium the Builder's view draws ghost faces, as under a
+	 * shader pack.
+	 */
+	private static final boolean VERTEX_ALPHA_SHADES = Services.PLATFORM.isModLoaded("sodium");
 
 	private DisguiseRenderer() {
 	}
@@ -78,9 +87,10 @@ public final class DisguiseRenderer {
 			BlockColors colors = minecraft.getBlockColors();
 			int color = 0xFF00_0000 | colors.getColor(tempState, blockView, pos, 0xFF);
 
-			boolean ghost = builder && BuilderView.shaderPack() && BuilderView.ghostSprite() != null && !abqList.isEmpty();
+			boolean ghost = builder && (BuilderView.shaderPack() || VERTEX_ALPHA_SHADES)
+					&& BuilderView.ghostSprite() != null && !abqList.isEmpty();
 			if (ghost) {
-				// Under a shader pack: the faded block as a translucent ghost face (see BuilderView#shaderPack).
+				// Under a shader pack or on Sodium: the faded block as a translucent ghost face (see BuilderView#shaderPack).
 				emitShape(emitter, state, direction);
 				emitter.spriteBake(0, BuilderView.ghostSprite(), MutableQuadView.BAKE_LOCK_UV);
 				emitter.colorIndex(-1);

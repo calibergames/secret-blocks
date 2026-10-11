@@ -6,6 +6,16 @@ plugins {
 	id 'net.neoforged.moddev.legacyforge'
 }
 
+repositories {
+	maven {
+		name = "Modrinth"
+		url = "https://api.modrinth.com/maven"
+		content {
+			includeGroup "maven.modrinth"
+		}
+	}
+}
+
 // Game tests: the shared tests (common/src/gametest) and this loader's test
 // mod (secretblocks_gametest) in their own source set, never in the release jar.
 sourceSets {
@@ -21,6 +31,15 @@ configurations {
 	}
 	commonGametestResources {
 		canBeResolved = true
+	}
+	// Where reobfuscating the test jar publishes it (nothing consumes them).
+	gametestApiElements {
+		canBeConsumed = true
+		canBeResolved = false
+	}
+	gametestRuntimeElements {
+		canBeConsumed = true
+		canBeResolved = false
 	}
 	gametestImplementation.extendsFrom implementation
 	gametestCompileOnly.extendsFrom compileOnly
@@ -79,6 +98,7 @@ legacyForge {
 			sourceSet = sourceSets.gametest
 			// The tests sit on the flat world's ground, as on Fabric (Forge's default is y 60).
 			programArguments.addAll '--spawnPos', '0,0,0'
+			systemProperty 'secretblocks.gametest.report', "${rootBuild}/gametest-neoforge/junit.xml"
 		}
 	}
 	mods {
@@ -109,28 +129,80 @@ tasks.named('check') {
 	dependsOn 'runGameTestServer'
 }
 
+// Renderer checks: `-Prenderers` adds Embeddium and Oculus to the development
+// runs (remapped to development names). Nothing else uses them.
+if (project.hasProperty('renderers')) {
+	dependencies {
+		modRuntimeOnly "maven.modrinth:embeddium:${embeddium_version}"
+		modRuntimeOnly "maven.modrinth:oculus:${oculus_version}"
+	}
+}
+
+// Connected textures: `-Pfusion` adds Fusion to the development runs.
+if (project.hasProperty('fusion')) {
+	dependencies {
+		modRuntimeOnly "maven.modrinth:fusion-connected-textures:${fusion_version}"
+	}
+}
+
 mixin {
 	add sourceSets.main, 'secretblocks.refmap.json'
 	config 'secretblocks.mixins.json'
+	config 'secretblocks.neoforge.mixins.json'
 	config 'secretblocks_gametest.mixins.json'
 	config 'secretblocks_gametest.driver.mixins.json'
 }
 
 dependencies {
 	annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+	gametestAnnotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 jar {
 	manifest.attributes([
-		'MixinConfigs': 'secretblocks.mixins.json'
+		'MixinConfigs': 'secretblocks.mixins.json,secretblocks.neoforge.mixins.json'
 	])
 }
 
+// The game tests as a jar for production Forge and NeoForge servers (SRG names,
+// with the test mixins' refmap), to run them against released loader versions:
+// start the server with -Dforge.enableGameTest=true -Dforge.gameTestServer=true.
+// Never published; it is built outside build/libs.
+def gametestRefmap = mixin.add(sourceSets.gametest, 'secretblocks_gametest.refmap.json')
+
+def gametestDevJar = tasks.register('gametestDevJar', Jar) {
+	from sourceSets.gametest.output
+	from gametestRefmap
+	archiveClassifier = 'gametest-dev'
+	destinationDirectory = layout.buildDirectory.dir('devlibs')
+	manifest.attributes([
+		'MixinConfigs': 'secretblocks_gametest.mixins.json'
+	])
+}
+
+def reobfGametest = obfuscation.reobfuscate(gametestDevJar, sourceSets.gametest) {
+	archiveClassifier = 'gametest'
+	destinationDirectory = layout.buildDirectory.dir('gametestlibs')
+}
+
+tasks.register('gametestJar') {
+	dependsOn reobfGametest
+}
+
+// The release jar's reobfuscation reads every mixin source set's mappings.
+tasks.named('reobfJar') {
+	dependsOn 'compileGametestJava'
+}
+
+processGametestResources {
+	// The test mixins on Forge 1.20.1 need their refmap (SRG names), as the mod's own.
+	inputs.property 'refmap', 'secretblocks_gametest.refmap.json'
+	filesMatching('secretblocks_gametest.mixins.json') {
+		filter { line -> line.contains('"package"') ? line + '\n\t"refmap": "secretblocks_gametest.refmap.json",' : line }
+	}
+}
+
 processResources {
-	// The parked Secret Ladder's recipe and loot table name an unregistered item.
-	// Fabric skips them through a load condition; Forge 1.20.1 has none for loot
-	// tables, so they stay out of this jar.
-	exclude 'data/secretblocks/recipes/secret_ladder.json', 'data/secretblocks/loot_tables/blocks/secret_ladder.json'
 	def props = [version: project.version, minecraft_version: minecraft_version, neoforge_version: neoforge_version]
 	inputs.properties props
 	filesMatching('META-INF/mods.toml') {

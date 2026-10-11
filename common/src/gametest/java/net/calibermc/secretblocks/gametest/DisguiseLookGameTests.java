@@ -4,6 +4,7 @@ import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.blocks.MiningFace;
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
+import net.calibermc.secretblocks.gametest.support.GameTestPlatform;
 import net.calibermc.secretblocks.gametest.support.mixin.ServerPlayerGameModeAccessor;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
@@ -349,6 +350,36 @@ public class DisguiseLookGameTests {
 		checkBlock(h, dirt, Blocks.AIR);
 		checkBlock(h, obsidian, ModBlocks.SOLID_BLOCK);
 		h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(BlockPos.ZERO)).inflate(8)).forEach(ItemEntity::discard);
+		h.succeed();
+	}
+
+	/**
+	 * A secret block's appearance on each side is that face's look (what
+	 * connected-texture mods ask the loader about each neighbour); any other
+	 * block appears as itself.
+	 */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void appearanceIsTheFaceLook(GameTestHelper h) {
+		floor(h);
+		BlockPos secretPos = new BlockPos(3, 1, 3);
+		h.setBlock(secretPos, ModBlocks.SOLID_BLOCK);
+		Map<Direction, BlockState> faces = new EnumMap<>(Direction.class);
+		for (Direction side : Direction.values()) {
+			faces.put(side, Blocks.STONE_BRICKS.defaultBlockState());
+		}
+		faces.put(Direction.NORTH, Blocks.GLASS.defaultBlockState());
+		secret(h, secretPos).setDisguise(faces);
+		h.setBlock(new BlockPos(5, 1, 3), Blocks.GLASS);
+
+		BlockPos secret = h.absolutePos(secretPos);
+		BlockPos glass = h.absolutePos(new BlockPos(5, 1, 3));
+		BlockState secretState = h.getLevel().getBlockState(secret);
+		BlockState north = GameTestPlatform.INSTANCE.appearance(secretState, h.getLevel(), secret, Direction.NORTH);
+		BlockState up = GameTestPlatform.INSTANCE.appearance(secretState, h.getLevel(), secret, Direction.UP);
+		BlockState plain = GameTestPlatform.INSTANCE.appearance(h.getLevel().getBlockState(glass), h.getLevel(), glass, Direction.NORTH);
+		check(h, north.is(Blocks.GLASS), "the north face should appear as glass, appears as " + north);
+		check(h, up.is(Blocks.STONE_BRICKS), "the top should appear as stone bricks, appears as " + up);
+		check(h, plain.is(Blocks.GLASS), "real glass should appear as itself, appears as " + plain);
 		h.succeed();
 	}
 }

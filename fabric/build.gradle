@@ -59,6 +59,22 @@ tasks.named('processGametestResources', ProcessResources) {
 	from(configurations.commonGametestResources)
 }
 
+// The game tests as a jar for production servers (remapped to intermediary), to
+// run them against released Minecraft and loader versions with
+// -Dfabric-api.gametest. Never published; it is built outside build/libs.
+def gametestDevJar = tasks.register('gametestDevJar', Jar) {
+	from sourceSets.gametest.output
+	archiveClassifier = 'gametest-dev'
+	destinationDirectory = layout.buildDirectory.dir('devlibs')
+}
+
+tasks.register('gametestJar', net.fabricmc.loom.task.RemapJarTask) {
+	inputFile = gametestDevJar.flatMap { it.archiveFile }
+	classpath.from(sourceSets.gametest.compileClasspath)
+	archiveClassifier = 'gametest'
+	destinationDirectory = layout.buildDirectory.dir('gametestlibs')
+}
+
 def rootBuild = rootProject.layout.buildDirectory.get().asFile.path
 
 loom {
@@ -105,6 +121,11 @@ dependencies {
 	}
 	modImplementation "net.fabricmc:fabric-loader:${loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+	// Bundled only to replace an older copy: Quilt Loader 0.30 ships MixinExtras
+	// 0.5.4, which crashes on the remapped @Redirect annotations in this jar
+	// (their `at` is written as an array; 0.5.5 reads both forms). Loaders use
+	// the newest copy present. The mod itself does not use MixinExtras.
+	include "io.github.llamalad7:mixinextras-fabric:${mixinextras_version}"
 }
 
 processResources {

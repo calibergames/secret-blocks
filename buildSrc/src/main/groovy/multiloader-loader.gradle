@@ -27,6 +27,11 @@ tasks.named('compileJava', JavaCompile) {
 processResources {
 	dependsOn(configurations.commonResources)
 	from(configurations.commonResources)
+	// The parked Secret Ladder's recipe and loot table name an item that is not
+	// registered. No jar ships them: Fabric API's load conditions cover loot
+	// tables only from 0.83.1+1.20.1 (none on 1.20), and Forge 1.20.1 has none
+	// for loot tables, so they would log parse errors at start-up.
+	exclude 'data/secretblocks/recipes/secret_ladder.json', 'data/secretblocks/loot_tables/blocks/secret_ladder.json'
 }
 
 tasks.named('sourcesJar', Jar) {

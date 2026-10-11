@@ -40,15 +40,15 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          if [ -f build/gametest/junit.xml ]; then
-            python3 - <<'PY'
+          python3 - <<'PY'
+          import os
           import xml.etree.ElementTree as ET
-          root = ET.parse('build/gametest/junit.xml').getroot()
-          for case in root.iter('testcase'):
-              for result in case:
-                  if result.tag in ('failure', 'error'):
-                      print(case.get('name'), '::', (result.get('message') or result.text or '').strip())
+          for loader, report in (('fabric', 'build/gametest/junit.xml'), ('neoforge', 'build/gametest-neoforge/junit.xml')):
+              if not os.path.exists(report):
+                  print(loader, ': no game test report')
+                  continue
+              for case in ET.parse(report).getroot().iter('testcase'):
+                  for result in case:
+                      if result.tag in ('failure', 'error'):
+                          print(loader, case.get('name'), '::', (result.get('message') or result.text or '').strip())
           PY
-          else
-            echo "no game test report"
-          fi

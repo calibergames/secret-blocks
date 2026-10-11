@@ -1,10 +1,14 @@
 package net.calibermc.secretblocks.gametest.support;
 
 import com.google.gson.JsonObject;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import java.util.ServiceLoader;
@@ -21,6 +25,6 @@ public interface GameTestPlatform {
 	/** Whether this loader's load conditions in a data file (if it has any) let it load. */
 	boolean conditionsPass(JsonObject json);
 
-	/** Whether this loader's jar ships the parked data files (behind a load condition) at all. */
-	boolean shipsParkedData();
+	/** The block's appearance on {@code side} as this loader's API reports it (what connected-texture mods ask). */
+	BlockState appearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side);
 }

@@ -51,7 +51,7 @@ public final class BuilderView {
 
 	/** Plain white, tinted for the outline drawn around every secret block. */
 	public static final ResourceLocation OUTLINE_SPRITE = new ResourceLocation(SecretBlocks.MOD_ID, "block/builder_outline");
-	/** Translucent in the texture itself: the faded block under a shader pack. */
+	/** Translucent in the texture itself: the faded block under a shader pack (and on Fabric with Sodium). */
 	public static final ResourceLocation GHOST_SPRITE = new ResourceLocation(SecretBlocks.MOD_ID, "block/builder_ghost");
 
 	private BuilderView() {

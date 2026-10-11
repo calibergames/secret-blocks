@@ -10,27 +10,19 @@ import java.util.Set;
 
 /**
  * Applies the mixins that target another mod only when that mod is
- * installed: {@code SodiumOcclusionMixin} needs Sodium,
- * {@code ContinuityConnectionMixin} Continuity 2.0.x.
- * Without this, Mixin looks for Sodium's class and logs a warning on every
- * launch without Sodium. Lives outside the mixin package, which Mixin
- * reserves for mixin classes.
+ * installed: {@code SodiumOcclusionMixin} needs Sodium. Without this,
+ * Mixin looks for Sodium's class and logs a warning on every launch without
+ * Sodium. Lives outside the mixin package, which Mixin reserves for mixin
+ * classes.
  */
 public class MixinPlugin implements IMixinConfigPlugin {
 
 	private static final String SODIUM_MIXIN = "net.calibermc.secretblocks.fabric.mixin.SodiumOcclusionMixin";
-	private static final String CONTINUITY_MIXIN = "net.calibermc.secretblocks.fabric.mixin.ContinuityConnectionMixin";
 
 	@Override
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
 		if (mixinClassName.equals(SODIUM_MIXIN)) {
 			return FabricLoader.getInstance().isModLoaded("sodium");
-		}
-		if (mixinClassName.equals(CONTINUITY_MIXIN)) {
-			// Written against Continuity 2.0.x; another version is left alone rather than risk a failed start.
-			return FabricLoader.getInstance().getModContainer("continuity")
-					.map(mod -> mod.getMetadata().getVersion().getFriendlyString().startsWith("2.0."))
-					.orElse(false);
 		}
 		return true;
 	}

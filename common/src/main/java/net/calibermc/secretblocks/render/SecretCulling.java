@@ -5,6 +5,7 @@ import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.DoorBlock;
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.TrapdoorBlock;
+import net.calibermc.secretblocks.platform.Services;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
@@ -28,6 +29,11 @@ import org.jetbrains.annotations.Nullable;
  * <li>any other face of a real block beside a secret block is drawn (the
  * look may be see-through); a secret block's own other faces follow the
  * renderer's rule.</li>
+ * <li>with a connected-textures mod installed, a secret block that can be
+ * seen through (One Way Glass) hides a face whose look is the same opaque
+ * block as the touching face of the secret block beside it, so a wall of
+ * them seen through connected glass is one clean pane, with no seams
+ * between the blocks ({@link SeamRule}).</li>
  * </ul>
  * Beside a Secret Door or Trapdoor (thin panels), or with the Builder's
  * Goggles' view on, faces beside secret blocks are always drawn. Used by
@@ -35,6 +41,10 @@ import org.jetbrains.annotations.Nullable;
  * call vanilla's ({@code SodiumOcclusionMixin}).
  */
 public final class SecretCulling {
+
+	/** Continuity (Fabric, or Forge through Connector), Fusion, or ConnectedTexturesMod. */
+	private static final boolean CONNECTED_TEXTURES = Services.PLATFORM.isModLoaded("continuity")
+			|| Services.PLATFORM.isModLoaded("fusion") || Services.PLATFORM.isModLoaded("ctm");
 
 	private SecretCulling() {
 	}
@@ -60,8 +70,12 @@ public final class SecretCulling {
 			return true;
 		}
 		BlockState theirs = DisguiseLook.shown(level, neighbourPos, side.getOpposite());
-		boolean vanillaHides = selfSecret ? DisguiseLook.shown(level, pos, side).skipRendering(theirs, side) : self.skipRendering(theirs, side);
-		if (vanillaHides) {
+		BlockState mine = selfSecret ? DisguiseLook.shown(level, pos, side) : self;
+		if (mine.skipRendering(theirs, side)) {
+			return false;
+		}
+		if (selfSecret && SeamRule.hides(CONNECTED_TEXTURES, mine.getBlock() == theirs.getBlock(), opaque(mine),
+				() -> !allSolid(level, pos))) {
 			return false;
 		}
 		// Hidden behind it only if no face of it can be seen through (One Way Glass's glass face shows this one).
@@ -75,12 +89,16 @@ public final class SecretCulling {
 			return true; // no disguise yet: stone all round
 		}
 		for (Direction face : Direction.values()) {
-			BlockState look = DisguiseLook.shown(secret, level, pos, face);
-			if (!look.canOcclude() || ItemBlockRenderTypes.getChunkRenderType(look) != RenderType.solid()) {
+			if (!opaque(DisguiseLook.shown(secret, level, pos, face))) {
 				return false;
 			}
 		}
 		return true;
+	}
+
+	/** Whether a look is a solid, opaque block (stone, not glass or leaves). */
+	private static boolean opaque(BlockState look) {
+		return look.canOcclude() && ItemBlockRenderTypes.getChunkRenderType(look) == RenderType.solid();
 	}
 
 	/** Secret Doors and Trapdoors are drawn as thin panels, not full faces. */
