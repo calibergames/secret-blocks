@@ -1,7 +1,7 @@
 # Secret Blocks
 **Hidden blocks that look like the blocks around them.**
 
-[![FabricAPI](https://img.shields.io/static/v1?label=modloader&message=fabric&color=brightgreen)](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
+![Mod Loaders](https://img.shields.io/static/v1?label=modloader&message=fabric%20%7C%20quilt%20%7C%20neoforge%20%7C%20forge&color=brightgreen)
 ![Mod Environment](https://img.shields.io/static/v1?label=environment&message=client%2Fserver&color=yellow)
 [![License](https://img.shields.io/static/v1?label=licence&message=LGPL-3.0&color=blue)](./LICENSE)
 
@@ -39,10 +39,17 @@ More in [Tools](https://github.com/calibergames/secret-blocks/wiki/Tools).
 
 ## Requirements
 
-- Minecraft 1.20.1
-- Fabric Loader 0.16.10 or later
-- [Fabric API](https://modrinth.com/mod/fabric-api)
-- With Sodium, you also need [Indium](https://modrinth.com/mod/indium). See [Compatibility](https://github.com/calibergames/secret-blocks/wiki/Compatibility) for shader packs, connected textures and Carpet.
+- **Fabric or Quilt** (the `fabric` download): Minecraft 1.20 or 1.20.1,
+  Fabric Loader 0.16.10 or later or Quilt Loader 0.30.1 or later, and
+  [Fabric API](https://modrinth.com/mod/fabric-api) (on Quilt, Fabric API
+  or Quilted Fabric API). With Sodium, you also need
+  [Indium](https://modrinth.com/mod/indium).
+- **NeoForge or Forge** (the `neoforge` download): Minecraft 1.20.1,
+  NeoForge 47.1 or Forge 47.1 or later.
+
+See [Compatibility](https://github.com/calibergames/secret-blocks/wiki/Compatibility) for Sodium, Embeddium, shader packs, connected textures and Carpet.
+
+The Fabric and Quilt download needs Fabric API:
 
 [<img alt="Requires Fabric API" src="https://i.imgur.com/Ol1Tcf8.png" width="128"/>](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
 

@@ -23,6 +23,16 @@ sourceSets {
 		compileClasspath += sourceSets.main.output
 		runtimeClasspath += sourceSets.main.output
 	}
+	// The test mixins again, compiled only to write their refmap (SRG names)
+	// for the production test jar; the mixin annotation processor stays off
+	// the rest of the tests.
+	gametestMixins {
+		java {
+			srcDir rootProject.file('common/src/gametest/java')
+			include '**/mixin/**'
+		}
+		compileClasspath += sourceSets.main.output + sourceSets.gametest.output + sourceSets.gametest.compileClasspath
+	}
 }
 
 configurations {
@@ -155,7 +165,7 @@ mixin {
 
 dependencies {
 	annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-	gametestAnnotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+	gametestMixinsAnnotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 jar {
@@ -168,11 +178,12 @@ jar {
 // with the test mixins' refmap), to run them against released loader versions:
 // start the server with -Dforge.enableGameTest=true -Dforge.gameTestServer=true.
 // Never published; it is built outside build/libs.
-def gametestRefmap = mixin.add(sourceSets.gametest, 'secretblocks_gametest.refmap.json')
+def gametestRefmap = mixin.add(sourceSets.gametestMixins, 'secretblocks_gametest.refmap.json')
 
 def gametestDevJar = tasks.register('gametestDevJar', Jar) {
 	from sourceSets.gametest.output
 	from gametestRefmap
+	dependsOn 'compileGametestMixinsJava'
 	archiveClassifier = 'gametest-dev'
 	destinationDirectory = layout.buildDirectory.dir('devlibs')
 	manifest.attributes([
@@ -189,9 +200,9 @@ tasks.register('gametestJar') {
 	dependsOn reobfGametest
 }
 
-// The release jar's reobfuscation reads every mixin source set's mappings.
-tasks.named('reobfJar') {
-	dependsOn 'compileGametestJava'
+// Reobfuscation reads every mixin source set's mappings.
+tasks.matching { it.name.startsWith('reobf') }.configureEach {
+	dependsOn 'compileGametestMixinsJava'
 }
 
 processGametestResources {

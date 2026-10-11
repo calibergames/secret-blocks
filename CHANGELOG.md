@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.1.0 (Minecraft 1.20–1.20.1: Fabric, Quilt, NeoForge, Forge)
+
+Secret Blocks now runs on all four loaders for Minecraft 1.20.1, with the
+same blocks and tools as 2.0.0.
+
+- **Two downloads:**
+  - `secret-blocks-fabric-1.20.1-2.1.0.jar` for Fabric and Quilt, on
+    Minecraft 1.20 or 1.20.1. It needs Fabric Loader 0.16.10 or later (or
+    Quilt Loader 0.30.1 or later) and Fabric API 0.83.0 or later (on Quilt,
+    Fabric API or Quilted Fabric API).
+  - `secret-blocks-neoforge-1.20.1-2.1.0.jar` for NeoForge and Forge 1.20.1
+    (Forge 47.1 or later).
+- **Connected textures now connect disguised faces,** One Way Glass
+  included. Tested on Minecraft 1.20.1 with Continuity on Fabric and Quilt,
+  and with Fusion on NeoForge. With one of them installed, the faces
+  between One Way Glass blocks are hidden, so a wall of them reads as one
+  pane.
+  - Known limitation: Continuity on Forge (through Sinytra Connector)
+    connects other disguised faces but not One Way Glass faces. Fusion is
+    expected to work on Forge as it does on NeoForge (the same download),
+    but has not been tested there yet.
+- **Builder's Goggles with Sodium 0.5:** faded blocks are now see-through
+  ghost faces. In 2.0.0 they were dark and hid the blocks inside.
+- **Embeddium and Oculus** are supported (tested on NeoForge, and on Forge
+  alongside Sinytra Connector).
+- **Fixed:** a crash at start-up with Quilt Loader 0.30.
+- **Fixed:** an error in the log at start-up with older Fabric API
+  versions (data for an unfinished block is no longer shipped).
+- Worlds from 2.0.0 keep their secret blocks and disguises on every
+  loader.
+
 ## 2.0.0 (Minecraft 1.20.1, Fabric) — beta
 
 Secret Blocks 2.0.0 for Minecraft 1.20.1: the same blocks and tools as

@@ -33,6 +33,9 @@ jobs:
             17
             21
             25
+      - name: list java toolchains
+        shell: bash
+        run: ./gradlew javaToolchains -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
       - name: build
         shell: bash
         run: ./gradlew build -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
