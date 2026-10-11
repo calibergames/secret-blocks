@@ -13,6 +13,7 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -35,3 +36,19 @@ jobs:
       - name: build
         shell: bash
         run: ./gradlew build -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
+      - name: list failed game tests
+        if: failure()
+        shell: bash
+        run: |
+          if [ -f build/gametest/junit.xml ]; then
+            python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse('build/gametest/junit.xml').getroot()
+          for case in root.iter('testcase'):
+              for result in case:
+                  if result.tag in ('failure', 'error'):
+                      print(case.get('name'), '::', (result.get('message') or result.text or '').strip())
+          PY
+          else
+            echo "no game test report"
+          fi
