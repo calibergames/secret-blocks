@@ -24,7 +24,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * ({@link SecretComparatorBlockEntity}).
  *
  * The game tells only vanilla comparators when a container's contents change;
- * {@code ComparatorUpdateMixin} includes this block.
+ * on Fabric a mixin includes this block, and on Forge and NeoForge it answers
+ * their hook itself ({@link #getWeakChanges}).
  *
  * Differences from vanilla, so it can hide in a wall: it stays when the block
  * under it goes and it is a full block. Not a redstone conductor (set
@@ -63,4 +64,14 @@ public class SecretComparator extends ComparatorBlock implements SecretBlock {
 		return true;
 	}
 
+	/**
+	 * Forge and NeoForge ask this of the block one solid block past a container
+	 * whose contents changed, where vanilla's code asks "is this a comparator?"
+	 * (Fabric has that check, widened by a mixin). Vanilla's comparator answers
+	 * yes for itself only, so the Secret Comparator answers for itself. On
+	 * those loaders this overrides their block hook; elsewhere nothing calls it.
+	 */
+	public boolean getWeakChanges(BlockState state, LevelReader level, BlockPos pos) {
+		return true;
+	}
 }

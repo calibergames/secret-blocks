@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
+import org.jetbrains.annotations.Nullable;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -66,4 +67,14 @@ public class SecretRepeater extends RepeaterBlock implements EntityBlock, Secret
 	public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
 	}
 
+	/**
+	 * Forge and NeoForge ask a wire's neighbours whether wire connects to them.
+	 * Like vanilla's repeater, wire meets this one only along its axis, never
+	 * at its sides (which would show where it is). On those loaders this
+	 * overrides their block hook; elsewhere nothing calls it.
+	 */
+	public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
+		Direction facing = state.getValue(FACING);
+		return facing == direction || facing.getOpposite() == direction;
+	}
 }

@@ -1,5 +1,8 @@
 package net.calibermc.secretblocks.items;
 
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.calibermc.secretblocks.blocks.DisguiseLook;
 import net.calibermc.secretblocks.placement.DisguisePlacement;
 import net.minecraft.core.Direction;
@@ -62,6 +65,17 @@ public class SecretBlockItem extends BlockItem {
 	protected SoundEvent getPlaceSound(BlockState state) {
 		BlockState look = PLACING_LOOK.get();
 		return look != null ? look.getSoundType().getPlaceSound() : super.getPlaceSound(state);
+	}
+
+	/**
+	 * Forge and NeoForge play the place sound through this one, which reads
+	 * the placed block's own sound type, never {@link #getPlaceSound(BlockState)}:
+	 * it gives the look's place sound too (otherwise vanilla's). On those
+	 * loaders this overrides their item hook; elsewhere nothing calls it.
+	 */
+	protected SoundEvent getPlaceSound(BlockState state, Level level, BlockPos pos, Player player) {
+		BlockState look = PLACING_LOOK.get();
+		return (look != null ? look : state).getSoundType().getPlaceSound();
 	}
 
 	/** The look most faces get (all six, or five beside One Way Glass's glass). */

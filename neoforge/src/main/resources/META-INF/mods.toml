@@ -1,0 +1,28 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "LGPL-3.0"
+issueTrackerURL = "https://github.com/calibergames/secret-blocks/issues"
+
+[[mods]]
+modId = "secretblocks"
+version = "${version}"
+displayName = "Secret Blocks"
+displayURL = "https://github.com/calibergames/secret-blocks"
+logoFile = "assets/secretblocks/icon.png"
+authors = "CaliberMC"
+description = '''Hidden blocks that look like the blocks around them.'''
+
+# NeoForge 1.20.1 keeps Forge's mod id, so one dependency covers both loaders.
+[[dependencies.secretblocks]]
+modId = "forge"
+mandatory = true
+versionRange = "[47.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.secretblocks]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[${minecraft_version}]"
+ordering = "NONE"
+side = "BOTH"

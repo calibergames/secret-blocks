@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
+import org.jetbrains.annotations.Nullable;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -165,4 +166,14 @@ public class SecretRedstoneWire extends Block implements EntityBlock, SecretBloc
 		}
 	}
 
+	/**
+	 * Forge and NeoForge ask a wire's neighbours whether wire connects to them
+	 * (vanilla's code asks "is this redstone wire?", widened on Fabric by a
+	 * mixin to every wire block). Vanilla wire answers yes from any side, and
+	 * so does this one. On those loaders this overrides their block hook;
+	 * elsewhere nothing calls it.
+	 */
+	public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
+		return true;
+	}
 }

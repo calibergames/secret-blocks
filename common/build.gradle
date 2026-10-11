@@ -21,7 +21,23 @@ dependencies {
 	compileOnly 'org.ow2.asm:asm:9.6'
 }
 
+// The game tests, shared by every loader: compiled here against vanilla to
+// check them, and built into each loader's test mod.
+sourceSets {
+	gametest {
+		compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+	}
+}
+
 configurations {
+	commonGametestJava {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+	commonGametestResources {
+		canBeResolved = false
+		canBeConsumed = true
+	}
 	commonJava {
 		canBeResolved = false
 		canBeConsumed = true
@@ -33,6 +49,13 @@ configurations {
 }
 
 artifacts {
+	commonGametestJava sourceSets.gametest.java.sourceDirectories.singleFile
+	commonGametestResources sourceSets.gametest.resources.sourceDirectories.singleFile
 	commonJava sourceSets.main.java.sourceDirectories.singleFile
 	commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}
+
+// The shared tests run in each loader's build; here they are compiled against vanilla.
+tasks.named('check') {
+	dependsOn 'gametestClasses'
 }

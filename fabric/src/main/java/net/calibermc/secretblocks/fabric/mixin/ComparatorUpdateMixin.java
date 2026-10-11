@@ -1,4 +1,4 @@
-package net.calibermc.secretblocks.mixin;
+package net.calibermc.secretblocks.fabric.mixin;
 
 import net.calibermc.secretblocks.blocks.SecretComparator;
 import net.minecraft.world.level.Level;
@@ -15,7 +15,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  * it, and those one solid block further on. In 1.20.1 it asks "is this
  * {@code Blocks.COMPARATOR}?", so a Secret Comparator would never hear of a
  * change and would keep its old output. Both questions also accept the
- * Secret Comparator. Nothing changes for vanilla comparators.
+ * Secret Comparator. Nothing changes for vanilla comparators. (Forge and
+ * NeoForge ask the blocks themselves instead; the Secret Comparator answers
+ * there through its own {@code getWeakChanges}.)
  */
 @Mixin(Level.class)
 public abstract class ComparatorUpdateMixin {

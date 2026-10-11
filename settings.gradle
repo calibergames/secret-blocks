@@ -16,3 +16,4 @@ pluginManagement {
 rootProject.name = 'secret-blocks'
 include 'common'
 include 'fabric'
+include 'neoforge'

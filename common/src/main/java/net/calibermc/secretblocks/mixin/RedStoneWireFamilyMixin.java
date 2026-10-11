@@ -80,6 +80,9 @@ public abstract class RedStoneWireFamilyMixin {
 	}
 
 	/**
+	 * (Forge and NeoForge decide connections through their block hook
+	 * instead, answered by the Secret blocks' {@code canConnectRedstone}; this
+	 * redirect then does nothing.)
 	 * Vanilla asks "is this vanilla redstone wire?" when deciding which way a
 	 * wire points, including up and down a step; any wire block counts.
 	 * It also asks "is this a repeater?": a wire points at a repeater only

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "secretblocks-gametest",
+  "id": "secretblocks_gametest",
   "version": "1.0.0",
   "name": "Secret Blocks Game Tests",
   "description": "Game tests and the dev client driver for Secret Blocks. Development only; never shipped.",
@@ -8,7 +8,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.calibermc.secretblocks.gametest.support.TestBlocks"
+      "net.calibermc.secretblocks.gametest.fabric.FabricTestMod"
     ],
     "client": [
       "net.calibermc.secretblocks.gametest.driver.DevClientDriver"
@@ -59,6 +59,6 @@
   },
   "mixins": [
     "secretblocks-gametest.mixins.json",
-    "secretblocks-gametest-common.mixins.json"
+    "secretblocks_gametest.mixins.json"
   ]
 }
