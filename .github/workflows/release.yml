@@ -34,12 +34,13 @@ jobs:
           persist-credentials: false
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
-      - name: setup jdk 17 and 25
+      - name: setup jdk 17, 21 and 25
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: |
             17
+            21
             25
       - name: read the version
         id: version
@@ -57,8 +58,9 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: build
         shell: bash
-        # Gradle runs on Java 25; the mod builds and is tested on Java 17.
-        run: ./gradlew build -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64
+        # Gradle runs on Java 25; the mod builds and is tested on Java 17;
+        # ModDevGradle runs its Minecraft setup tools on Java 21.
+        run: ./gradlew build -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
       - name: publish
         uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3.1
         with:
