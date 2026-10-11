@@ -135,8 +135,10 @@ public class ContainerGameTests implements FabricGameTest {
 	/**
 	 * A dropper facing a plain secret block throws its item out as it does
 	 * facing stone; facing a Secret Chest it puts the item in, as into a chest.
+	 * In a batch of its own: a thrown diamond can fly several blocks, and a
+	 * neighbouring test's hopper or player could take it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200, batch = "container_droppers")
 	public void droppersTreatSecretBlocksLikeVanilla(GameTestHelper h) {
 		floor(h);
 		Block[] targets = {Blocks.STONE, ModBlocks.SOLID_BLOCK, Blocks.CHEST, ModBlocks.SECRET_CHEST};
