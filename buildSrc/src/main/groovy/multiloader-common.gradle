@@ -1,0 +1,49 @@
+// Shared by every subproject: Java 17 toolchain, repositories, encoding.
+plugins {
+	id 'java-library'
+}
+
+version = "${minecraft_version}-${mod_version}"
+group = maven_group
+
+java {
+	// Gradle itself may run on a newer Java; the mod is compiled, tested and run on Java 17.
+	toolchain.languageVersion = JavaLanguageVersion.of(17)
+	withSourcesJar()
+}
+
+repositories {
+	mavenCentral()
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = 'Sponge'
+				url = 'https://repo.spongepowered.org/repository/maven-public'
+			}
+		}
+		filter { includeGroupAndSubgroups('org.spongepowered') }
+	}
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = 'ParchmentMC'
+				url = 'https://maven.parchmentmc.org/'
+			}
+		}
+		filter { includeGroup('org.parchmentmc.data') }
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+	options.release = 17
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+}
+
+dependencies {
+	testImplementation "org.junit.jupiter:junit-jupiter:5.9.1"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.9.1"
+}

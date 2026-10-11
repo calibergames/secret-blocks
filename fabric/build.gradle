@@ -1,0 +1,103 @@
+// The Fabric jar: common plus the Fabric entry points, the Fabric Renderer API
+// rendering and the compatibility checks for Fabric mods. The game tests run here.
+plugins {
+	id 'multiloader-loader'
+	id 'fabric-loom'
+	id 'maven-publish'
+}
+
+repositories {
+	maven {
+		name = "CurseMaven"
+		url = "https://cursemaven.com"
+		content {
+			includeGroup "curse.maven"
+		}
+	}
+	maven {
+		name = "Modrinth"
+		url = "https://api.modrinth.com/maven"
+		content {
+			includeGroup "maven.modrinth"
+		}
+	}
+}
+
+// Game tests live in their own source set and mod (secretblocks-gametest), so
+// nothing test-only ships in the release jar. `./gradlew runGametest` starts a
+// headless server, runs every test and writes build/gametest/junit.xml at the
+// root; `check` (and therefore `build`) depends on it.
+sourceSets {
+	gametest {
+		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+	}
+}
+
+def rootBuild = rootProject.layout.buildDirectory.get().asFile.path
+
+loom {
+	runs {
+		client {
+			runDir "../run"
+		}
+		server {
+			runDir "../run"
+		}
+		gametest {
+			server()
+			name "Game Test"
+			vmArg "-Dfabric-api.gametest"
+			vmArg "-Dfabric-api.gametest.report-file=${rootBuild}/gametest/junit.xml"
+			runDir "../build/gametest"
+			source sourceSets.gametest
+		}
+		// A client with the development-only command-file test driver (src/gametest,
+		// DevClientDriver): test scripts act as the player through the real client code.
+		devClient {
+			client()
+			name "Dev Client (driver)"
+			vmArg "-Dsecretblocks.driver=${rootBuild}/devclient"
+			runDir "../run"
+			source sourceSets.gametest
+		}
+	}
+}
+
+// The game tests start from a fresh world on every run. The world would otherwise be kept
+// in build/gametest, and items or item frames left by a failed test would reach the next run.
+tasks.matching { it.name == "runGametest" }.configureEach {
+	doFirst {
+		delete "${rootBuild}/gametest/world"
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	mappings loom.layered() {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_mappings}@zip")
+	}
+	modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.named("check") {
+	dependsOn "runGametest"
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+		}
+	}
+}

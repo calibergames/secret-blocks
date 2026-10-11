@@ -1,0 +1,43 @@
+{
+	"schemaVersion": 1,
+	"id": "secretblocks",
+	"version": "${version}",
+
+	"name": "Secret Blocks",
+	"description": "Like the Secret Rooms Mod but for Fabric!",
+	"authors": [
+		"CaliberMC"
+	],
+	"contact": {
+		"homepage": "*",
+		"sources": "https://github.com/calibergames/secret-blocks",
+		"issues": "https://github.com/calibergames/secret-blocks/issues"
+	},
+	"license": "LGPL-3.0",
+	"icon": "assets/secretblocks/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.calibermc.secretblocks.fabric.SecretBlocksFabric"
+		],
+		"client": [
+			"net.calibermc.secretblocks.SecretBlocksClient"
+		],
+		"preLaunch": [
+			"net.calibermc.secretblocks.compat.RendererCheck"
+		]
+	},
+	"mixins": [
+		"secretblocks.mixins.json",
+		"secretblocks.fabric.mixins.json"
+	],
+	"suggests": {
+		"indium": "*"
+	},
+	"depends": {
+		"fabricloader": ">=0.16.10",
+		"fabric": "*",
+		"minecraft": "1.20.1",
+		"java": ">=17"
+	}
+}

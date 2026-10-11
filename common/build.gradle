@@ -1,0 +1,38 @@
+// The loader-neutral mod, compiled against vanilla Minecraft (Mojang names
+// with Parchment parameter names). Its sources and resources are built into
+// each loader's jar.
+plugins {
+	id 'multiloader-common'
+	id 'net.neoforged.moddev.legacyforge'
+}
+
+legacyForge {
+	mcpVersion = minecraft_version
+	accessTransformers = files('accesstransformer.cfg')
+	parchment {
+		minecraftVersion = minecraft_version
+		mappingsVersion = parchment_mappings
+	}
+}
+
+dependencies {
+	compileOnly 'org.spongepowered:mixin:0.8.5'
+	compileOnly 'org.jetbrains:annotations:24.0.1'
+	compileOnly 'org.ow2.asm:asm:9.6'
+}
+
+configurations {
+	commonJava {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+	commonResources {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+}
+
+artifacts {
+	commonJava sourceSets.main.java.sourceDirectories.singleFile
+	commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}

@@ -1,0 +1,52 @@
+// A loader subproject: compiles common's sources and resources into its own jar,
+// next to its loader-specific code, and ships the licence and notice.
+plugins {
+	id 'multiloader-common'
+}
+
+configurations {
+	commonJava {
+		canBeResolved = true
+	}
+	commonResources {
+		canBeResolved = true
+	}
+}
+
+dependencies {
+	compileOnly project(':common')
+	commonJava project(path: ':common', configuration: 'commonJava')
+	commonResources project(path: ':common', configuration: 'commonResources')
+}
+
+tasks.named('compileJava', JavaCompile) {
+	dependsOn(configurations.commonJava)
+	source(configurations.commonJava)
+}
+
+processResources {
+	dependsOn(configurations.commonResources)
+	from(configurations.commonResources)
+}
+
+tasks.named('sourcesJar', Jar) {
+	dependsOn(configurations.commonJava)
+	from(configurations.commonJava)
+	dependsOn(configurations.commonResources)
+	from(configurations.commonResources)
+}
+
+base {
+	archivesName = "${archives_base_name}-${project.name}"
+}
+
+jar {
+	// The licence, and the notice naming what the mod contains from other projects.
+	def name = archives_base_name
+	from(rootProject.file('LICENSE')) {
+		rename { "${it}_${name}" }
+	}
+	from(rootProject.file('NOTICE')) {
+		rename { "${it}_${name}" }
+	}
+}

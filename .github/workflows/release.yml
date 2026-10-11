@@ -67,7 +67,7 @@ jobs:
           curseforge-id: 844758
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          files: build/libs/secret-blocks-${{ steps.version.outputs.version }}.jar
+          files: fabric/build/libs/secret-blocks-fabric-${{ steps.version.outputs.version }}.jar
           name: Secret Blocks ${{ steps.version.outputs.version }}
           version: ${{ steps.version.outputs.version }}
           version-type: ${{ github.event.release.prerelease && 'beta' || 'release' }}
