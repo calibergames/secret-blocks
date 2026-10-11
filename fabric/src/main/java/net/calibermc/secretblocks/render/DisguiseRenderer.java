@@ -6,8 +6,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.calibermc.secretblocks.blocks.DoorBlock;
 import net.calibermc.secretblocks.blocks.TrapdoorBlock;
-import net.calibermc.secretblocks.registry.Counterparts;
-import net.calibermc.secretblocks.registry.ModBlocks;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
@@ -25,10 +23,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.DoorHingeSide;
-import net.minecraft.world.level.block.state.properties.Half;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 import net.calibermc.secretblocks.blocks.entity.Disguise;
 
@@ -90,7 +85,7 @@ public final class DisguiseRenderer {
 				emitter.spriteBake(0, BuilderView.ghostSprite(), MutableQuadView.BAKE_LOCK_UV);
 				emitter.colorIndex(-1);
 				emitter.spriteColor(0, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
-				emitter.material(BuilderView.fadeMaterial());
+				emitter.material(FabricMaterials.fade());
 				emitter.emit();
 			}
 
@@ -117,7 +112,7 @@ public final class DisguiseRenderer {
 				if (builder) {
 					// Faded, so the real block drawn below shows through.
 					faceColor = (faceColor & 0x00FF_FFFF) | (BuilderView.DISGUISE_ALPHA << 24);
-					emitter.material(BuilderView.fadeMaterial());
+					emitter.material(FabricMaterials.fade());
 				} else if (layer != null) {
 					// In the disguise's own pass: stained glass translucent, leaves as the graphics setting has them.
 					emitter.material(layer);
@@ -128,7 +123,7 @@ public final class DisguiseRenderer {
 			}
 
 			if (GogglesView.isWearing() && !abqList.isEmpty()
-					&& GogglesView.overlaySprite() != null && GogglesView.overlayMaterial() != null) {
+					&& GogglesView.overlaySprite() != null && FabricMaterials.overlay() != null) {
 				emitGogglesOverlay(emitter, state, direction);
 			}
 			if (builder && BuilderView.outlineSprite() != null) {
@@ -154,11 +149,11 @@ public final class DisguiseRenderer {
 	 */
 	private static void emitRealBlock(BlockState state, BlockAndTintGetter blockView, BlockPos pos,
 			Supplier<net.minecraft.util.RandomSource> randomSupplier, RenderContext context) {
-		realStateOf(state).ifPresent(vanilla -> {
+		DisguiseShapes.realStateOf(state).ifPresent(vanilla -> {
 			BlockColors colors = Minecraft.getInstance().getBlockColors();
 			BakedModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(vanilla);
 			QuadEmitter emitter = context.getEmitter();
-			RenderMaterial material = BuilderView.realMaterial(model.useAmbientOcclusion());
+			RenderMaterial material = FabricMaterials.real(model.useAmbientOcclusion());
 			for (int index = 0; index <= Direction.values().length; index++) {
 				Direction face = index < Direction.values().length ? Direction.values()[index] : null;
 				for (BakedQuad quad : model.getQuads(vanilla, face, randomSupplier.get())) {
@@ -177,29 +172,12 @@ public final class DisguiseRenderer {
 		});
 	}
 
-	/**
-	 * The vanilla block drawn inside: the counterpart, and for the Secret
-	 * Piston's head (which has none: the wand never converts it) vanilla's
-	 * piston head, so an extended piston shows its head.
-	 */
-	static Optional<BlockState> realStateOf(BlockState state) {
-		if (state.is(ModBlocks.SECRET_PISTON_HEAD)) {
-			return Optional.of(Counterparts.copyShared(state, Blocks.PISTON_HEAD.defaultBlockState()));
-		}
-		return Counterparts.vanillaStateOf(state);
-	}
 
 	private static float shrink(float coordinate) {
 		return 0.5f + (coordinate - 0.5f) * 0.996f;
 	}
 
-	/** One face rectangle, as {@link QuadEmitter#square} takes it. */
-	@FunctionalInterface
-	private interface Square {
-		void at(Direction face, float left, float bottom, float right, float top, float depth);
-	}
 
-	/** The shape of one disguise face: a full square, or a door or trapdoor panel face. */
 	/**
 	 * One side of a look drawn by the look's own model. A model that renders
 	 * itself (connected textures, for one) is given a view where secret
@@ -253,7 +231,7 @@ public final class DisguiseRenderer {
 			quad.spriteColor(i, 0, color);
 		}
 		if (builder) {
-			quad.material(BuilderView.fadeMaterial());
+			quad.material(FabricMaterials.fade());
 		} else if (layer != null) {
 			quad.material(layer);
 		}
@@ -270,18 +248,23 @@ public final class DisguiseRenderer {
 	}
 
 	private static void emitShape(QuadEmitter emitter, BlockState state, Direction direction) {
-		shape(state, direction, emitter::square);
+		DisguiseShapes.shape(state, direction, emitter::square);
 	}
 
-	private static void shape(BlockState state, Direction direction, Square square) {
-		if (state.getBlock() instanceof DoorBlock) {
-			renderDoor(square, state, direction);
-		} else if (state.getBlock() instanceof TrapdoorBlock) {
-			renderTrapdoor(square, state, direction);
-		} else {
-			square.at(direction, 0.0f, 0.0f, 1.0f, 1.0f, 0);
+	/** Turns a face's texture by its disguise's rotation, as {@link DisguiseShapes#uvOrder} orders the corners. */
+	private static void rotateAndFlip(QuadEmitter emitter, int rotation, Direction dir) {
+		float[] u = new float[4];
+		float[] v = new float[4];
+		for (int i = 0; i < 4; i++) {
+			u[i] = emitter.spriteU(i, 0);
+			v[i] = emitter.spriteV(i, 0);
+		}
+		int[] order = DisguiseShapes.uvOrder(rotation, dir);
+		for (int i = 0; i < 4; i++) {
+			emitter.sprite(i, 0, u[order[i]], v[order[i]]);
 		}
 	}
+
 
 	/**
 	 * Secret Goggles overlay: one translucent, full-bright copy of the
@@ -299,7 +282,7 @@ public final class DisguiseRenderer {
 		emitter.spriteBake(0, GogglesView.overlaySprite(), 4);
 		emitter.colorIndex(-1);
 		emitter.spriteColor(0, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
-		emitter.material(GogglesView.overlayMaterial());
+		emitter.material(FabricMaterials.overlay());
 		emitter.emit();
 	}
 
@@ -321,7 +304,7 @@ public final class DisguiseRenderer {
 			return;
 		}
 		boolean side = direction.getAxis().isHorizontal();
-		shape(state, direction, (face, left, bottom, right, top, depth) -> {
+		DisguiseShapes.shape(state, direction, (face, left, bottom, right, top, depth) -> {
 			float w = OUTLINE_WIDTH;
 			if (!(side && joinsBelow)) {
 				emitOutlineStrip(emitter, face, left, bottom, right, Math.min(top, bottom + w), depth);
@@ -343,216 +326,11 @@ public final class DisguiseRenderer {
 		emitter.spriteBake(0, BuilderView.outlineSprite(), MutableQuadView.BAKE_LOCK_UV);
 		emitter.colorIndex(-1);
 		emitter.spriteColor(0, OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR);
-		emitter.material(BuilderView.outlineMaterial());
+		emitter.material(FabricMaterials.outline());
 		emitter.emit();
 	}
 
-	private static void renderDoorCuboid(Square square, Direction faceDirection, Direction cuboidDirection) {
-		switch (cuboidDirection) {
 
-		case NORTH:
 
-			if (faceDirection == Direction.NORTH) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
-			} else if (faceDirection == Direction.SOUTH) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
-			} else if (faceDirection == Direction.EAST) {
-				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.WEST) {
-				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.UP) {
-				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.DOWN) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
-			}
-			break;
 
-		case EAST:
-
-			if (faceDirection == Direction.SOUTH) {
-				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.NORTH) {
-				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.EAST) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
-			} else if (faceDirection == Direction.WEST) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
-			} else if (faceDirection == Direction.UP) {
-				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.DOWN) {
-				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
-			}
-			break;
-
-		case SOUTH:
-
-			if (faceDirection == Direction.SOUTH) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
-			} else if (faceDirection == Direction.NORTH) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
-			} else if (faceDirection == Direction.WEST) {
-				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.EAST) {
-				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.DOWN) {
-				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.UP) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
-			}
-			break;
-
-		case WEST:
-
-			if (faceDirection == Direction.NORTH) {
-				square.at(faceDirection, 0.8125f, 0.0f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.SOUTH) {
-				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.WEST) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0f);
-			} else if (faceDirection == Direction.EAST) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
-			} else if (faceDirection == Direction.UP) {
-				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.DOWN) {
-				square.at(faceDirection, 0.0f, 0.0f, 0.1875f, 1.0f, 0.0f);
-			}
-			break;
-
-		case UP:
-
-			if (faceDirection == Direction.SOUTH) {
-				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.NORTH) {
-				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.WEST) {
-				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.EAST) {
-				square.at(faceDirection, 0.0f, 0.8125f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.UP) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.DOWN) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
-			}
-			break;
-
-		case DOWN:
-
-			if (faceDirection == Direction.SOUTH) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
-			} else if (faceDirection == Direction.NORTH) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
-			} else if (faceDirection == Direction.WEST) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
-			} else if (faceDirection == Direction.EAST) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 0.1875f, 0.0f);
-			} else if (faceDirection == Direction.DOWN) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
-			} else if (faceDirection == Direction.UP) {
-				square.at(faceDirection, 0.0f, 0.0f, 1.0f, 1.0f, 0.8125f);
-			}
-			break;
-		}
-	}
-
-	private static void renderDoor(Square square, BlockState state, Direction direction) {
-
-		Direction renderDirection = Direction.EAST;
-
-		if ((state.getValue(DoorBlock.FACING) == Direction.NORTH && !state.getValue(DoorBlock.OPEN)) || (state.getValue(DoorBlock.FACING) == Direction.EAST && state.getValue(DoorBlock.HINGE) == DoorHingeSide.RIGHT && state.getValue(DoorBlock.OPEN)) || (state.getValue(DoorBlock.FACING) == Direction.WEST && state.getValue(DoorBlock.HINGE) == DoorHingeSide.LEFT && state.getValue(DoorBlock.OPEN))) {
-			renderDirection = Direction.SOUTH;
-		} else if ((state.getValue(DoorBlock.FACING) == Direction.EAST && !state.getValue(DoorBlock.OPEN)) || (state.getValue(DoorBlock.FACING) == Direction.SOUTH && state.getValue(DoorBlock.HINGE) == DoorHingeSide.RIGHT && state.getValue(DoorBlock.OPEN)) || (state.getValue(DoorBlock.FACING) == Direction.NORTH && state.getValue(DoorBlock.HINGE) == DoorHingeSide.LEFT && state.getValue(DoorBlock.OPEN))) {
-			renderDirection = Direction.WEST;
-		} else if ((state.getValue(DoorBlock.FACING) == Direction.SOUTH && !state.getValue(DoorBlock.OPEN)) || (state.getValue(DoorBlock.FACING) == Direction.WEST && state.getValue(DoorBlock.HINGE) == DoorHingeSide.RIGHT && state.getValue(DoorBlock.OPEN)) || (state.getValue(DoorBlock.FACING) == Direction.EAST && state.getValue(DoorBlock.HINGE) == DoorHingeSide.LEFT && state.getValue(DoorBlock.OPEN))) {
-			renderDirection = Direction.NORTH;
-		} else if ((state.getValue(DoorBlock.FACING) == Direction.WEST && !state.getValue(DoorBlock.OPEN)) || (state.getValue(DoorBlock.FACING) == Direction.NORTH && state.getValue(DoorBlock.HINGE) == DoorHingeSide.RIGHT && state.getValue(DoorBlock.OPEN)) || (state.getValue(DoorBlock.FACING) == Direction.SOUTH && state.getValue(DoorBlock.HINGE) == DoorHingeSide.LEFT && state.getValue(DoorBlock.OPEN))) {
-			renderDirection = Direction.EAST;
-		} else {
-			renderDirection = Direction.NORTH;
-		}
-		renderDoorCuboid(square, direction, renderDirection);
-	}
-
-	private static void renderTrapdoor(Square square, BlockState state, Direction direction) {
-		if (state.getValue(TrapdoorBlock.OPEN)) {
-			renderDoorCuboid(square, direction, state.getValue(TrapdoorBlock.FACING).getOpposite());
-		} else {
-			if (state.getValue(TrapdoorBlock.HALF) == Half.TOP) {
-				renderDoorCuboid(square, direction, Direction.UP);
-			} else if (state.getValue(TrapdoorBlock.HALF) == Half.BOTTOM) {
-				renderDoorCuboid(square, direction, Direction.DOWN);
-			}
-		}
-	}
-
-	private static void rotateAndFlip(QuadEmitter emitter, int rotation, Direction dir) {
-
-		float u0 = emitter.spriteU(0, 0);
-		float v0 = emitter.spriteV(0, 0);
-
-		float u1 = emitter.spriteU(1, 0);
-		float v1 = emitter.spriteV(1, 0);
-
-		float u2 = emitter.spriteU(2, 0);
-		float v2 = emitter.spriteV(2, 0);
-
-		float u3 = emitter.spriteU(3, 0);
-		float v3 = emitter.spriteV(3, 0);
-
-		switch (rotation) {
-		case 0:
-			if (dir.equals(Direction.UP)) {
-				emitter.sprite(0, 0, u3, v3);
-				emitter.sprite(1, 0, u2, v2);
-				emitter.sprite(2, 0, u1, v1);
-				emitter.sprite(3, 0, u0, v0);
-			} else {
-				emitter.sprite(0, 0, u0, v0);
-				emitter.sprite(1, 0, u1, v1);
-				emitter.sprite(2, 0, u2, v2);
-				emitter.sprite(3, 0, u3, v3);
-			}
-			break;
-		case 90:
-			if (dir.equals(Direction.UP)) {
-				emitter.sprite(0, 0, u0, v0);
-				emitter.sprite(1, 0, u3, v3);
-				emitter.sprite(2, 0, u2, v2);
-				emitter.sprite(3, 0, u1, v1);
-			} else {
-				emitter.sprite(0, 0, u1, v1);
-				emitter.sprite(1, 0, u2, v2);
-				emitter.sprite(2, 0, u3, v3);
-				emitter.sprite(3, 0, u0, v0);
-			}
-			break;
-		case 180:
-			if (dir.equals(Direction.UP)) {
-				emitter.sprite(0, 0, u1, v1);
-				emitter.sprite(1, 0, u0, v0);
-				emitter.sprite(2, 0, u3, v3);
-				emitter.sprite(3, 0, u2, v2);
-			} else {
-				emitter.sprite(0, 0, u2, v2);
-				emitter.sprite(1, 0, u3, v3);
-				emitter.sprite(2, 0, u0, v0);
-				emitter.sprite(3, 0, u1, v1);
-			}
-
-			break;
-		case 270:
-			if (dir.equals(Direction.UP)) {
-				emitter.sprite(0, 0, u2, v2);
-				emitter.sprite(1, 0, u1, v1);
-				emitter.sprite(2, 0, u0, v0);
-				emitter.sprite(3, 0, u3, v3);
-			} else {
-				emitter.sprite(0, 0, u3, v3);
-				emitter.sprite(1, 0, u0, v0);
-				emitter.sprite(2, 0, u1, v1);
-				emitter.sprite(3, 0, u2, v2);
-			}
-
-			break;
-		}
-	}
 }

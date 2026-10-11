@@ -1,8 +1,6 @@
 package net.calibermc.secretblocks.render;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.loader.api.FabricLoader;
+import net.calibermc.secretblocks.platform.Services;
 
 import java.lang.reflect.Method;
 
@@ -11,8 +9,7 @@ import java.lang.reflect.Method;
  * reflection (no build dependency on Iris). False without Iris, or if its
  * API cannot be read.
  */
-@Environment(EnvType.CLIENT)
-final class ShaderPacks {
+public final class ShaderPacks {
 
 	/** Iris's API class: its current package, then the one before Iris 1.6. */
 	private static final String[] API_CLASSES = {"net.irisshaders.iris.api.v0.IrisApi", "net.coderbot.iris.api.v0.IrisApi"};
@@ -23,7 +20,8 @@ final class ShaderPacks {
 	static {
 		Object api = null;
 		Method inUse = null;
-		if (FabricLoader.getInstance().isModLoaded("iris")) {
+		// Iris on Fabric; Oculus, its port, offers the same API on Forge and NeoForge.
+		if (Services.PLATFORM.isModLoaded("iris") || Services.PLATFORM.isModLoaded("oculus")) {
 			for (String name : API_CLASSES) {
 				try {
 					Class<?> type = Class.forName(name);
@@ -43,7 +41,7 @@ final class ShaderPacks {
 	private ShaderPacks() {
 	}
 
-	static boolean inUse() {
+	public static boolean inUse() {
 		if (IN_USE == null) {
 			return false;
 		}

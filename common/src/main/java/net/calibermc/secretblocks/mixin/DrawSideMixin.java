@@ -1,8 +1,6 @@
-package net.calibermc.secretblocks.fabric.mixin;
+package net.calibermc.secretblocks.mixin;
 
 import net.calibermc.secretblocks.render.SecretCulling;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -14,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /** Vanilla's face culling beside secret blocks: see {@link SecretCulling}. */
-@Environment(EnvType.CLIENT)
 @Mixin(Block.class)
 public class DrawSideMixin {
 

@@ -6,6 +6,7 @@ import net.minecraftforge.event.RegisterGameTestsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.RegisterEvent;
 
 /**
@@ -20,5 +21,8 @@ public class NeoForgeTestMod {
 		modBus.addListener((RegisterEvent event) -> event.register(Registries.BLOCK,
 				helper -> helper.register(TestBlocks.TEST_GATE_OWNER_ID, TestBlocks.createTestGateOwner())));
 		modBus.addListener((RegisterGameTestsEvent event) -> SharedGameTests.register());
+		if (FMLEnvironment.dist.isClient()) {
+			NeoForgeDevClient.init();
+		}
 	}
 }

@@ -7,6 +7,9 @@ import net.minecraft.world.item.CreativeModeTab;
 /** What the mod needs from the loader it runs on. */
 public interface PlatformHelper {
 
+	/** Whether a mod with this id is installed. */
+	boolean isModLoaded(String modId);
+
 	/**
 	 * Registers {@code value} under {@code id} and returns it. A loader that
 	 * registers in its own registration phase may do it later, but before the

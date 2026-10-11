@@ -6,6 +6,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.RegisterEvent;
 
 import java.util.ArrayList;
@@ -28,6 +29,11 @@ public class NeoForgePlatformHelper implements PlatformHelper {
 	private static final Map<ResourceKey<?>, List<Entry>> PENDING = new HashMap<>();
 	private static final Set<ResourceKey<?>> DONE = new HashSet<>();
 	private static boolean started;
+
+	@Override
+	public boolean isModLoaded(String modId) {
+		return ModList.get().isLoaded(modId);
+	}
 
 	@Override
 	public <V, T extends V> T register(Registry<V> registry, ResourceLocation id, T value) {

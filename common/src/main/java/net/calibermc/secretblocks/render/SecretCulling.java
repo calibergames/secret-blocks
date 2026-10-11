@@ -5,8 +5,6 @@ import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.DoorBlock;
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.TrapdoorBlock;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
@@ -36,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
  * vanilla's culling ({@code DrawSideMixin}) and by Sodium's, which does not
  * call vanilla's ({@code SodiumOcclusionMixin}).
  */
-@Environment(EnvType.CLIENT)
 public final class SecretCulling {
 
 	private SecretCulling() {

@@ -1,8 +1,6 @@
 package net.calibermc.secretblocks.render;
 
 import net.calibermc.secretblocks.blocks.DisguiseLook;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -20,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
  * glass, or secret glass in a real glass wall, as glass. Everything else is
  * the world itself.
  */
-@Environment(EnvType.CLIENT)
 final class LookView implements BlockAndTintGetter {
 
 	private final BlockAndTintGetter world;

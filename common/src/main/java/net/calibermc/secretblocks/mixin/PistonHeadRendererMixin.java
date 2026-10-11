@@ -1,4 +1,4 @@
-package net.calibermc.secretblocks.fabric.mixin;
+package net.calibermc.secretblocks.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.calibermc.secretblocks.blocks.SecretPiston;

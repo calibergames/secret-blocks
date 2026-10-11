@@ -5,8 +5,6 @@ import com.mojang.math.Axis;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
@@ -33,7 +31,6 @@ import net.minecraft.world.phys.Vec3;
  * the shared secret block-entity type, so it returns at once for every
  * other block and while the view is off.
  */
-@Environment(EnvType.CLIENT)
 public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEntity> {
 
 	private final ChestRenderer<ChestBlockEntity> chestRenderer;

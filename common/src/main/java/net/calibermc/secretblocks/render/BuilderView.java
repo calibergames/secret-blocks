@@ -2,14 +2,7 @@ package net.calibermc.secretblocks.render;
 
 import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.registry.ModItems;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import com.mojang.blaze3d.platform.InputConstants;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -18,6 +11,8 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.InventoryMenu;
+
+import java.util.function.BooleanSupplier;
 
 /**
  * Client side of the Builder's Goggles' view: while active, each secret
@@ -32,22 +27,24 @@ import net.minecraft.world.inventory.InventoryMenu;
  * block in range. Client
  * side only, for the wearer only: it shows what the client already knows.
  */
-@Environment(EnvType.CLIENT)
 public final class BuilderView {
 
 	/** How opaque the disguise is while the view is active (about 40%). */
-	static final int DISGUISE_ALPHA = 0x66;
+	public static final int DISGUISE_ALPHA = 0x66;
 
 	// Written on the client thread; read on chunk-builder threads.
 	private static volatile boolean forced;
 	private static volatile boolean showing;
 	private static final BuilderViewToggle TOGGLE = new BuilderViewToggle();
-	/** Switches the view off and on while the goggles are worn (Controls, "Secret Blocks"; B by default). */
-	private static KeyMapping toggleKey;
-	private static volatile RenderMaterial fadeMaterial;
-	private static volatile RenderMaterial realMaterial;
-	private static volatile RenderMaterial realFlatMaterial;
-	private static volatile RenderMaterial outlineMaterial;
+	/**
+	 * Switches the view off and on while the goggles are worn (Controls,
+	 * "Secret Blocks"; B by default). Each loader registers it.
+	 */
+	public static final KeyMapping TOGGLE_KEY = new KeyMapping("key.secretblocks.builder_view",
+			InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, "key.categories.secretblocks");
+	/** Whether the loader's renderer can draw the view (Fabric needs a Fabric Renderer API implementation). */
+	private static volatile BooleanSupplier rendererCheck = () -> true;
+	private static volatile boolean rendererReady;
 	private static volatile TextureAtlasSprite outlineSprite;
 	private static volatile TextureAtlasSprite ghostSprite;
 	private static volatile boolean shaderPack;
@@ -60,18 +57,23 @@ public final class BuilderView {
 	private BuilderView() {
 	}
 
-	public static void register() {
-		toggleKey = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.secretblocks.builder_view",
-				InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, "key.categories.secretblocks"));
-		// OUTLINE_SPRITE and GHOST_SPRITE are in textures/block/, which the block atlas takes in whole.
-		ClientTickEvents.END_CLIENT_TICK.register(BuilderView::tick);
+	/**
+	 * The loader's check that its renderer can draw the view, run on the
+	 * client thread when the view may switch on.
+	 */
+	public static void setRendererCheck(BooleanSupplier check) {
+		rendererCheck = check;
 	}
 
 	public static boolean isActive() {
-		return (forced || showing) && fadeMaterial != null;
+		return (forced || showing) && rendererReady;
 	}
 
-	private static void tick(Minecraft mc) {
+	/**
+	 * Each client tick, from the loader's end-of-tick event. OUTLINE_SPRITE and
+	 * GHOST_SPRITE are in textures/block/, which the block atlas takes in whole.
+	 */
+	public static void tick(Minecraft mc) {
 		// Only in a world (the client also ticks during the first resource load).
 		if (mc.level == null) {
 			// Out of a world the goggles are not worn: the next world starts with the view on.
@@ -91,7 +93,7 @@ public final class BuilderView {
 		}
 		boolean worn = mc.player != null && mc.player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.BUILDERS_GOGGLES);
 		boolean changed = TOGGLE.setWearing(worn);
-		while (toggleKey.consumeClick()) {
+		while (TOGGLE_KEY.consumeClick()) {
 			if (TOGGLE.toggle()) {
 				changed = true;
 				mc.player.displayClientMessage(Component.translatable(TOGGLE.showing()
@@ -99,19 +101,9 @@ public final class BuilderView {
 			}
 		}
 		if (changed) {
-			ensureMaterial();
+			rendererReady = rendererCheck.getAsBoolean();
 			showing = TOGGLE.showing();
 			GogglesView.redrawSecretBlocks(mc);
-		}
-	}
-
-	private static void ensureMaterial() {
-		if (fadeMaterial == null && RendererAccess.INSTANCE.hasRenderer()) {
-			realMaterial = RendererAccess.INSTANCE.getRenderer().materialFinder().find();
-			realFlatMaterial = RendererAccess.INSTANCE.getRenderer().materialFinder().disableAo(0, true).find();
-			outlineMaterial = RendererAccess.INSTANCE.getRenderer().materialFinder().blendMode(0, BlendMode.SOLID)
-					.emissive(0, true).disableDiffuse(0, true).disableAo(0, true).find();
-			fadeMaterial = RendererAccess.INSTANCE.getRenderer().materialFinder().blendMode(0, BlendMode.TRANSLUCENT).find();
 		}
 	}
 
@@ -121,46 +113,28 @@ public final class BuilderView {
 	 * faded disguise would come out solid and hide the real block: with a
 	 * pack the faded block is drawn with {@link #ghostSprite} instead.
 	 */
-	static boolean shaderPack() {
+	public static boolean shaderPack() {
 		return shaderPack;
 	}
 
 	/** The faded block's sprite under a shader pack, or null before the first client tick in a world. */
-	static TextureAtlasSprite ghostSprite() {
+	public static TextureAtlasSprite ghostSprite() {
 		return ghostSprite;
 	}
 
 	/** The outline's sprite, or null before the first client tick in a world. */
-	static TextureAtlasSprite outlineSprite() {
+	public static TextureAtlasSprite outlineSprite() {
 		return outlineSprite;
-	}
-
-	/** Solid and full-bright (no shading or ambient occlusion), for the outline; set with {@link #fadeMaterial}. */
-	static RenderMaterial outlineMaterial() {
-		return outlineMaterial;
-	}
-
-	/** Translucent (no emissive light), for the faded disguise; null until the view is first switched on. */
-	static RenderMaterial fadeMaterial() {
-		return fadeMaterial;
-	}
-
-	/**
-	 * For the real block drawn inside (set with {@link #fadeMaterial}): the
-	 * renderer's standard material, or one without ambient occlusion for a
-	 * model that has none, as vanilla draws it.
-	 */
-	static RenderMaterial realMaterial(boolean ambientOcclusion) {
-		return ambientOcclusion ? realMaterial : realFlatMaterial;
 	}
 
 	/**
 	 * Switch the view on or off (client thread) and redraw every secret block
-	 * in range. Returns whether the view is now active: it cannot be without a
-	 * Fabric Renderer API implementation (e.g. Sodium without Indium).
+	 * in range. Returns whether the view is now active: it cannot be where the
+	 * loader's renderer cannot draw it (on Fabric, without a Fabric Renderer
+	 * API implementation, e.g. Sodium without Indium).
 	 */
 	public static boolean setForced(boolean on) {
-		ensureMaterial();
+		rendererReady = rendererCheck.getAsBoolean();
 		forced = on;
 		GogglesView.redrawSecretBlocks(Minecraft.getInstance());
 		return isActive();

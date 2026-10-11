@@ -11,7 +11,7 @@
       "net.calibermc.secretblocks.gametest.fabric.FabricTestMod"
     ],
     "client": [
-      "net.calibermc.secretblocks.gametest.driver.DevClientDriver"
+      "net.calibermc.secretblocks.gametest.fabric.FabricDevClient"
     ],
     "fabric-gametest": [
       "net.calibermc.secretblocks.gametest.PlacementGameTests",
@@ -58,7 +58,7 @@
     "fabric-gametest-api-v1": "*"
   },
   "mixins": [
-    "secretblocks-gametest.mixins.json",
-    "secretblocks_gametest.mixins.json"
+    "secretblocks_gametest.mixins.json",
+    "secretblocks_gametest.driver.mixins.json"
   ]
 }

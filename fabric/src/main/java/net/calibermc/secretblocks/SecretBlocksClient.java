@@ -1,10 +1,13 @@
 package net.calibermc.secretblocks;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModEntities;
 import net.calibermc.secretblocks.render.BuilderChestRenderer;
 import net.calibermc.secretblocks.render.BuilderView;
 import net.calibermc.secretblocks.render.DisguiseMaterials;
+import net.calibermc.secretblocks.render.FabricMaterials;
 import net.calibermc.secretblocks.render.GogglesView;
 import net.calibermc.secretblocks.render.SecretBlockResourceProvider;
 import net.calibermc.secretblocks.screen.ModScreenHandlers;
@@ -32,8 +35,15 @@ public class SecretBlocksClient implements ClientModInitializer {
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), ModBlocks.secretBlocksList);
 		// The Torch Lever draws vanilla's torch models (tilted copies of them when on), which need the cutout layer as vanilla's torch does.
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), ModBlocks.TORCH_LEVER, ModBlocks.WALL_TORCH_LEVER);
-		GogglesView.register();
-		BuilderView.register();
+		KeyBindingHelper.registerKeyBinding(BuilderView.TOGGLE_KEY);
+		BuilderView.setRendererCheck(FabricMaterials::ensureBuilderView);
+		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+			if (mc.level != null) {
+				FabricMaterials.ensureOverlay();
+			}
+			GogglesView.tick(mc);
+		});
+		ClientTickEvents.END_CLIENT_TICK.register(BuilderView::tick);
 		DisguiseMaterials.register();
 		BlockEntityRendererRegistry.register(ModEntities.SECRET_BLOCK_ENTITY, BuilderChestRenderer::new);
 //		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getTranslucent(), SecretBlocks.glassBlocksList);

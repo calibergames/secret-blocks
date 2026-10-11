@@ -2,8 +2,6 @@ package net.calibermc.secretblocks.render;
 
 import net.calibermc.secretblocks.blocks.entity.Disguise;
 import net.calibermc.secretblocks.blocks.entity.PistonCarry;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
  * carries ({@link PistonCarry}) instead of looking up a block entity that is
  * not there during the move.
  */
-@Environment(EnvType.CLIENT)
 public final class MovingDisguise {
 
 	private static final ThreadLocal<PistonMovingBlockEntity> CURRENT = new ThreadLocal<>();

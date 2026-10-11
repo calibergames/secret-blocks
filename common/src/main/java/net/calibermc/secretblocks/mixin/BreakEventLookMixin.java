@@ -1,4 +1,4 @@
-package net.calibermc.secretblocks.fabric.mixin;
+package net.calibermc.secretblocks.mixin;
 
 import net.calibermc.secretblocks.blocks.DisguiseLook;
 import net.minecraft.client.multiplayer.ClientLevel;

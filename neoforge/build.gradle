@@ -63,6 +63,14 @@ legacyForge {
 			server()
 			gameDirectory = rootProject.file('run-neoforge/server')
 		}
+		// A client with the development-only command-file driver (the shared game
+		// test source set): scripts act as the player through the real client code.
+		devClient {
+			client()
+			gameDirectory = rootProject.file('run-neoforge')
+			sourceSet = sourceSets.gametest
+			systemProperty 'secretblocks.driver', "${rootBuild}/devclient"
+		}
 		// A headless server that runs every shared game test and exits with the
 		// number of failures; `check` (and so `build`) depends on it.
 		gameTestServer {
@@ -105,6 +113,7 @@ mixin {
 	add sourceSets.main, 'secretblocks.refmap.json'
 	config 'secretblocks.mixins.json'
 	config 'secretblocks_gametest.mixins.json'
+	config 'secretblocks_gametest.driver.mixins.json'
 }
 
 dependencies {

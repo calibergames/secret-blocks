@@ -1,8 +1,6 @@
 package net.calibermc.secretblocks.gametest.driver;
 
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.core.BlockPos;
@@ -89,7 +87,7 @@ import java.util.List;
  *   background, as {@code run/icons/<name>.png}.</li>
  * </ul>
  */
-public class DevClientDriver implements ClientModInitializer {
+public class DevClientDriver {
 
 	private Path dir;
 	private final Deque<String> queue = new ArrayDeque<>();
@@ -101,22 +99,26 @@ public class DevClientDriver implements ClientModInitializer {
 	private Vec3 walkStep;
 	private int walkSteps;
 
-	@Override
-	public void onInitializeClient() {
+	/**
+	 * The driver, if the client was started with {@code -Dsecretblocks.driver=<dir>};
+	 * each loader's test mod then calls {@link #tick} at the end of every client tick.
+	 */
+	public static DevClientDriver start() {
 		String property = System.getProperty("secretblocks.driver");
 		if (property == null) {
-			return;
+			return null;
 		}
-		dir = Path.of(property);
+		DevClientDriver driver = new DevClientDriver();
+		driver.dir = Path.of(property);
 		try {
-			Files.createDirectories(dir);
+			Files.createDirectories(driver.dir);
 		} catch (IOException e) {
-			throw new IllegalStateException("cannot create the driver directory " + dir, e);
+			throw new IllegalStateException("cannot create the driver directory " + driver.dir, e);
 		}
-		ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+		return driver;
 	}
 
-	private void tick(Minecraft mc) {
+	public void tick(Minecraft mc) {
 		readCommands();
 		if (mc.level == null) {
 			openWorldFromTitle(mc);
