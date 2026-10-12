@@ -3,7 +3,6 @@
 plugins {
 	id 'multiloader-loader'
 	id 'fabric-loom'
-	id 'maven-publish'
 }
 
 repositories {
@@ -138,12 +137,4 @@ processResources {
 
 tasks.named("check") {
 	dependsOn "runGametest"
-}
-
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from components.java
-		}
-	}
 }

@@ -26,17 +26,17 @@ public class SecretBlocks {
         return new ResourceLocation("secretblocks", id);
     }
 
+    /** Whether {@link #gogglesLootPool} goes into this loot table: vanilla's End City treasure. */
+    public static boolean getsGogglesLoot(ResourceLocation lootTable) {
+        return BuiltInLootTables.END_CITY_TREASURE.equals(lootTable);
+    }
+
     /**
      * The pool End City treasure chests get: the Secret Goggles at 10% per
      * chest (as in the original). Loaders add it to the table
      * {@link #getsGogglesLoot} names when vanilla's table loads, not to a data
      * pack's replacement.
      */
-    /** Whether {@link #gogglesLootPool} goes into this loot table: vanilla's End City treasure. */
-    public static boolean getsGogglesLoot(ResourceLocation lootTable) {
-        return BuiltInLootTables.END_CITY_TREASURE.equals(lootTable);
-    }
-
     public static LootPool.Builder gogglesLootPool() {
         return LootPool.lootPool()
                 .setRolls(ConstantValue.exactly(1))

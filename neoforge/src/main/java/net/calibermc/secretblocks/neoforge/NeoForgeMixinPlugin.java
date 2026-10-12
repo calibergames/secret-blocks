@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.neoforge;
 
+import net.calibermc.secretblocks.util.MixinHooks;
 import net.minecraftforge.fml.loading.LoadingModList;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -12,8 +13,9 @@ import java.util.Set;
  * Applies the mixins that target another mod only when that mod is
  * installed: {@code EmbeddiumOcclusionMixin} needs Embeddium. Without this,
  * Mixin looks for Embeddium's class and logs a warning on every launch
- * without it. Lives outside the mixin package, which Mixin reserves for
- * mixin classes.
+ * without it. Reports an Embeddium version it could not hook
+ * ({@link MixinHooks}). Lives outside the mixin package, which Mixin
+ * reserves for mixin classes.
  */
 public class NeoForgeMixinPlugin implements IMixinConfigPlugin {
 
@@ -51,5 +53,8 @@ public class NeoForgeMixinPlugin implements IMixinConfigPlugin {
 
 	@Override
 	public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+		if (mixinClassName.equals(EMBEDDIUM_MIXIN)) {
+			MixinHooks.checkOcclusionHook("Embeddium", targetClass);
+		}
 	}
 }

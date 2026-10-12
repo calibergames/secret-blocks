@@ -12,8 +12,8 @@ import java.util.Set;
  * Applies the mixins that target another mod only when that mod is
  * installed: {@code SodiumOcclusionMixin} needs Sodium. Without this,
  * Mixin looks for Sodium's class and logs a warning on every launch without
- * Sodium. Lives outside the mixin package, which Mixin reserves for mixin
- * classes.
+ * Sodium, and reports a Sodium version it could not hook ({@link MixinHooks}).
+ * Lives outside the mixin package, which Mixin reserves for mixin classes.
  */
 public class MixinPlugin implements IMixinConfigPlugin {
 
@@ -51,5 +51,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
 	@Override
 	public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+		if (mixinClassName.equals(SODIUM_MIXIN)) {
+			MixinHooks.checkOcclusionHook("Sodium", targetClass);
+		}
 	}
 }

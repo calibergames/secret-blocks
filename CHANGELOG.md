@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.1.0 (Minecraft 1.20–1.20.1: Fabric, Quilt, NeoForge, Forge)
+## 2.1.0 (Minecraft 1.20.1: Fabric, Quilt, NeoForge, Forge; Fabric and Quilt also 1.20)
 
 Secret Blocks now runs on all four loaders for Minecraft 1.20.1, with the
 same blocks and tools as 2.0.0.

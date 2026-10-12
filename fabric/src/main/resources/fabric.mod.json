@@ -4,7 +4,7 @@
 	"version": "${version}",
 
 	"name": "Secret Blocks",
-	"description": "Like the Secret Rooms Mod but for Fabric!",
+	"description": "Hidden blocks that look like the blocks around them.",
 	"authors": [
 		"CaliberMC"
 	],
