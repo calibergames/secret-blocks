@@ -5,6 +5,7 @@ import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,8 +31,13 @@ public abstract class OpacitySyncMixin {
 
 	@Inject(method = "setChanged()V", at = @At("TAIL"))
 	private void secretblocks$syncOpacity(CallbackInfo ci) {
-		// The mixin's "this" is the block entity itself; only secret ones, and only the one actually at its place.
-		if ((Object) this instanceof DisguisedBlockEntity && level != null && level.getBlockEntity(worldPosition) == (Object) this) {
+		// The mixin's "this" is the block entity itself; only secret ones, on the server thread (as the level's own
+		// lookup), and only the one actually at its place. Looked up without creating one: a block entity taken out
+		// of the world (Carpet's movableBlockEntities moves them so) may still be marked changed, and a new,
+		// undisguised one must not take its place.
+		if ((Object) this instanceof DisguisedBlockEntity && level != null && !level.isClientSide()
+				&& level.getServer() != null && level.getServer().isSameThread()
+				&& level.getChunkAt(worldPosition).getBlockEntity(worldPosition, LevelChunk.EntityCreationType.CHECK) == (Object) this) {
 			Opacity.sync(level, worldPosition);
 		}
 	}
