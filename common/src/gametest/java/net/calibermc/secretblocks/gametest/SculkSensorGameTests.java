@@ -9,6 +9,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.animal.Pig;
@@ -52,8 +54,9 @@ import static net.calibermc.secretblocks.gametest.TestSupport.*;
  *
  * A sensor hears 8 blocks, further than a test area, so it would hear the
  * tests running beside it (a block placed, an item landing). Every test that
- * waits for a vibration runs in a batch of its own; the rest share one batch
- * in which nothing listens for long.
+ * waits for a vibration runs in a batch of its own and first takes away
+ * entities that earlier tests left nearby; the rest share one batch in which
+ * nothing listens for long.
  */
 public class SculkSensorGameTests {
 
@@ -62,6 +65,18 @@ public class SculkSensorGameTests {
 			net.minecraft.world.level.gameevent.vibrations.VibrationSystem.VIBRATION_FREQUENCY_FOR_EVENT;
 
 	private static final Block SECRET = ModBlocks.SECRET_SCULK_SENSOR;
+
+	/**
+	 * Takes away entities left near this test by earlier ones (mobs, test
+	 * players): a sensor hears one move up to 8 blocks away, past the test
+	 * area. Only tests in a batch of their own call this, so no other test is
+	 * running beside them. Connected players stay.
+	 */
+	private static void quiet(GameTestHelper h) {
+		AABB around = new AABB(h.absolutePos(BlockPos.ZERO), h.absolutePos(new BlockPos(8, 8, 8))).inflate(16);
+		List<ServerPlayer> connected = h.getLevel().getServer().getPlayerList().getPlayers();
+		h.getLevel().getEntitiesOfClass(Entity.class, around, entity -> !connected.contains(entity)).forEach(Entity::discard);
+	}
 
 	private static SculkSensorPhase phase(GameTestHelper h, BlockPos rel) {
 		return SculkSensorBlock.getPhase(h.getBlockState(rel));
@@ -120,6 +135,7 @@ public class SculkSensorGameTests {
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_place")
 	public void aPlacedBlockSetsItOff(GameTestHelper h) {
 		floor(h);
+		quiet(h);
 		BlockPos secret = new BlockPos(1, 1, 2);
 		BlockPos vanilla = new BlockPos(7, 1, 2);
 		for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
@@ -152,6 +168,7 @@ public class SculkSensorGameTests {
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_arrow")
 	public void anArrowLandingSetsItOff(GameTestHelper h) {
 		floor(h);
+		quiet(h);
 		BlockPos secret = new BlockPos(1, 1, 2);
 		BlockPos vanilla = new BlockPos(7, 1, 2);
 		h.setBlock(secret, SECRET);
@@ -183,6 +200,7 @@ public class SculkSensorGameTests {
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_wool")
 	public void woolBlocksIt(GameTestHelper h) {
 		floor(h);
+		quiet(h);
 		BlockPos event = new BlockPos(4, 1, 4);
 		BlockPos secretWalled = new BlockPos(2, 1, 4);
 		BlockPos vanillaWalled = new BlockPos(6, 1, 4);
@@ -215,6 +233,7 @@ public class SculkSensorGameTests {
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_timing", timeoutTicks = 200)
 	public void timingAndCooldownMatchVanilla(GameTestHelper h) {
 		floor(h);
+		quiet(h);
 		BlockPos secret = new BlockPos(1, 1, 2);
 		BlockPos vanilla = new BlockPos(7, 1, 2);
 		BlockPos event = new BlockPos(4, 1, 2);
@@ -262,6 +281,7 @@ public class SculkSensorGameTests {
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_reload")
 	public void aVibrationInFlightSurvivesSaveAndLoad(GameTestHelper h) {
 		floor(h);
+		quiet(h);
 		BlockPos event = new BlockPos(1, 1, 1);
 		BlockPos secret = new BlockPos(7, 1, 1);
 		BlockPos vanilla = new BlockPos(1, 1, 7);
@@ -301,6 +321,7 @@ public class SculkSensorGameTests {
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_step")
 	public void landingOnItSetsItOff(GameTestHelper h) {
 		floor(h);
+		quiet(h);
 		BlockPos secret = new BlockPos(1, 1, 2);
 		BlockPos vanilla = new BlockPos(7, 1, 2);
 		h.setBlock(secret, SECRET);
@@ -347,6 +368,7 @@ public class SculkSensorGameTests {
 	@GameTest(template = EMPTY_STRUCTURE, batch = "sculk_on_top")
 	public void aBlockPlacedOnTopIsABlockAway(GameTestHelper h) {
 		floor(h);
+		quiet(h);
 		BlockPos secret = new BlockPos(1, 1, 2);
 		BlockPos vanilla = new BlockPos(7, 1, 2);
 		h.setBlock(secret, SECRET);

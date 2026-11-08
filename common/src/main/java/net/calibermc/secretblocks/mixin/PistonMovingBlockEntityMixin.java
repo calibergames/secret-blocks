@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -78,6 +79,12 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 	 * source is still intact here). Taken when the moving block is made, not
 	 * where vanilla places it: Carpet makes its own moving blocks in place of
 	 * vanilla's.
+	 * <p>
+	 * The source's block entity is looked up without creating one. Carpet's
+	 * movableBlockEntities rule takes it out of the world before the moving
+	 * block is made and moves the block entity itself; {@link
+	 * Level#getBlockEntity} would put a new, undisguised one in its place,
+	 * whose data would then overwrite the moved one when the move ends.
 	 */
 	@Inject(method = "<init>(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;ZZ)V",
 			at = @At("TAIL"), require = 1)
@@ -88,7 +95,7 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 		}
 		PistonMovingBlockEntity self = (PistonMovingBlockEntity) (Object) this;
 		BlockPos source = self.getBlockPos().relative(self.getMovementDirection().getOpposite());
-		if (level.getBlockEntity(source) instanceof DisguisedBlockEntity secret) {
+		if (level.getChunkAt(source).getBlockEntity(source, LevelChunk.EntityCreationType.CHECK) instanceof DisguisedBlockEntity secret) {
 			secretblocks$setCarried(((BlockEntity) secret).saveWithoutMetadata());
 		}
 	}

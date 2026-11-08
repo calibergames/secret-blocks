@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.piston.PistonHeadBlock;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.PistonType;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -480,6 +481,41 @@ public class PistonGameTests {
 			h.setBlock(base.east(), Blocks.AIR);
 			h.succeed();
 		});
+	}
+
+	/**
+	 * A mod that moves block entities itself (Carpet's movableBlockEntities
+	 * rule) takes the source's block entity out of the world, marks it
+	 * changed, and only then has the moving block made. Neither step may put a
+	 * new, undisguised block entity at the source, and the moving block then
+	 * carries nothing: a new one's data would overwrite the moved block
+	 * entity's disguise when the move ends.
+	 */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void aSourceWithoutItsBlockEntityIsNotGivenANewOne(GameTestHelper h) {
+		floor(h);
+		BlockPos source = new BlockPos(3, 1, 3);
+		h.setBlock(source, ModBlocks.SOLID_BLOCK);
+		secret(h, source).setDisguise(all(Blocks.BRICKS));
+		BlockPos sourceAbs = h.absolutePos(source);
+		BlockEntity taken = h.getBlockEntity(source);
+		h.getLevel().removeBlockEntity(sourceAbs);
+		taken.setChanged();
+		check(h, h.getLevel().getChunkAt(sourceAbs).getBlockEntity(sourceAbs, LevelChunk.EntityCreationType.CHECK) == null,
+				"marking the taken block entity changed should not make a new one at the source");
+		PistonMovingBlockEntity moving;
+		PistonCarry.MOVING_LEVEL.set(h.getLevel());
+		try {
+			moving = new PistonMovingBlockEntity(sourceAbs.above(), Blocks.MOVING_PISTON.defaultBlockState(),
+					ModBlocks.SOLID_BLOCK.defaultBlockState(), Direction.UP, true, false);
+		} finally {
+			PistonCarry.MOVING_LEVEL.remove();
+		}
+		BlockEntity atSource = h.getLevel().getChunkAt(sourceAbs).getBlockEntity(sourceAbs, LevelChunk.EntityCreationType.CHECK);
+		check(h, atSource == null, "no block entity should be made at the source, found " + atSource);
+		check(h, ((PistonCarry) moving).secretblocks$getCarried() == null, "the moving block should carry nothing");
+		h.setBlock(source, Blocks.AIR);
+		h.succeed();
 	}
 
 	/**
