@@ -4,6 +4,7 @@ import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.blocks.Opacity;
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -235,5 +236,22 @@ public class LightGameTests implements FabricGameTest {
 		Opacity.putRight(h.getLevel());
 		check(h, seeThrough(h, AT), "the end of the tick should make it see-through: " + h.getBlockState(AT));
 		h.succeed();
+	}
+
+	/**
+	 * The same through the loader's own events: the chunk-load event for a
+	 * chunk holding a wrong secret block, then the level's next tick. This is
+	 * what puts right a chunk saved with a wrong state when it loads again.
+	 */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void theLoaderEventsPutItRight(GameTestHelper h) {
+		floor(h);
+		h.setBlock(AT, ModBlocks.SOLID_BLOCK);
+		secret(h, AT).setDisguise(all(Blocks.GLASS));
+		h.getLevel().setBlock(h.absolutePos(AT), h.getBlockState(AT).setValue(Opacity.OPAQUE, true), Block.UPDATE_ALL);
+		check(h, h.getBlockState(AT).getValue(Opacity.OPAQUE), "the test should start from a wrong state");
+		ServerChunkEvents.CHUNK_LOAD.invoker().onChunkLoad(h.getLevel(), h.getLevel().getChunkAt(h.absolutePos(AT)));
+		check(h, h.getBlockState(AT).getValue(Opacity.OPAQUE), "the chunk-load event alone must not change the chunk");
+		h.succeedWhen(() -> check(h, seeThrough(h, AT), "the level's tick should make it see-through: " + h.getBlockState(AT)));
 	}
 }
