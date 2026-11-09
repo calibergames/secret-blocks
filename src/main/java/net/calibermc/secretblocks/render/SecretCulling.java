@@ -7,8 +7,6 @@ import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.TrapdoorBlock;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -30,6 +28,10 @@ import org.jetbrains.annotations.Nullable;
  * <li>any other face of a real block beside a secret block is drawn (the
  * look may be see-through); a secret block's own other faces follow the
  * renderer's rule.</li>
+ * <li>a secret block that can be seen through (One Way Glass) hides a face
+ * that looks solid where the touching face of the secret block beside it
+ * looks solid too, so a wall of them seen through the glass is one clean
+ * window, with no seams between the blocks ({@link SeamRule}).</li>
  * </ul>
  * Beside a Secret Door or Trapdoor (thin panels), or with the Builder's
  * Goggles' view on, faces beside secret blocks are always drawn. Used by
@@ -63,8 +65,12 @@ public final class SecretCulling {
 			return true;
 		}
 		BlockState theirs = DisguiseLook.shown(level, neighbourPos, side.getOpposite());
-		boolean vanillaHides = selfSecret ? DisguiseLook.shown(level, pos, side).skipRendering(theirs, side) : self.skipRendering(theirs, side);
-		if (vanillaHides) {
+		BlockState mine = selfSecret ? DisguiseLook.shown(level, pos, side) : self;
+		if (mine.skipRendering(theirs, side)) {
+			return false;
+		}
+		if (selfSecret && SeamRule.hides(opaque(mine, level, pos), opaque(theirs, level, neighbourPos),
+				() -> !allSolid(level, pos))) {
 			return false;
 		}
 		// Hidden behind it only if no face of it can be seen through (One Way Glass's glass face shows this one).
@@ -78,12 +84,20 @@ public final class SecretCulling {
 			return true; // no disguise yet: stone all round
 		}
 		for (Direction face : Direction.values()) {
-			BlockState look = DisguiseLook.shown(secret, level, pos, face);
-			if (!look.canOcclude() || ItemBlockRenderTypes.getChunkRenderType(look) != RenderType.solid()) {
+			if (!opaque(DisguiseLook.shown(secret, level, pos, face), level, pos)) {
 				return false;
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Whether a look is a full block nothing shows through (stone, and grass
+	 * too, though its side overlay is drawn cut out; not glass or leaves): a
+	 * block vanilla hides its neighbours' faces behind.
+	 */
+	private static boolean opaque(BlockState look, BlockGetter level, BlockPos pos) {
+		return look.isSolidRender(level, pos);
 	}
 
 	/** Secret Doors and Trapdoors are drawn as thin panels, not full faces. */
