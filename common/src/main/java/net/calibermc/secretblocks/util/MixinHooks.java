@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Checks for the optional injections into other mods' renderers. Sodium (on
- * Fabric) and Embeddium (on NeoForge and Forge) cull faces in their own
+ * Fabric and NeoForge) and Embeddium (on NeoForge) cull faces in their own
  * {@code BlockOcclusionCache.shouldDrawSide}; the occlusion mixins hook it
  * with {@code require = 0}, since those mods' code may change. The loaders'
  * mixin plugins call {@link #checkOcclusionHook} after applying them, so a
