@@ -1,8 +1,8 @@
 # Publishes a release to Modrinth and CurseForge, and attaches the jars to the
 # GitHub release, when a GitHub release is published: the Fabric jar (Fabric and
-# Quilt), the NeoForge jar (both for every Minecraft version in
-# minecraft_versions) and the Forge jar (minecraft_version), each as its own
-# version. The jars are attached with the GitHub CLI, so the release's title and
+# Quilt, for every Minecraft version in minecraft_versions), the NeoForge jar
+# and the Forge jar (both for minecraft_version only: the other versions of the
+# family have no stable build of either loader), each as its own version. The jars are attached with the GitHub CLI, so the release's title and
 # notes stay as written.
 #
 # The release tag must match the build's version: <minecraft_version>-<mod_version>
@@ -105,7 +105,7 @@ jobs:
           version-type: ${{ github.event.release.prerelease && 'beta' || 'release' }}
           changelog: ${{ github.event.release.body }}
           loaders: neoforge
-          game-versions: ${{ steps.version.outputs.minecraft_versions }}
+          game-versions: ${{ steps.version.outputs.minecraft }}
           java: 21
       - name: publish the Forge jar
         uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3.1

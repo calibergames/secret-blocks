@@ -32,9 +32,6 @@
 		"secretblocks.mixins.json",
 		"secretblocks.fabric.mixins.json"
 	],
-	"suggests": {
-		"indium": "*"
-	},
 	"depends": {
 		"fabricloader": ">=${fabric_loader_min}",
 		"fabric-api": ">=${fabric_api_min}",
