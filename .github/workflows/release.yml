@@ -1,11 +1,12 @@
 # Publishes a release to Modrinth and CurseForge, and attaches the jars to the
 # GitHub release, when a GitHub release is published: the Fabric jar (Fabric and
-# Quilt, every Minecraft version in minecraft_versions) and the NeoForge jar
-# (NeoForge and Forge, minecraft_version), each as its own version. The jars are
-# attached with the GitHub CLI, so the release's title and notes stay as written.
+# Quilt), the NeoForge jar (both for every Minecraft version in
+# minecraft_versions) and the Forge jar (minecraft_version), each as its own
+# version. The jars are attached with the GitHub CLI, so the release's title and
+# notes stay as written.
 #
 # The release tag must match the build's version: <minecraft_version>-<mod_version>
-# from gradle.properties (for example 1.20.1-2.1.0). The release notes become
+# from gradle.properties (for example 1.21.1-2.1.1). The release notes become
 # the changelog on both sites.
 #
 # A GitHub pre-release is uploaded as a beta.
@@ -37,12 +38,11 @@ jobs:
           persist-credentials: false
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
-      - name: setup jdk 17, 21 and 25
+      - name: setup jdk 21 and 25
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: |
-            17
             21
             25
       - name: read the version
@@ -72,9 +72,8 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: build
         shell: bash
-        # Gradle runs on Java 25; the mod builds and is tested on Java 17;
-        # ModDevGradle runs its Minecraft setup tools on Java 21.
-        run: ./gradlew build -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
+        # Gradle runs on Java 25; the mod builds and is tested on Java 21.
+        run: ./gradlew build -Porg.gradle.java.installations.fromEnv=JAVA_HOME_21_X64
       - name: publish the Fabric and Quilt jar
         uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3.1
         with:
@@ -92,8 +91,8 @@ jobs:
             quilt
           game-versions: ${{ steps.version.outputs.minecraft_versions }}
           dependencies: fabric-api(required){modrinth:P7dR8mSH}{curseforge:306612}
-          java: 17
-      - name: publish the NeoForge and Forge jar
+          java: 21
+      - name: publish the NeoForge jar
         uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3.1
         with:
           modrinth-id: wChSsP4D
@@ -101,15 +100,28 @@ jobs:
           curseforge-id: 844758
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           files: neoforge/build/libs/secret-blocks-neoforge-${{ steps.version.outputs.version }}.jar
-          name: Secret Blocks ${{ steps.version.outputs.version }} (NeoForge, Forge)
+          name: Secret Blocks ${{ steps.version.outputs.version }} (NeoForge)
           version: ${{ steps.version.outputs.version }}+neoforge
           version-type: ${{ github.event.release.prerelease && 'beta' || 'release' }}
           changelog: ${{ github.event.release.body }}
-          loaders: |
-            neoforge
-            forge
+          loaders: neoforge
+          game-versions: ${{ steps.version.outputs.minecraft_versions }}
+          java: 21
+      - name: publish the Forge jar
+        uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3.1
+        with:
+          modrinth-id: wChSsP4D
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          curseforge-id: 844758
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          files: forge/build/libs/secret-blocks-forge-${{ steps.version.outputs.version }}.jar
+          name: Secret Blocks ${{ steps.version.outputs.version }} (Forge)
+          version: ${{ steps.version.outputs.version }}+forge
+          version-type: ${{ github.event.release.prerelease && 'beta' || 'release' }}
+          changelog: ${{ github.event.release.body }}
+          loaders: forge
           game-versions: ${{ steps.version.outputs.minecraft }}
-          java: 17
+          java: 21
       - name: attach the jars to the GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -119,4 +131,5 @@ jobs:
         run: |
           gh release upload "$TAG" --clobber \
             "fabric/build/libs/secret-blocks-fabric-$VERSION.jar" \
-            "neoforge/build/libs/secret-blocks-neoforge-$VERSION.jar"
+            "neoforge/build/libs/secret-blocks-neoforge-$VERSION.jar" \
+            "forge/build/libs/secret-blocks-forge-$VERSION.jar"

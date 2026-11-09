@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.1.1 (Minecraft 1.21 and 1.21.1: Fabric, Quilt, NeoForge, Forge)
+
+Secret Blocks for Minecraft 1.21 and 1.21.1 on all four loaders, with the
+same blocks and tools as 2.1.1 for 1.20.1.
+
+- **Three downloads:**
+  - `secret-blocks-fabric-1.21.1-2.1.1.jar` for Fabric and Quilt, on
+    Minecraft 1.21 or 1.21.1. It needs Fabric Loader 0.16.10 or later (or
+    Quilt Loader 0.30.1 or later) and Fabric API 0.100.5 or later.
+  - `secret-blocks-neoforge-1.21.1-2.1.1.jar` for NeoForge, on Minecraft
+    1.21 (NeoForge 21.0.143 or later) or 1.21.1 (NeoForge 21.1).
+  - `secret-blocks-forge-1.21.1-2.1.1.jar` for Forge 52.1.2 or later, on
+    Minecraft 1.21.1.
+- **Secret Goggles take enchantments the vanilla way:** Unbreaking, Mending
+  and, new on 1.21, Curse of Vanishing.
+- **Worlds from 1.20.1 upgrade** with their secret blocks, disguises and
+  container contents. Back the world up first, as Minecraft asks.
+- Tested with Sodium 0.8 and Iris on Fabric, Quilt and NeoForge,
+  Continuity on Fabric and Quilt, and Fusion on NeoForge and Forge. Sodium
+  no longer needs Indium.
+- One Way Glass walls read as one clean window, as in 2.1.1 for 1.20.1.
+
 ## 2.1.1 (Minecraft 1.20.1: Fabric, Quilt, NeoForge, Forge; Fabric and Quilt also 1.20)
 
 - **One Way Glass walls read as one clean window,** now without a
