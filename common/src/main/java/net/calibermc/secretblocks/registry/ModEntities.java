@@ -12,9 +12,11 @@ import net.calibermc.secretblocks.blocks.entity.SecretSculkSensorBlockEntity;
 import net.calibermc.secretblocks.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import static net.calibermc.secretblocks.SecretBlocks.id;
 
@@ -37,32 +39,36 @@ public class ModEntities {
         // One type for all of them; the Secret Chest gets the container subclass,
         // both when placed and when loaded from a save.
         SECRET_BLOCK_ENTITY = Services.PLATFORM.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                id("secret_block_entity_type"), BlockEntityType.Builder.of(
+                id("secret_block_entity_type"), type(
                         (pos, state) -> state.getBlock() instanceof SecretChest
                                 ? new SecretChestBlockEntity(pos, state) : new SecretBlockEntity(pos, state),
-                        plainSecretBlocks).build(null));
+                        plainSecretBlocks));
 
         SECRET_DISPENSER = Services.PLATFORM.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                id("secret_dispenser"), BlockEntityType.Builder.of(SecretDispenserBlockEntity::new,
-                        ModBlocks.SECRET_DISPENSER, ModBlocks.SECRET_DROPPER).build(null));
+                id("secret_dispenser"), type(SecretDispenserBlockEntity::new,
+                        ModBlocks.SECRET_DISPENSER, ModBlocks.SECRET_DROPPER));
 
         SECRET_HOPPER = Services.PLATFORM.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                id("secret_hopper"), BlockEntityType.Builder.of(SecretHopperBlockEntity::new,
-                        ModBlocks.SECRET_HOPPER).build(null));
+                id("secret_hopper"), type(SecretHopperBlockEntity::new,
+                        ModBlocks.SECRET_HOPPER));
 
         SECRET_COMPARATOR = Services.PLATFORM.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                id("secret_comparator"), BlockEntityType.Builder.of(SecretComparatorBlockEntity::new,
-                        ModBlocks.SECRET_COMPARATOR).build(null));
+                id("secret_comparator"), type(SecretComparatorBlockEntity::new,
+                        ModBlocks.SECRET_COMPARATOR));
 
         SECRET_SCULK_SENSOR = Services.PLATFORM.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                id("secret_sculk_sensor"), BlockEntityType.Builder.of(SecretSculkSensorBlockEntity::new,
-                        ModBlocks.SECRET_SCULK_SENSOR).build(null));
+                id("secret_sculk_sensor"), type(SecretSculkSensorBlockEntity::new,
+                        ModBlocks.SECRET_SCULK_SENSOR));
 
         SECRET_GATE_SEGMENT = Services.PLATFORM.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                id("secret_gate_segment"), BlockEntityType.Builder.of(SecretGateSegmentBlockEntity::new,
-                        ModBlocks.SECRET_GATE_SEGMENT).build(null));
+                id("secret_gate_segment"), type(SecretGateSegmentBlockEntity::new,
+                        ModBlocks.SECRET_GATE_SEGMENT));
 
         //Console Output
         System.out.println("Registering Entities for " + SecretBlocks.MOD_ID);
+    }
+
+    private static <T extends BlockEntity> BlockEntityType<T> type(BlockEntityType.BlockEntitySupplier<? extends T> factory, Block... blocks) {
+        return new BlockEntityType<>(factory, Set.of(blocks));
     }
 }

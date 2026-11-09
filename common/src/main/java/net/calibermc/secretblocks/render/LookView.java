@@ -65,7 +65,7 @@ final class LookView implements BlockAndTintGetter {
 	}
 
 	@Override
-	public int getMinBuildHeight() {
-		return world.getMinBuildHeight();
+	public int getMinY() {
+		return world.getMinY();
 	}
 }

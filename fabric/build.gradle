@@ -77,6 +77,9 @@ tasks.register('gametestJar', net.fabricmc.loom.task.RemapJarTask) {
 def rootBuild = rootProject.layout.buildDirectory.get().asFile.path
 
 loom {
+	// Opens what common code uses that only Fabric API's own access widener opens (its entries
+	// apply at run time, not to a mod's compile): the block entity type constructor.
+	accessWidenerPath = file('src/main/resources/secretblocks.accesswidener')
 	runs {
 		client {
 			runDir "../run"

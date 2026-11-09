@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.world.level.ServerExplosion;
 import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.blocks.MiningFace;
 import net.calibermc.secretblocks.blocks.SecretBlock;
@@ -146,7 +147,7 @@ public class DisguiseLookGameTests {
 	}
 
 	private static void dig(ServerPlayer player, GameTestHelper h, BlockPos rel, ServerboundPlayerActionPacket.Action action, Direction face) {
-		player.gameMode.handleBlockBreakAction(h.absolutePos(rel), action, face, h.getLevel().getMaxBuildHeight(), 0);
+		player.gameMode.handleBlockBreakAction(h.absolutePos(rel), action, face, h.getLevel().getMaxY(), 0);
 	}
 
 	/**
@@ -287,7 +288,7 @@ public class DisguiseLookGameTests {
 		List<String> problems = new ArrayList<>();
 		int checked = 0;
 		for (Block block : disguisedBlocks()) {
-			if (block.getLootTable().equals(BuiltInLootTables.EMPTY)) {
+			if (block.getLootTable().isEmpty()) {
 				continue;
 			}
 			h.setBlock(SECRET, block);
@@ -310,7 +311,7 @@ public class DisguiseLookGameTests {
 
 	private static float resistance(GameTestHelper h, Vec3 centerRel) {
 		Vec3 center = abs(h, centerRel);
-		Explosion explosion = new Explosion(h.getLevel(), null, center.x, center.y, center.z, 4.0F, false, Explosion.BlockInteraction.DESTROY);
+		Explosion explosion = new ServerExplosion(h.getLevel(), null, null, null, center, 4.0F, false, Explosion.BlockInteraction.DESTROY);
 		BlockPos pos = h.absolutePos(SECRET);
 		return new ExplosionDamageCalculator()
 				.getBlockExplosionResistance(explosion, h.getLevel(), pos, h.getLevel().getBlockState(pos), Fluids.EMPTY.defaultFluidState())

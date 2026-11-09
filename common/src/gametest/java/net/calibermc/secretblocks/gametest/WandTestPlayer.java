@@ -74,7 +74,7 @@ final class WandTestPlayer extends ServerPlayer {
 
 	/** Spawn protection and the world border, as the server reports them. */
 	@Override
-	public boolean mayInteract(Level level, BlockPos pos) {
+	public boolean mayInteract(ServerLevel level, BlockPos pos) {
 		return !protectedSpot && super.mayInteract(level, pos);
 	}
 
@@ -114,7 +114,7 @@ final class WandTestPlayer extends ServerPlayer {
 	 */
 	InteractionResult click(GameTestHelper h, ItemStack stack, BlockPos clickedRel, Direction face, boolean listed) {
 		setItemInHand(InteractionHand.MAIN_HAND, stack);
-		Vec3 hitRel = Vec3.atCenterOf(clickedRel).add(Vec3.atLowerCornerOf(face.getNormal()).scale(0.5));
+		Vec3 hitRel = Vec3.atCenterOf(clickedRel).add(Vec3.atLowerCornerOf(face.getUnitVec3i()).scale(0.5));
 		BlockHitResult hit = new BlockHitResult(TestSupport.abs(h, hitRel), face, h.absolutePos(clickedRel), false);
 		Supplier<InteractionResult> use = () -> gameMode.useItemOn(this, h.getLevel(), stack, InteractionHand.MAIN_HAND, hit);
 		return listed ? listed(use) : use.get();

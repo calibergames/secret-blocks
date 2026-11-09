@@ -129,12 +129,12 @@ public final class Disguise {
 		}
 		if (tag.contains(ORIGINAL, Tag.TAG_STRING)) {
 			ResourceLocation id = ResourceLocation.tryParse(tag.getString(ORIGINAL));
-			original = id != null && BuiltInRegistries.BLOCK.containsKey(id) ? BuiltInRegistries.BLOCK.get(id) : null;
+			original = id != null && BuiltInRegistries.BLOCK.containsKey(id) ? BuiltInRegistries.BLOCK.getValue(id) : null;
 		}
 		for (Direction face : FACES) {
 			String name = face.getName();
 			if (tag.contains(name + "State")) {
-				states.put(face, NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(name + "State")));
+				states.put(face, NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompound(name + "State")));
 			}
 			if (tag.contains(name + "Direction")) {
 				directions.put(face, byName(tag.getString(name + "Direction")));

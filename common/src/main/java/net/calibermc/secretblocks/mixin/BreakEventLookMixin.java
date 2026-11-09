@@ -1,11 +1,12 @@
 package net.calibermc.secretblocks.mixin;
 
 import net.calibermc.secretblocks.blocks.DisguiseLook;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LevelEventHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,11 +17,12 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  * the look of its top while the client still has the block. Breaks by a
  * player or the world already name the look.
  */
-@Mixin(LevelRenderer.class)
+@Mixin(LevelEventHandler.class)
 public abstract class BreakEventLookMixin {
 
 	@Shadow
-	private ClientLevel level;
+	@Final
+	private Level level;
 
 	@ModifyVariable(method = "levelEvent", at = @At("STORE"))
 	private BlockState secretblocks$breakLook(BlockState state, int type, BlockPos pos, int data) {

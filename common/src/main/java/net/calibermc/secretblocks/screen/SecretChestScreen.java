@@ -2,6 +2,7 @@ package net.calibermc.secretblocks.screen;
 
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -27,8 +28,8 @@ public class SecretChestScreen extends AbstractContainerScreen<SecretChestScreen
     protected void renderBg(GuiGraphics graphics, float delta, int mouseX, int mouseY) {
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
-        graphics.blit(TEXTURE, x, y, 0, 0, imageWidth, ROWS * 18 + 17);
-        graphics.blit(TEXTURE, x, y + ROWS * 18 + 17, 0, 126, imageWidth, 96);
+        graphics.blit(RenderType::guiTextured, TEXTURE, x, y, 0.0F, 0.0F, imageWidth, ROWS * 18 + 17, 256, 256);
+        graphics.blit(RenderType::guiTextured, TEXTURE, x, y + ROWS * 18 + 17, 0.0F, 126.0F, imageWidth, 96, 256, 256);
     }
 
     @Override

@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.TorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -37,7 +37,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class TorchLever extends TorchBlock {
 
 	/** The way it leans when on (the player's facing when placed). Default east: the only way before it had one. */
-	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
 	/** Its outline while on: the vanilla torch's box, widened 3 pixels the way it leans. */
 	private static final Map<Direction, VoxelShape> TILTED = Map.of(

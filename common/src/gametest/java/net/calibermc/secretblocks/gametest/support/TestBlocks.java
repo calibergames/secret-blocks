@@ -1,5 +1,7 @@
 package net.calibermc.secretblocks.gametest.support;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -17,7 +19,8 @@ public final class TestBlocks {
 
 	/** Makes the test gate owner; the loader registers it under {@link #TEST_GATE_OWNER_ID}. */
 	public static Block createTestGateOwner() {
-		TEST_GATE_OWNER = new TestGateOwner(BlockBehaviour.Properties.ofLegacyCopy(Blocks.STONE));
+		TEST_GATE_OWNER = new TestGateOwner(BlockBehaviour.Properties.ofLegacyCopy(Blocks.STONE)
+				.setId(ResourceKey.create(Registries.BLOCK, TEST_GATE_OWNER_ID)));
 		return TEST_GATE_OWNER;
 	}
 }

@@ -33,8 +33,9 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  * Beside a Secret Door or Trapdoor (thin panels), or with the Builder's
  * Goggles' view on, faces beside secret blocks are always drawn. Used by
- * vanilla's culling ({@code DrawSideMixin}) and by Sodium's, which does not
- * call vanilla's ({@code SodiumOcclusionMixin}).
+ * each loader's culling hook: the vanilla block renderer's, Fabric API's
+ * renderer's, NeoForge's level-aware face test, and Sodium's and
+ * Embeddium's, which do not call vanilla's.
  */
 public final class SecretCulling {
 
@@ -94,7 +95,7 @@ public final class SecretCulling {
 	 * block vanilla hides its neighbours' faces behind.
 	 */
 	private static boolean opaque(BlockState look, BlockGetter level, BlockPos pos) {
-		return look.isSolidRender(level, pos);
+		return look.isSolidRender();
 	}
 
 	/** Secret Doors and Trapdoors are drawn as thin panels, not full faces. */

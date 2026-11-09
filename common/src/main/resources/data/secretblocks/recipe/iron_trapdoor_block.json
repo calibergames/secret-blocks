@@ -1,12 +1,8 @@
 {
 	"type": "minecraft:crafting_shapeless",
 	"ingredients": [
-		{
-			"item": "secretblocks:solid_block"
-		},
-		{
-			"item": "minecraft:iron_trapdoor"
-		}
+		"secretblocks:solid_block",
+		"minecraft:iron_trapdoor"
 	],
 	"result": {
 		"id": "secretblocks:iron_trapdoor_block",

@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import java.util.Optional;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
@@ -18,12 +19,10 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
@@ -53,13 +52,13 @@ public class BuildersGogglesGameTests {
 		player.setItemInHand(InteractionHand.MAIN_HAND, goggles());
 		player.getItemInHand(InteractionHand.MAIN_HAND).use(h.getLevel(), player, InteractionHand.MAIN_HAND);
 		check(h, player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.BUILDERS_GOGGLES), "using them should put them on the head");
-		check(h, goggles().getItem().getDefaultAttributeModifiers().modifiers().isEmpty()
+		check(h, goggles().getItem().components().getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY).modifiers().isEmpty()
 				&& goggles().getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY).modifiers().isEmpty(),
-				"no modifiers, got " + goggles().getItem().getDefaultAttributeModifiers());
+				"no modifiers, got " + goggles().get(DataComponents.ATTRIBUTE_MODIFIERS));
 		check(h, player.getArmorValue() == 0, "armor value should be 0, is " + player.getArmorValue());
-		check(h, ((ArmorItem) ModItems.BUILDERS_GOGGLES).getMaterial().value().layers().get(0).texture(false)
-						.equals(((ArmorItem) ModItems.SECRET_GOGGLES).getMaterial().value().layers().get(0).texture(false)),
-				"worn, they should use the Secret Goggles' armour texture");
+		Optional<ResourceLocation> worn = goggles().get(DataComponents.EQUIPPABLE).model();
+		check(h, worn.isPresent() && worn.equals(new ItemStack(ModItems.SECRET_GOGGLES).get(DataComponents.EQUIPPABLE).model()),
+				"worn, they should look like the Secret Goggles, got " + worn);
 		h.succeed();
 	}
 
@@ -91,20 +90,20 @@ public class BuildersGogglesGameTests {
 	 */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void notEnchantableOrRepairable(GameTestHelper h) {
-		check(h, ModItems.BUILDERS_GOGGLES.getEnchantmentValue() == 0, "enchantability should be 0");
-		Registry<Enchantment> enchantments = h.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT);
-		check(h, EnchantmentHelper.selectEnchantment(RandomSource.create(1), goggles(), 30, enchantments.holders().map(e -> (Holder<Enchantment>) e)).isEmpty(),
+		check(h, !goggles().has(DataComponents.ENCHANTABLE), "they should not be enchantable at a table");
+		Registry<Enchantment> enchantments = h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+		check(h, EnchantmentHelper.selectEnchantment(RandomSource.create(1), goggles(), 30, enchantments.listElements().map(e -> (Holder<Enchantment>) e)).isEmpty(),
 				"the enchanting table should offer nothing");
-		enchantments.holders().forEach(enchantment ->
+		enchantments.listElements().forEach(enchantment ->
 				check(h, !enchantment.value().canEnchant(goggles()), enchantment.key().location() + " must not apply to them"));
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		AnvilMenu anvil = new AnvilMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
 		anvil.getSlot(0).set(goggles());
-		anvil.getSlot(1).set(EnchantedBookItem.createForEnchantment(new EnchantmentInstance(enchantments.getHolderOrThrow(Enchantments.PROTECTION), 1)));
+		anvil.getSlot(1).set(EnchantmentHelper.createBook(new EnchantmentInstance(enchantments.getOrThrow(Enchantments.PROTECTION), 1)));
 		anvil.createResult();
 		check(h, anvil.getSlot(2).getItem().isEmpty(), "an anvil with a Protection book must give nothing, got " + anvil.getSlot(2).getItem());
 		for (ItemStack material : new ItemStack[] {new ItemStack(Items.PRISMARINE_SHARD), new ItemStack(Items.IRON_INGOT), new ItemStack(Items.LEATHER), goggles()}) {
-			check(h, !ModItems.BUILDERS_GOGGLES.isValidRepairItem(goggles(), material), material + " must not repair them");
+			check(h, !repairs(goggles(), material), material + " must not repair them");
 		}
 		h.succeed();
 	}
@@ -113,7 +112,7 @@ public class BuildersGogglesGameTests {
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void noRecipeOrLoot(GameTestHelper h) {
 		MinecraftServer server = h.getLevel().getServer();
-		check(h, server.getRecipeManager().getRecipes().stream().noneMatch(r -> r.value().getResultItem(server.registryAccess()).is(ModItems.BUILDERS_GOGGLES)),
+		check(h, server.getRecipeManager().getRecipes().stream().noneMatch(r -> makes(r.value(), h.getLevel(), ModItems.BUILDERS_GOGGLES)),
 				"no recipe may make them");
 		int tables = 0;
 		for (ResourceLocation id : server.reloadableRegistries().getKeys(Registries.LOOT_TABLE)) {

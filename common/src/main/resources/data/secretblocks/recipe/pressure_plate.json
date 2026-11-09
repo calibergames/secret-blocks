@@ -1,12 +1,8 @@
 {
 	"type": "minecraft:crafting_shapeless",
 	"ingredients": [
-		{
-			"item": "secretblocks:solid_block"
-		},
-		{
-			"tag": "minecraft:wooden_pressure_plates"
-		}
+		"secretblocks:solid_block",
+		"#minecraft:wooden_pressure_plates"
 	],
 	"result": {
 		"id": "secretblocks:pressure_plate",

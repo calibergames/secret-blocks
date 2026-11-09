@@ -1,12 +1,8 @@
 {
 	"type": "minecraft:crafting_shapeless",
 	"ingredients": [
-		{
-			"item": "secretblocks:solid_block"
-		},
-		{
-			"tag": "minecraft:wooden_doors"
-		}
+		"secretblocks:solid_block",
+		"#minecraft:wooden_doors"
 	],
 	"result": {
 		"id": "secretblocks:door_block",

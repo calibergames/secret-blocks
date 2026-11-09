@@ -11,7 +11,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -71,7 +70,7 @@ public class SwitchProbe extends Item {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+	public InteractionResult use(Level world, Player user, InteractionHand hand) {
 		if (user.isShiftKeyDown()) {
 			user.setItemInHand(hand, new ItemStack(user.getItemInHand(hand).getItem() == ModItems.SWITCH_PROBE ? ModItems.SWITCH_PROBE_ROTATION_MODE : ModItems.SWITCH_PROBE));
 		}
@@ -86,7 +85,7 @@ public class SwitchProbe extends Item {
 	}
 
 	private static BlockState getState(ItemStack itemStack) {
-		return NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), ItemData.read(itemStack).getCompound("setState"));
+		return NbtUtils.readBlockState(BuiltInRegistries.BLOCK, ItemData.read(itemStack).getCompound("setState"));
 	}
 
 	private static Direction getDirection(ItemStack itemStack) {

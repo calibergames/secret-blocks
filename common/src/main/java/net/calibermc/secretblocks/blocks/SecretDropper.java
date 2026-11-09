@@ -41,14 +41,11 @@ public class SecretDropper extends DropperBlock implements SecretBlock {
 	 */
 	@Override
 	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-		if (level.isClientSide) {
-			return InteractionResult.SUCCESS;
-		}
-		if (level.getBlockEntity(pos) instanceof DispenserBlockEntity dropper) {
+		if (!level.isClientSide && level.getBlockEntity(pos) instanceof DispenserBlockEntity dropper) {
 			player.openMenu(dropper);
 			player.awardStat(Stats.INSPECT_DROPPER);
 		}
-		return InteractionResult.CONSUME;
+		return InteractionResult.SUCCESS;
 	}
 
 	@Override

@@ -124,7 +124,7 @@ public class SecretDaylightDetector extends Block implements EntityBlock, Secret
 		level.setBlock(pos, toggled, 4);
 		level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, toggled));
 		updateSignalStrength(toggled, level, pos);
-		return InteractionResult.CONSUME;
+		return InteractionResult.SUCCESS;
 	}
 
 	@Override

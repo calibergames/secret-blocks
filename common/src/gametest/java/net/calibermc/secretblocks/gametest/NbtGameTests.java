@@ -80,7 +80,7 @@ public class NbtGameTests {
 		be.loadWithComponents(input, h.getLevel().registryAccess());
 		for (Direction dir : Direction.values()) {
 			String name = dir.getName();
-			check(h, be.getState(dir) == NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), input.getCompound(name + "State")), name + "State read back wrong: " + be.getState(dir));
+			check(h, be.getState(dir) == NbtUtils.readBlockState(BuiltInRegistries.BLOCK, input.getCompound(name + "State")), name + "State read back wrong: " + be.getState(dir));
 			check(h, be.getDir(dir).getName().equals(input.getString(name + "Direction")), name + "Direction read back wrong: " + be.getDir(dir));
 			check(h, be.getRotation(dir) == input.getInt(name + "Rotation"), name + "Rotation read back wrong: " + be.getRotation(dir));
 		}
@@ -137,7 +137,7 @@ public class NbtGameTests {
 		check(h, be.getItem(0).is(Items.DIAMOND) && be.getItem(0).getCount() == 5, "slot 0 should hold 5 diamonds, holds " + be.getItem(0));
 		ItemStack sword = be.getItem(1);
 		check(h, sword.is(Items.DIAMOND_SWORD) && sword.getHoverName().getString().equals("Named ref"), "the named sword should keep its name, got " + sword);
-		Holder<Enchantment> sharpness = h.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.SHARPNESS);
+		Holder<Enchantment> sharpness = h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS);
 		check(h, EnchantmentHelper.getItemEnchantmentLevel(sharpness, sword) == 5, "the sword should keep Sharpness V, got " + sword);
 		check(h, be.getItem(2).is(ModBlocks.SOLID_BLOCK.asItem()) && be.getItem(2).getCount() == 64, "slot 2 should hold 64 dummy blocks, holds " + be.getItem(2));
 		check(h, be.getItem(26).is(Items.OAK_LOG) && be.getItem(26).getCount() == 64, "slot 26 should hold 64 oak logs, holds " + be.getItem(26));

@@ -65,7 +65,7 @@ public final class DisguiseRenderer {
 			int tempRotation = 0;
 
 			if (tag.contains(direction.name().toLowerCase() + "State")) {
-				tempState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(direction.name().toLowerCase() + "State"));
+				tempState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompound(direction.name().toLowerCase() + "State"));
 			}
 
 			if (tag.contains(direction.name().toLowerCase() + "Direction")) {

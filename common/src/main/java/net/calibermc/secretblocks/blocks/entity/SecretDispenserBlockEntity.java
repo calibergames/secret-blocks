@@ -43,7 +43,7 @@ public class SecretDispenserBlockEntity extends DispenserBlockEntity implements 
 
 	@Override
 	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		LegacyData.upgradeItems(tag);
+		LegacyData.upgradeContainer(tag, "minecraft:dispenser");
 		super.loadAdditional(tag, registries);
 		disguise.load(tag);
 		DisguisedBlockEntity.redrawAfterLoad(this);

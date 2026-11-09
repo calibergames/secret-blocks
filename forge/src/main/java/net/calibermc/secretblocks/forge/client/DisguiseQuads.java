@@ -108,7 +108,7 @@ final class DisguiseQuads {
 			Direction lookSide = Direction.NORTH;
 			int rotation = 0;
 			if (tag.contains(key + "State")) {
-				look = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), tag.getCompound(key + "State"));
+				look = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompound(key + "State"));
 			}
 			if (tag.contains(key + "Direction")) {
 				lookSide = Disguise.byName(tag.getString(key + "Direction"));
@@ -210,7 +210,7 @@ final class DisguiseQuads {
 						vertices[base + COLOR] = FaceQuads.swapRedBlue(FaceQuads.multiply(FaceQuads.swapRedBlue(vertices[base + COLOR]), tint));
 					}
 					BakedQuad shrunk = new BakedQuad(vertices, -1, quad.getDirection(), quad.getSprite(), quad.isShade(),
-							model.useAmbientOcclusion() && quad.hasAmbientOcclusion());
+							quad.getLightEmission(), model.useAmbientOcclusion() && quad.hasAmbientOcclusion());
 					// In the secret block's own layer, as the Fabric renderer's standard material draws it.
 					add(RenderType.cutout(), face, shrunk);
 				}
@@ -289,7 +289,7 @@ final class DisguiseQuads {
 			}
 			vertices[i * STRIDE + COLOR] = FaceQuads.swapRedBlue(color);
 		}
-		return new BakedQuad(vertices, -1, quad.getDirection(), quad.getSprite(), quad.isShade(), quad.hasAmbientOcclusion());
+		return new BakedQuad(vertices, -1, quad.getDirection(), quad.getSprite(), quad.isShade(), quad.getLightEmission(), quad.hasAmbientOcclusion());
 	}
 
 	// The block vertex format: position (3 floats), colour (RGBA bytes), texture (2 floats),
@@ -348,7 +348,7 @@ final class DisguiseQuads {
 				vertices[base + NORMAL] = normal;
 			}
 			// Full-bright faces also skip shading and ambient occlusion, as the Fabric materials do.
-			return new BakedQuad(vertices, -1, face, sprite, !fullBright, !fullBright);
+			return new BakedQuad(vertices, -1, face, sprite, !fullBright, 0, !fullBright);
 		}
 	}
 }

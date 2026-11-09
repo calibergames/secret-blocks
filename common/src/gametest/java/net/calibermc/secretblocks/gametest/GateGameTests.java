@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.calibermc.secretblocks.blocks.SecretGate;
 import net.calibermc.secretblocks.blocks.SecretGate.Line;
 import net.calibermc.secretblocks.blocks.SecretGate.Spot;
@@ -450,7 +451,7 @@ public class GateGameTests {
 		BlockPos beside = new BlockPos(2, 1, 4);
 		gate(h, first, Direction.EAST, Blocks.BRICKS);
 		gate(h, beside, Direction.UP, Blocks.OAK_PLANKS);
-		ArmorStand stand = EntityType.ARMOR_STAND.create(h.getLevel());
+		ArmorStand stand = EntityType.ARMOR_STAND.create(h.getLevel(), EntitySpawnReason.COMMAND);
 		Vec3 at = Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(4, 1, 3)));
 		stand.moveTo(at.x, at.y, at.z);
 		h.getLevel().addFreshEntity(stand);
@@ -506,7 +507,7 @@ public class GateGameTests {
 		h.setBlock(gate, GATE.defaultBlockState().setValue(SecretGate.FACING, Direction.UP));
 		check(h, secret(h, gate).getState(Direction.NORTH).isAir(), "control: no disguise yet");
 		BlockState state = h.getBlockState(gate);
-		state.handleNeighborChanged(h.getLevel(), h.absolutePos(gate), Blocks.REDSTONE_WIRE, h.absolutePos(gate.west()), false);
+		state.handleNeighborChanged(h.getLevel(), h.absolutePos(gate), Blocks.REDSTONE_WIRE, null, false);
 		checkBlock(h, gate.above(), Blocks.AIR);
 		check(h, !h.getBlockState(gate).getValue(SecretGate.POWERED), "it should not act yet");
 		// What the placement does next, in the same tick.
@@ -572,7 +573,7 @@ public class GateGameTests {
 		BlockPos gate = new BlockPos(0, 1, 3);
 		gate(h, gate, Direction.EAST, Blocks.BRICKS);
 		h.setBlock(new BlockPos(6, 1, 3), Blocks.STONE);
-		ArmorStand stand = EntityType.ARMOR_STAND.create(h.getLevel());
+		ArmorStand stand = EntityType.ARMOR_STAND.create(h.getLevel(), EntitySpawnReason.COMMAND);
 		Vec3 at = Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(3, 1, 3)));
 		stand.moveTo(at.x, at.y, at.z);
 		h.getLevel().addFreshEntity(stand);

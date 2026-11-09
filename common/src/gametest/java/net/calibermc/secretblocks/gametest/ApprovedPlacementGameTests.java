@@ -58,7 +58,7 @@ public class ApprovedPlacementGameTests {
 		net.minecraft.world.level.block.SoundType glass = Blocks.GLASS.defaultBlockState().getSoundType();
 		check(h, played.size() == 1, "one sound should play, got " + played);
 		var sound = played.get(0);
-		check(h, sound.sound() == glass.getPlaceSound(), "the place sound should be glass's, is " + sound.sound().getLocation());
+		check(h, sound.sound() == glass.getPlaceSound(), "the place sound should be glass's, is " + sound.sound().location());
 		check(h, sound.volume() == (glass.getVolume() + 1.0F) / 2.0F && sound.pitch() == glass.getPitch() * 0.8F,
 				"volume and pitch should be glass's place values, are " + sound.volume() + " and " + sound.pitch());
 		h.succeed();

@@ -1,12 +1,8 @@
 {
 	"type": "minecraft:crafting_shapeless",
 	"ingredients": [
-		{
-			"item": "secretblocks:solid_block"
-		},
-		{
-			"tag": "minecraft:stairs"
-		}
+		"secretblocks:solid_block",
+		"#minecraft:stairs"
 	],
 	"result": {
 		"id": "secretblocks:stair_block",

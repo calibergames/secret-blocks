@@ -1,6 +1,8 @@
 package net.calibermc.secretblocks.blocks;
 
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -23,7 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -34,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class SecretLadder extends net.minecraft.world.level.block.LadderBlock implements EntityBlock, SecretBlock {
 
-    public static final DirectionProperty FACING;
+    public static final EnumProperty<Direction> FACING;
     public static final BooleanProperty WATERLOGGED;
     protected static final float field_31106 = 3.0F;
     protected static final VoxelShape EAST_SHAPE;
@@ -67,15 +69,15 @@ public class SecretLadder extends net.minecraft.world.level.block.LadderBlock im
         }
     }
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+    public BlockState updateShape(BlockState state, LevelReader world, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         if (direction.getOpposite() == state.getValue(FACING) && !state.canSurvive(world, pos)) {
             return Blocks.AIR.defaultBlockState();
         } else {
             if ((Boolean)state.getValue(WATERLOGGED)) {
-                world.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
+                ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
             }
 
-            return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
+            return super.updateShape(state, world, ticks, pos, direction, neighborPos, neighborState, random);
         }
     }
 

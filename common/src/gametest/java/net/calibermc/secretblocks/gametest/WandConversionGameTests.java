@@ -1,5 +1,10 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.calibermc.secretblocks.blocks.entity.LegacyData;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.world.LockCode;
 import net.minecraft.world.RandomizableContainer;
 import net.calibermc.secretblocks.items.ItemData;
 import net.calibermc.secretblocks.SecretBlocks;
@@ -250,7 +255,7 @@ public class WandConversionGameTests {
 		BlockState state = h.getBlockState(TARGET);
 		check(h, state.is(ModBlocks.SECRET_CHEST), "the chest should be secret: " + state);
 		check(h, !state.getValue(net.calibermc.secretblocks.blocks.Opacity.OPAQUE)
-				&& state.getLightBlock(h.getLevel(), h.absolutePos(TARGET)) == 0, "it should let light through: " + state);
+				&& state.getLightBlock() == 0, "it should let light through: " + state);
 		check(h, ((net.minecraft.world.Container) blockEntityAt(h, TARGET)).getItem(3).is(Items.DIAMOND), "it should keep its contents");
 		h.succeed();
 	}
@@ -300,9 +305,7 @@ public class WandConversionGameTests {
 			BaseContainerBlockEntity original = (BaseContainerBlockEntity) blockEntityAt(h, TARGET);
 			fill(original);
 			nameContainer(original, Component.literal("Stash"));
-			CompoundTag lock = original.saveWithoutMetadata(h.getLevel().registryAccess());
-			lock.putString("Lock", "key");
-			original.loadWithComponents(lock, h.getLevel().registryAccess());
+			lockWithKey(h, original);
 			Container reference = new net.minecraft.world.SimpleContainer(original.getContainerSize());
 			for (int i = 0; i < original.getContainerSize(); i++) {
 				reference.setItem(i, original.getItem(i).copy());
@@ -314,15 +317,15 @@ public class WandConversionGameTests {
 				problems.append(label).append(" secret: ").append(secret instanceof Container c ? sameItems(reference, c) : secret).append("; ");
 			}
 			CompoundTag secretData = secret.saveWithoutMetadata(h.getLevel().registryAccess());
-			if (!secretData.getString("CustomName").contains("Stash") || !"key".equals(secretData.getString("Lock"))) {
+			if (!secretData.getString("CustomName").contains("Stash") || !lockedWithKey(h, secretData)) {
 				problems.append(label).append(" secret name/lock: ").append(secretData.getString("CustomName")).append(" / ")
-						.append(secretData.getString("Lock")).append("; ");
+						.append(secretData.get(LockCode.TAG_LOCK)).append("; ");
 			}
 			convert(h, op(h), wand(GRANITE));
 			BlockEntity back = blockEntityAt(h, TARGET);
 			if (!(back instanceof BaseContainerBlockEntity container) || sameItems(reference, container) != null
 					|| container.getCustomName() == null || !"Stash".equals(container.getCustomName().getString())
-					|| !"key".equals(container.saveWithoutMetadata(h.getLevel().registryAccess()).getString("Lock"))) {
+					|| !lockedWithKey(h, container.saveWithoutMetadata(h.getLevel().registryAccess()))) {
 				problems.append(label).append(" back: ").append(back instanceof Container c ? sameItems(reference, c) : back).append("; ");
 			}
 			if (!h.getEntities(EntityType.ITEM, TARGET, 6).isEmpty()) {
@@ -334,6 +337,51 @@ public class WandConversionGameTests {
 		check(h, problems.length() == 0, problems.toString());
 		h.succeed();
 	}
+
+	/** Locks {@code container} so that only an item named "key" opens it. */
+	private static void lockWithKey(GameTestHelper h, BlockEntity container) {
+		CompoundTag data = container.saveWithoutMetadata(h.getLevel().registryAccess());
+		new LockCode(ItemPredicate.Builder.item().hasComponents(DataComponentPredicate.builder()
+				.expect(DataComponents.CUSTOM_NAME, Component.literal("key")).build()).build())
+				.addToTag(data, h.getLevel().registryAccess());
+		container.loadWithComponents(data, h.getLevel().registryAccess());
+	}
+
+	/** Whether saved container data holds a lock that an item named "key" opens and another item does not. */
+	private static boolean lockedWithKey(GameTestHelper h, CompoundTag data) {
+		LockCode lock = LockCode.fromTag(data, h.getLevel().registryAccess());
+		return lock.unlocksWith(named(new ItemStack(Items.TRIPWIRE_HOOK), Component.literal("key")))
+				&& !lock.unlocksWith(named(new ItemStack(Items.TRIPWIRE_HOOK), Component.literal("other")));
+	}
+
+	/**
+	 * A lock saved before 1.21.2 (a {@code Lock} name, not an item predicate) still locks
+	 * the secret containers once loaded, as vanilla's own containers are upgraded.
+	 */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void anOlderLockStillLocks(GameTestHelper h) {
+		floor(h);
+		StringBuilder problems = new StringBuilder();
+		for (Block block : List.of(ModBlocks.SECRET_CHEST, ModBlocks.SECRET_DISPENSER, ModBlocks.SECRET_HOPPER)) {
+			h.setBlock(TARGET, block);
+			BlockEntity container = blockEntityAt(h, TARGET);
+			CompoundTag old = container.saveWithoutMetadata(h.getLevel().registryAccess());
+			old.remove(LockCode.TAG_LOCK);
+			old.putString("Lock", "key");
+			old.putInt(LegacyData.VERSION, MINECRAFT_1_21_1);
+			container.loadWithComponents(old, h.getLevel().registryAccess());
+			CompoundTag saved = container.saveWithoutMetadata(h.getLevel().registryAccess());
+			if (!lockedWithKey(h, saved) || saved.contains("Lock")) {
+				problems.append(name(block)).append(": ").append(saved).append("; ");
+			}
+			h.setBlock(TARGET, Blocks.AIR);
+		}
+		check(h, problems.length() == 0, "an older lock should still lock: " + problems);
+		h.succeed();
+	}
+
+	/** The game data version of Minecraft 1.21.1. */
+	private static final int MINECRAFT_1_21_1 = 3955;
 
 	/** A Secret Chest shows its custom name as the title, takes a renamed item's name, and keeps a lock. */
 	@GameTest(template = EMPTY_STRUCTURE)
@@ -348,16 +396,14 @@ public class WandConversionGameTests {
 		check(h, chest.getCustomName() != null && "Hidden".equals(chest.getCustomName().getString()), "a renamed item should name the chest");
 		var provider = state.getMenuProvider(h.getLevel(), h.absolutePos(TARGET));
 		check(h, "Hidden".equals(provider.getDisplayName().getString()), "the title should be the name, got " + provider.getDisplayName());
-		CompoundTag lock = chest.saveWithoutMetadata(h.getLevel().registryAccess());
-		lock.putString("Lock", "key");
-		chest.loadWithComponents(lock, h.getLevel().registryAccess());
+		lockWithKey(h, chest);
 		// An empty hand, through the server's real use path.
 		player.click(h, ItemStack.EMPTY, TARGET, Direction.NORTH, false);
 		check(h, "container.isLocked".equals(player.lastMessageKey()), "a locked chest should refuse, got " + player.messages);
 		check(h, player.containerMenu == player.inventoryMenu, "the locked chest must not open");
 		player.setItemInHand(InteractionHand.MAIN_HAND, named(new ItemStack(Items.TRIPWIRE_HOOK), Component.literal("key")));
 		check(h, BaseContainerBlockEntity.canUnlock(player, chest.getLockKey(), Component.empty()), "the key should open it");
-		check(h, chest.getUpdateTag(h.getLevel().registryAccess()).getAllKeys().stream().noneMatch(k -> k.equals("Lock") || k.equals("CustomName")),
+		check(h, chest.getUpdateTag(h.getLevel().registryAccess()).getAllKeys().stream().noneMatch(k -> k.equals(LockCode.TAG_LOCK) || k.equals("CustomName")),
 				"clients must not get the lock or the name");
 		// Mined, it drops a chest item with the name, as vanilla's does.
 		List<ItemStack> drops = Block.getDrops(state, h.getLevel(), h.absolutePos(TARGET), chest);

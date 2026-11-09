@@ -117,11 +117,11 @@ public class ProbeGameTests {
 		ItemStack probe = new ItemStack(ModItems.SWITCH_PROBE);
 		ItemData.update(probe, tag -> tag.put("setState", NbtUtils.writeBlockState(Blocks.POLISHED_GRANITE.defaultBlockState())));
 		ItemData.update(probe, tag -> tag.putString("setDirection", "north"));
-		chunk(h, DUMMY).setUnsaved(false);
+		chunk(h, DUMMY).tryMarkSaved();
 		useOn(h, player, probe, DUMMY, Direction.NORTH, DUMMY_NORTH);
 		check(h, secret(h, DUMMY).getState(Direction.NORTH).is(Blocks.POLISHED_GRANITE), "the probe should have applied granite");
 		check(h, chunk(h, DUMMY).isUnsaved(), "a probe apply must flag the chunk for saving");
-		chunk(h, DUMMY).setUnsaved(false);
+		chunk(h, DUMMY).tryMarkSaved();
 		useOn(h, player, new ItemStack(ModItems.SWITCH_PROBE_ROTATION_MODE), DUMMY, Direction.NORTH, DUMMY_NORTH);
 		check(h, secret(h, DUMMY).getRotation(Direction.NORTH) == 90, "the rotator should have turned the face");
 		check(h, chunk(h, DUMMY).isUnsaved(), "a rotator turn must flag the chunk for saving");
@@ -144,7 +144,7 @@ public class ProbeGameTests {
 			setters.put("setRotation(face)", () -> secret.setRotation(Direction.UP, 90));
 			setters.put("setRotation(all)", () -> secret.setRotation(180));
 			for (var setter : setters.entrySet()) {
-				chunk(h, DUMMY).setUnsaved(false);
+				chunk(h, DUMMY).tryMarkSaved();
 				setter.getValue().run();
 				if (!chunk(h, DUMMY).isUnsaved()) {
 					problems.append(block).append(' ').append(setter.getKey()).append("; ");

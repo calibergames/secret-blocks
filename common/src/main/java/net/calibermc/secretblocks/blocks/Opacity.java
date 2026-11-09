@@ -57,7 +57,7 @@ public final class Opacity {
 	static boolean looksSeeThrough(DisguisedBlockEntity secret, BlockGetter level, BlockPos pos) {
 		for (Direction face : Direction.values()) {
 			BlockState look = DisguiseLook.shown(secret, level, pos, face);
-			if (look.getLightBlock(level, pos) >= 15) {
+			if (look.getLightBlock() >= 15) {
 				return false;
 			}
 		}

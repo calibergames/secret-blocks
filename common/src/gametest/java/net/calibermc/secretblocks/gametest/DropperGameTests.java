@@ -416,7 +416,7 @@ public class DropperGameTests {
 			};
 			BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(pos)), Direction.NORTH, h.absolutePos(pos), false);
 			InteractionResult result = use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
-			check(h, result == InteractionResult.CONSUME, "using " + name(pos) + " should be consumed on the server, got " + result);
+			check(h, result == InteractionResult.SUCCESS, "using " + name(pos) + " should succeed on the server, got " + result);
 			check(h, opened.size() == 1 && opened.get(0) == blockEntityAt(h, pos), name(pos) + " should open its own block entity's screen, opened " + opened);
 			check(h, stats.equals(List.of(Stats.INSPECT_DROPPER)), name(pos) + " should count as one dropper searched, counted " + stats);
 		}

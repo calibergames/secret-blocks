@@ -80,7 +80,7 @@ public class SecretBlockEntity extends BlockEntity implements DisguisedBlockEnti
 
 	@Override
 	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		LegacyData.upgradeItems(tag);
+		LegacyData.upgradeContainer(tag, "minecraft:chest");
 		super.loadAdditional(tag, registries);
 		disguise.load(tag);
 		ContainerHelper.loadAllItems(tag, this.items, registries);

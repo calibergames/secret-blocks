@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
@@ -95,7 +96,7 @@ public class SecretSculkSensor extends SculkSensorBlock implements SecretBlock {
 
 	/** Vanilla's, without the water tick it schedules for a waterlogged sensor. */
 	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState neighbor, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+	public BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighbor, RandomSource random) {
 		return state.getValue(WATERLOGGED) ? state.setValue(WATERLOGGED, false) : state;
 	}
 

@@ -98,7 +98,7 @@ public final class DisguiseLook {
 	/** The face of the block at {@code pos} that faces {@code point}. */
 	public static Direction toward(BlockPos pos, Vec3 point) {
 		Vec3 d = point.subtract(Vec3.atCenterOf(pos));
-		return Direction.getNearest(d.x, d.y, d.z);
+		return Direction.getApproximateNearest(d.x, d.y, d.z);
 	}
 
 	/**

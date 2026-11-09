@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Sodium culls faces with its own code instead of vanilla's
- * {@code Block.shouldRenderFace}, so {@link DrawSideMixin} does not reach it:
+ * {@code Block.shouldRenderFace}, so {@link VanillaCullingMixin} does not reach it:
  * the floor under a faded block (Builder's Goggles) showed the sky through
  * it, and a face beside a secret block disguised as glass would too. This
  * applies the same rule ({@link SecretCulling}) to Sodium's

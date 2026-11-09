@@ -7,6 +7,7 @@ import net.calibermc.secretblocks.registry.Counterparts;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -67,7 +68,7 @@ public final class WandConversion {
 	}
 
 	/** Run every check, then convert the clicked block. Server side only. */
-	public static Result convert(ServerPlayer player, Level level, InteractionHand hand, BlockHitResult hit) {
+	public static Result convert(ServerPlayer player, ServerLevel level, InteractionHand hand, BlockHitResult hit) {
 		BlockPos pos = hit.getBlockPos();
 		ItemStack wand = player.getItemInHand(hand);
 		if (!CamouflageWand.mayUse(player)) {

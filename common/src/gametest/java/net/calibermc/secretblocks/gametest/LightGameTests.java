@@ -40,7 +40,7 @@ public class LightGameTests {
 	}
 
 	private static int lightBlock(GameTestHelper h, BlockPos rel) {
-		return h.getBlockState(rel).getLightBlock(h.getLevel(), h.absolutePos(rel));
+		return h.getBlockState(rel).getLightBlock();
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class LightGameTests {
 		for (Block look : new Block[] {Blocks.GLASS, Blocks.RED_STAINED_GLASS, Blocks.ICE, Blocks.OAK_LEAVES, Blocks.STONE, Blocks.TINTED_GLASS}) {
 			secret(h, AT).setDisguise(all(look));
 			boolean through = look != Blocks.STONE && look != Blocks.TINTED_GLASS;
-			boolean solid = h.getBlockState(AT).isSolidRender(h.getLevel(), h.absolutePos(AT));
+			boolean solid = h.getBlockState(AT).isSolidRender();
 			if ((lightBlock(h, AT) == 0) != through || h.getBlockState(AT).getValue(Opacity.OPAQUE) == through || solid == through) {
 				problems.add(look + ": blocks " + lightBlock(h, AT) + ", " + h.getBlockState(AT));
 			}

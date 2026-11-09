@@ -106,7 +106,7 @@ public class GogglesGameTests {
 		player.setItemInHand(InteractionHand.MAIN_HAND, goggles());
 		player.getItemInHand(InteractionHand.MAIN_HAND).use(h.getLevel(), player, InteractionHand.MAIN_HAND);
 		check(h, player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.SECRET_GOGGLES), "using them should put them on the head");
-		check(h, goggles().getItem().getDefaultAttributeModifiers().modifiers().isEmpty()
+		check(h, goggles().getItem().components().getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY).modifiers().isEmpty()
 				&& goggles().getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY).modifiers().isEmpty(), "no armor or other modifiers");
 		check(h, player.getArmorValue() == 0, "armor value should be 0, is " + player.getArmorValue());
 		h.succeed();
@@ -115,8 +115,8 @@ public class GogglesGameTests {
 	/** Repair: prismarine shard is the repair item; two worn pairs combine in a crafting grid (the anvil is tested below). */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void repairedWithPrismarineOrAnotherPair(GameTestHelper h) {
-		check(h, ModItems.SECRET_GOGGLES.isValidRepairItem(goggles(), new ItemStack(Items.PRISMARINE_SHARD)), "prismarine shard repairs them");
-		check(h, !ModItems.SECRET_GOGGLES.isValidRepairItem(goggles(), new ItemStack(Items.IRON_INGOT)), "iron does not");
+		check(h, repairs(goggles(), new ItemStack(Items.PRISMARINE_SHARD)), "prismarine shard repairs them");
+		check(h, !repairs(goggles(), new ItemStack(Items.IRON_INGOT)), "iron does not");
 		ItemStack a = goggles();
 		a.setDamageValue(600);
 		ItemStack b = goggles();
@@ -137,13 +137,13 @@ public class GogglesGameTests {
 	}
 
 	private static ItemStack book(Holder<Enchantment> enchantment, int level) {
-		return net.minecraft.world.item.EnchantedBookItem.createForEnchantment(
+		return net.minecraft.world.item.enchantment.EnchantmentHelper.createBook(
 				new net.minecraft.world.item.enchantment.EnchantmentInstance(enchantment, level));
 	}
 
 	/** The enchantment registered under {@code key} in this world (enchantments are data in 1.21). */
 	private static Holder<Enchantment> enchantment(GameTestHelper h, ResourceKey<Enchantment> key) {
-		return h.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(key);
+		return h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(key);
 	}
 
 	/**
@@ -193,9 +193,9 @@ public class GogglesGameTests {
 				Enchantments.RESPIRATION, Enchantments.AQUA_AFFINITY, Enchantments.THORNS, Enchantments.BINDING_CURSE)) {
 			check(h, !enchantment(h, other).value().canEnchant(stack), other.location() + " must not apply to the goggles");
 		}
-		check(h, ModItems.SECRET_GOGGLES.getEnchantmentValue() == 0, "enchantability should be 0");
-		Registry<Enchantment> all = h.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT);
-		check(h, EnchantmentHelper.selectEnchantment(RandomSource.create(1), goggles(), 30, all.holders().map(e -> (Holder<Enchantment>) e)).isEmpty(),
+		check(h, !goggles().has(DataComponents.ENCHANTABLE), "they should not be enchantable at a table");
+		Registry<Enchantment> all = h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+		check(h, EnchantmentHelper.selectEnchantment(RandomSource.create(1), goggles(), 30, all.listElements().map(e -> (Holder<Enchantment>) e)).isEmpty(),
 				"the enchanting table should offer nothing");
 		h.succeed();
 	}

@@ -414,7 +414,7 @@ public class TorchLeverGameTests {
 		CompoundTag properties = new CompoundTag();
 		properties.putString("powered", "true");
 		saved.put("Properties", properties);
-		BlockState loaded = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), saved);
+		BlockState loaded = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, saved);
 		check(h, loaded.is(FLOOR) && loaded.getValue(BlockStateProperties.POWERED), "it should load as an on floor Torch Lever, got " + loaded);
 		check(h, loaded.getValue(TorchLever.FACING) == Direction.EAST, "it should face east, faces " + loaded.getValue(TorchLever.FACING));
 		// Turned or mirrored with a structure, it turns as a lever would.

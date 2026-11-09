@@ -1,12 +1,16 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.world.item.enchantment.Repairable;
+import java.util.List;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.ItemInteractionResult;
 import com.mojang.authlib.GameProfile;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
@@ -50,6 +54,23 @@ import java.util.UUID;
  * {@code Player}) cannot be used for placement.
  */
 final class TestSupport {
+
+	/** What a recipe makes, as its recipe book display shows it (recipes keep their result to themselves). */
+	static List<ItemStack> results(Recipe<?> recipe, Level level) {
+		ContextMap context = SlotDisplayContext.fromLevel(level);
+		return recipe.display().stream().flatMap(display -> display.result().resolveForStacks(context).stream()).toList();
+	}
+
+	/** Whether {@code material} repairs {@code item} at an anvil (its repairable component). */
+	static boolean repairs(ItemStack item, ItemStack material) {
+		Repairable repairable = item.get(DataComponents.REPAIRABLE);
+		return repairable != null && repairable.isValidRepairItem(material);
+	}
+
+	/** Whether {@code recipe} makes {@code item}. */
+	static boolean makes(Recipe<?> recipe, Level level, Item item) {
+		return results(recipe, level).stream().anyMatch(stack -> stack.is(item));
+	}
 
 	/**
 	 * An 8 x 8 x 8 test area of air, from this test mod's data (the same size
@@ -129,11 +150,11 @@ final class TestSupport {
 	 * {@code useWithoutItem} when the item left it to the block.
 	 */
 	static InteractionResult use(BlockState state, Level level, Player player, InteractionHand hand, BlockHitResult hit) {
-		ItemInteractionResult withItem = state.useItemOn(player.getItemInHand(hand), level, player, hand, hit);
+		InteractionResult withItem = state.useItemOn(player.getItemInHand(hand), level, player, hand, hit);
 		if (withItem.consumesAction()) {
-			return withItem.result();
+			return withItem;
 		}
-		if (withItem == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION && hand == InteractionHand.MAIN_HAND) {
+		if (withItem instanceof InteractionResult.TryEmptyHandInteraction && hand == InteractionHand.MAIN_HAND) {
 			return state.useWithoutItem(level, player, hit);
 		}
 		return InteractionResult.PASS;
@@ -208,7 +229,7 @@ final class TestSupport {
 		for (int i = 0; i < stacks.length; i++) {
 			grid.setItem(i, stacks[i]);
 		}
-		return h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
+		return h.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
 				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
 	}
 

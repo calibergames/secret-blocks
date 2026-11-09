@@ -5,12 +5,8 @@
 		"T"
 	],
 	"key": {
-		"#": {
-			"item": "secretblocks:secret_goggles"
-		},
-		"T": {
-			"item": "minecraft:trident"
-		}
+		"#": "secretblocks:secret_goggles",
+		"T": "minecraft:trident"
 	},
 	"result": {
 		"id": "secretblocks:switch_probe",

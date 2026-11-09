@@ -1,12 +1,8 @@
 {
 	"type": "minecraft:crafting_shapeless",
 	"ingredients": [
-		{
-			"item": "minecraft:torch"
-		},
-		{
-			"item": "minecraft:lever"
-		}
+		"minecraft:torch",
+		"minecraft:lever"
 	],
 	"result": {
 		"id": "secretblocks:torch_lever",

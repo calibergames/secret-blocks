@@ -236,7 +236,7 @@ public class DispenserGameTests {
 	public void setDisguiseMarksChunkForSaving(GameTestHelper h) {
 		h.setBlock(DISPENSER, facingNorth());
 		net.minecraft.world.level.chunk.LevelChunk chunk = h.getLevel().getChunkAt(h.absolutePos(DISPENSER));
-		chunk.setUnsaved(false);
+		chunk.tryMarkSaved();
 		dispenser(h).setDisguise(all(Blocks.BRICKS));
 		check(h, chunk.isUnsaved(), "setDisguise should mark the chunk for saving");
 		h.succeed();
@@ -272,7 +272,7 @@ public class DispenserGameTests {
 		CraftingContainer grid = new net.minecraft.world.inventory.TransientCraftingContainer(menu, 3, 3);
 		grid.setItem(0, new ItemStack(ModBlocks.SOLID_BLOCK));
 		grid.setItem(1, new ItemStack(Items.DISPENSER));
-		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
+		Optional<ItemStack> result = h.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
 				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
 		check(h, result.isPresent() && result.get().is(ModBlocks.SECRET_DISPENSER.asItem()),
 				"Dummy Block + dispenser should craft a Secret Dispenser, got " + result);

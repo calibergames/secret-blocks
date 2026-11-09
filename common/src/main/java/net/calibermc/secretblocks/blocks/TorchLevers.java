@@ -44,7 +44,7 @@ final class TorchLevers {
 		boolean on = toggled.getValue(POWERED);
 		level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.3F, on ? 0.6F : 0.5F);
 		level.gameEvent(player, on ? GameEvent.BLOCK_ACTIVATE : GameEvent.BLOCK_DEACTIVATE, pos);
-		return InteractionResult.CONSUME;
+		return InteractionResult.SUCCESS;
 	}
 
 	/** The torch's neighbours and those of the block it is fixed to (that block is strongly powered). */

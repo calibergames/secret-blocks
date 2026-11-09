@@ -27,6 +27,7 @@
 			"net.calibermc.secretblocks.compat.RendererCheck"
 		]
 	},
+	"accessWidener": "secretblocks.accesswidener",
 	"mixins": [
 		"secretblocks.mixins.json",
 		"secretblocks.fabric.mixins.json"

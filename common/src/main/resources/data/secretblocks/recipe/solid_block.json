@@ -6,12 +6,8 @@
 		"#C#"
 	],
 	"key": {
-		"#": {
-			"tag": "minecraft:wool"
-		},
-		"C": {
-			"item": "secretblocks:camouflage_paste"
-		}
+		"#": "#minecraft:wool",
+		"C": "secretblocks:camouflage_paste"
 	},
 	"result": {
 		"id": "secretblocks:solid_block",

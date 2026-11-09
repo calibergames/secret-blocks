@@ -2,7 +2,6 @@ package net.calibermc.secretblocks.forge.client;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.Material;
@@ -30,7 +29,7 @@ final class CamoGeometry implements IUnbakedGeometry<CamoGeometry> {
 
 	@Override
 	public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter,
-			ModelState modelState, ItemOverrides overrides) {
+			ModelState modelState) {
 		return new ForgeDisguiseModel(context.getTransforms());
 	}
 }

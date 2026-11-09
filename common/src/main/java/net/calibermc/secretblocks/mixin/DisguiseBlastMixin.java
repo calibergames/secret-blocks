@@ -8,7 +8,6 @@ import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -30,9 +29,7 @@ public abstract class DisguiseBlastMixin {
 	private void secretblocks$disguiseResistance(Explosion explosion, BlockGetter level, BlockPos pos, BlockState state,
 			FluidState fluid, CallbackInfoReturnable<Optional<Float>> cir) {
 		if (state.getBlock() instanceof SecretBlock && explosion != null) {
-			ExplosionAccessor center = (ExplosionAccessor) explosion;
-			float resistance = DisguiseLook.explosionResistance(level, pos,
-					new Vec3(center.secretblocks$getX(), center.secretblocks$getY(), center.secretblocks$getZ()));
+			float resistance = DisguiseLook.explosionResistance(level, pos, explosion.center());
 			cir.setReturnValue(Optional.of(Math.max(resistance, fluid.getExplosionResistance())));
 		}
 	}

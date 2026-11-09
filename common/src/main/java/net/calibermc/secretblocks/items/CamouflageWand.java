@@ -11,6 +11,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -66,10 +67,10 @@ public class CamouflageWand extends Item {
 			return InteractionResult.SUCCESS; // the server decides; the block and the stack sync back
 		}
 		if (!player.isShiftKeyDown()) {
-			if (!(player instanceof ServerPlayer serverPlayer)) {
+			if (!(player instanceof ServerPlayer serverPlayer) || !(level instanceof ServerLevel serverLevel)) {
 				return InteractionResult.FAIL;
 			}
-			WandConversion.Result result = WandConversion.convert(serverPlayer, level, hand, hit);
+			WandConversion.Result result = WandConversion.convert(serverPlayer, serverLevel, hand, hit);
 			if (result.reason() != null) {
 				return refuse(player, result.reason());
 			}
@@ -128,7 +129,7 @@ public class CamouflageWand extends Item {
 		if (!disguise.contains("Name", Tag.TAG_STRING) || ResourceLocation.tryParse(disguise.getString("Name")) == null) {
 			return Optional.empty();
 		}
-		BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), disguise);
+		BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, disguise);
 		return isLoadable(state) ? Optional.of(state) : Optional.empty();
 	}
 

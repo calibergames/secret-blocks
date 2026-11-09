@@ -4,7 +4,9 @@ import net.calibermc.secretblocks.blocks.Opacity;
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,8 +27,8 @@ public abstract class OpacityCarryMixin {
 	protected abstract BlockState asState();
 
 	@Inject(method = "updateShape", at = @At("RETURN"), cancellable = true)
-	private void secretblocks$keepOpaque(Direction direction, BlockState neighbour, LevelAccessor level, BlockPos pos, BlockPos neighbourPos,
-			CallbackInfoReturnable<BlockState> cir) {
+	private void secretblocks$keepOpaque(LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighbourPos,
+			BlockState neighbour, RandomSource random, CallbackInfoReturnable<BlockState> cir) {
 		BlockState self = asState();
 		BlockState result = cir.getReturnValue();
 		if (self.getBlock() instanceof SecretBlock && self.hasProperty(Opacity.OPAQUE) && result.hasProperty(Opacity.OPAQUE)

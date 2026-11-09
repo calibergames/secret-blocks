@@ -72,7 +72,7 @@ public class SyncGameTests {
 		h.setBlock(A, ModBlocks.SOLID_BLOCK);
 		SecretBlockEntity be = plain(h, A);
 		LevelChunk chunk = h.getLevel().getChunkAt(h.absolutePos(A));
-		chunk.setUnsaved(false);
+		chunk.tryMarkSaved();
 		be.setDisguise(sixFaces());
 		check(h, chunk.isUnsaved(), "setDisguise should mark the chunk for saving");
 		h.succeed();

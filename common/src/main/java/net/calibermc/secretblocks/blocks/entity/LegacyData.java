@@ -5,11 +5,12 @@ import com.mojang.serialization.Dynamic;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.util.datafix.fixes.References;
+
+import java.util.List;
 
 /**
  * Upgrades block entity data saved by older versions of the game. Minecraft's
@@ -21,9 +22,11 @@ import net.minecraft.util.datafix.fixes.References;
  * are renamed between versions: {@code minecraft:grass} is
  * {@code minecraft:short_grass} from 1.20.3), when the data carries no
  * {@link #VERSION} (everything saved before this version);</li>
- * <li>stored item stacks still in the format used before 1.20.5
- * ({@code Count} and {@code tag}; later versions save {@code count} and
- * {@code components}).</li>
+ * <li>the vanilla parts of a secret container's data (its stored item
+ * stacks, its name and its lock), through the fixers of the vanilla block
+ * entity it stands in for: item stacks moved to {@code count} and
+ * {@code components} in 1.20.5, and a lock became an item predicate
+ * ({@code lock}) in place of a name ({@code Lock}) in 1.21.2.</li>
  * </ul>
  */
 public final class LegacyData {
@@ -71,23 +74,33 @@ public final class LegacyData {
 	}
 
 	/**
-	 * Brings each stack of the {@code Items} list in {@code tag} that is still in
-	 * the old item format up to date, in place, keeping its slot.
+	 * Brings the vanilla parts of a secret container's data up to date, in
+	 * place: {@code tag} is run through the fixers of the vanilla block entity
+	 * {@code vanillaId} it stands in for ({@code minecraft:chest},
+	 * {@code minecraft:hopper} or {@code minecraft:dispenser}), from the
+	 * version it was saved with. Its own keys are left as they are; the disguise
+	 * is brought up to date when it loads ({@link #upgradeDisguise}).
 	 */
-	public static void upgradeItems(CompoundTag tag) {
-		if (!tag.contains("Items", Tag.TAG_LIST)) {
+	public static void upgradeContainer(CompoundTag tag, String vanillaId) {
+		int from = tag.contains(VERSION, Tag.TAG_INT) ? tag.getInt(VERSION) : OLDEST;
+		int to = current();
+		if (from >= to) {
 			return;
 		}
-		ListTag items = tag.getList("Items", Tag.TAG_COMPOUND);
-		for (int i = 0; i < items.size(); i++) {
-			CompoundTag item = items.getCompound(i);
-			if (item.contains("Count", Tag.TAG_ANY_NUMERIC) && !item.contains("count")) {
-				CompoundTag fixed = (CompoundTag) fix(References.ITEM_STACK, item, OLDEST, current());
-				if (item.contains("Slot", Tag.TAG_ANY_NUMERIC)) {
-					fixed.putByte("Slot", item.getByte("Slot"));
-				}
-				items.set(i, fixed);
-			}
+		Tag id = tag.get("id");
+		CompoundTag data = tag.copy();
+		data.putString("id", vanillaId);
+		CompoundTag fixed = (CompoundTag) fix(References.BLOCK_ENTITY, data, from, to);
+		for (String key : List.copyOf(tag.getAllKeys())) {
+			tag.remove(key);
+		}
+		for (String key : fixed.getAllKeys()) {
+			tag.put(key, fixed.get(key));
+		}
+		if (id != null) {
+			tag.put("id", id);
+		} else {
+			tag.remove("id");
 		}
 	}
 

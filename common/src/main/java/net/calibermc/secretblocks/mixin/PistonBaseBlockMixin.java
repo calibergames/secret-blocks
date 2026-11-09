@@ -68,10 +68,10 @@ public abstract class PistonBaseBlockMixin {
 		if (!piston && !SecretPushing.isPushable(state.getBlock())) {
 			return;
 		}
-		boolean inWorld = pos.getY() >= level.getMinBuildHeight() && pos.getY() <= level.getMaxBuildHeight() - 1
+		boolean inWorld = pos.getY() >= level.getMinY() && pos.getY() <= level.getMaxY()
 				&& level.getWorldBorder().isWithinBounds(pos);
-		boolean offTheEdge = (direction == Direction.DOWN && pos.getY() == level.getMinBuildHeight())
-				|| (direction == Direction.UP && pos.getY() == level.getMaxBuildHeight() - 1);
+		boolean offTheEdge = (direction == Direction.DOWN && pos.getY() == level.getMinY())
+				|| (direction == Direction.UP && pos.getY() == level.getMaxY());
 		if (!inWorld || offTheEdge) {
 			cir.setReturnValue(false);
 		} else if (piston) {

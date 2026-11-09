@@ -1,11 +1,7 @@
 package net.calibermc.secretblocks.mixin;
 
 import net.calibermc.secretblocks.blocks.RedstoneWireFamily;
-import net.calibermc.secretblocks.blocks.SecretRedstoneWire;
 import net.calibermc.secretblocks.blocks.SecretRepeater;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedStoneWireBlock;
@@ -14,15 +10,14 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Vanilla redstone wire and Secret Redstone Dust behave as one wire family.
- * In 1.20.1 each {@link RedStoneWireBlock} instance
- * (a) switches off only its own {@code shouldSignal} while computing its
- * power, and (b) recognises only its own block as wire. With two instances
+ * Each {@link RedStoneWireBlock} instance (a) switches off only its own
+ * {@code shouldSignal} while reading the power around it, and (b) recognises
+ * only its own block as wire (also in its power evaluator: see
+ * {@link RedstoneWireEvaluatorFamilyMixin}). With two instances
  * each read the other as a full-strength source: no loss per block, and a
  * line latches on after its source is removed. This makes the "quiet while
  * computing" flag family-wide and treats any wire block as wire, also where
@@ -38,7 +33,7 @@ public abstract class RedStoneWireFamilyMixin {
 	private boolean shouldSignal;
 
 	/** The two writes around {@code getBestNeighborSignal}: quiet the whole family, not just this block. */
-	@Redirect(method = "calculateTargetStrength",
+	@Redirect(method = "getBlockSignal",
 			at = @At(value = "FIELD", target = "Lnet/minecraft/world/level/block/RedStoneWireBlock;shouldSignal:Z", opcode = Opcodes.PUTFIELD))
 	private void secretblocks$quietTheFamily(RedStoneWireBlock self, boolean value) {
 		shouldSignal = value;
@@ -53,30 +48,13 @@ public abstract class RedStoneWireFamilyMixin {
 	}
 
 	/** "Is this block me?" becomes "is this any wire block?" where vanilla reads or updates neighbouring wires. */
-	@Redirect(method = {"getWireSignal", "checkCornerChangeAt", "updateIndirectNeighbourShapes"},
+	@Redirect(method = {"checkCornerChangeAt", "updateIndirectNeighbourShapes"},
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/world/level/block/Block;)Z"))
 	private boolean secretblocks$isAnyWire(BlockState state, Block block) {
 		if (block == (Object) this) {
 			return RedstoneWireFamily.isWire(state);
 		}
 		return state.is(block);
-	}
-
-	/**
-	 * A Secret Redstone Wire directly above or below counts as a neighbouring
-	 * wire (power - 1). Vanilla wire only reads wires beside it and one step up
-	 * or down, so a wire resting on a Wire would otherwise get nothing from it.
-	 */
-	@Inject(method = "calculateTargetStrength", at = @At("RETURN"), cancellable = true)
-	private void secretblocks$readWireAboveAndBelow(Level level, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
-		int strength = cir.getReturnValueI();
-		for (Direction direction : new Direction[] {Direction.UP, Direction.DOWN}) {
-			BlockState neighbour = level.getBlockState(pos.relative(direction));
-			if (neighbour.getBlock() instanceof SecretRedstoneWire) {
-				strength = Math.max(strength, neighbour.getValue(RedStoneWireBlock.POWER) - 1);
-			}
-		}
-		cir.setReturnValue(strength);
 	}
 
 	/**

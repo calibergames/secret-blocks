@@ -219,7 +219,7 @@ public class DevClientDriver {
 			case "use" -> {
 				BlockPos pos = pos(a, 1);
 				Direction face = Direction.byName(a[4]);
-				Vec3 hit = Vec3.atCenterOf(pos).add(Vec3.atLowerCornerOf(face.getNormal()).scale(0.5));
+				Vec3 hit = Vec3.atCenterOf(pos).add(Vec3.atLowerCornerOf(face.getUnitVec3i()).scale(0.5));
 				var result = mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, new BlockHitResult(hit, face, pos, false));
 				report("use " + pos.toShortString() + " " + face + " -> " + result);
 			}
@@ -452,11 +452,11 @@ public class DevClientDriver {
 			report("render " + itemId + " failed: '" + name + "' leaves the icons folder");
 			return;
 		}
-		var stack = new net.minecraft.world.item.ItemStack(BuiltInRegistries.ITEM.get(id));
-		var target = new com.mojang.blaze3d.pipeline.TextureTarget(size, size, true, Minecraft.ON_OSX);
+		var stack = new net.minecraft.world.item.ItemStack(BuiltInRegistries.ITEM.getValue(id));
+		var target = new com.mojang.blaze3d.pipeline.TextureTarget(size, size, true);
 		try {
 			target.setClearColor(0, 0, 0, 0);
-			target.clear(Minecraft.ON_OSX);
+			target.clear();
 			target.bindWrite(true);
 			com.mojang.blaze3d.systems.RenderSystem.backupProjectionMatrix();
 			var modelView = com.mojang.blaze3d.systems.RenderSystem.getModelViewStack();
@@ -464,10 +464,9 @@ public class DevClientDriver {
 			try {
 				com.mojang.blaze3d.systems.RenderSystem.setProjectionMatrix(
 						new org.joml.Matrix4f().setOrtho(0, 16, 16, 0, 1000, 3000),
-						com.mojang.blaze3d.vertex.VertexSorting.ORTHOGRAPHIC_Z);
+						com.mojang.blaze3d.ProjectionType.ORTHOGRAPHIC);
 				modelView.identity();
 				modelView.translate(0, 0, -2000);
-				com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
 				var graphics = new net.minecraft.client.gui.GuiGraphics(mc, mc.renderBuffers().bufferSource());
 				graphics.renderItem(stack, 0, 0);
 				graphics.flush();
@@ -482,7 +481,6 @@ public class DevClientDriver {
 			} finally {
 				// Undone only once they were set up, so a failure above cannot be masked here.
 				modelView.popMatrix();
-				com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
 				com.mojang.blaze3d.systems.RenderSystem.restoreProjectionMatrix();
 			}
 		} catch (IOException e) {

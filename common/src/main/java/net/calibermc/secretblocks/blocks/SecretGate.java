@@ -4,6 +4,8 @@ import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretGateSegmentBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -21,7 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -54,7 +56,7 @@ import java.util.function.IntFunction;
  */
 public class SecretGate extends Block implements EntityBlock, SecretBlock, GateSegmentOwner {
 
-	public static final DirectionProperty FACING = DirectionalBlock.FACING;
+	public static final EnumProperty<Direction> FACING = DirectionalBlock.FACING;
 	/** Its own redstone input. */
 	public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 	/** Its line is wanted: powered, or opened by another gate. */
@@ -152,7 +154,7 @@ public class SecretGate extends Block implements EntityBlock, SecretBlock, GateS
 	 * disguise the placement is about to give it.
 	 */
 	@Override
-	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean moved) {
+	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean moved) {
 		if (!level.isClientSide() && level.hasNeighborSignal(pos) != state.getValue(POWERED)) {
 			if (level.getBlockEntity(pos) instanceof DisguisedBlockEntity gate && gate.getState(Direction.NORTH).isAir()) {
 				level.scheduleTick(pos, this, HOP_DELAY);

@@ -1,5 +1,7 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.core.registries.Registries;
 import net.calibermc.secretblocks.gametest.support.GameTestPlatform;
@@ -89,12 +91,18 @@ public class RecipeGameTests {
 		}
 	}
 
+	/** Every crafting recipe the server has loaded. */
+	private static List<RecipeHolder<?>> craftingRecipes(GameTestHelper h) {
+		return h.getLevel().getServer().getRecipeManager().getRecipes().stream()
+				.filter(holder -> holder.value().getType() == RecipeType.CRAFTING).toList();
+	}
+
 	/** Every recipe file loads, except the parked ones. */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void everyRecipeLoads(GameTestHelper h) {
 		MinecraftServer server = h.getLevel().getServer();
 		checkLoads(h, "recipe", dataFiles(server, "recipe"), PARKED::contains,
-				name -> server.getRecipeManager().byKey(ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, name)).isPresent());
+				name -> server.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, name))).isPresent());
 		h.succeed();
 	}
 
@@ -110,14 +118,14 @@ public class RecipeGameTests {
 	/** Every registered block and item has a crafting recipe that makes it. */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void everyItemHasARecipe(GameTestHelper h) {
-		List<RecipeHolder<CraftingRecipe>> recipes = h.getLevel().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING);
+		List<RecipeHolder<?>> recipes = craftingRecipes(h);
 		int items = 0;
 		for (Item item : BuiltInRegistries.ITEM) {
 			if (!BuiltInRegistries.ITEM.getKey(item).getNamespace().equals(SecretBlocks.MOD_ID) || NO_RECIPE.contains(item)) {
 				continue;
 			}
 			items++;
-			check(h, recipes.stream().anyMatch(r -> r.value().getResultItem(h.getLevel().registryAccess()).is(item)), "no crafting recipe makes " + BuiltInRegistries.ITEM.getKey(item));
+			check(h, recipes.stream().anyMatch(r -> makes(r.value(), h.getLevel(), item)), "no crafting recipe makes " + BuiltInRegistries.ITEM.getKey(item));
 		}
 		check(h, items >= 20, "expected the mod's items, found " + items);
 		h.succeed();
@@ -131,24 +139,27 @@ public class RecipeGameTests {
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void everyRecipeCraftsFromItsIngredients(GameTestHelper h) {
 		int crafted = 0;
-		for (RecipeHolder<CraftingRecipe> holder : h.getLevel().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING)) {
-			if (!holder.id().getNamespace().equals(SecretBlocks.MOD_ID)) {
+		for (RecipeHolder<?> holder : craftingRecipes(h)) {
+			if (!holder.id().location().getNamespace().equals(SecretBlocks.MOD_ID)) {
 				continue;
 			}
-			CraftingRecipe recipe = holder.value();
+			CraftingRecipe recipe = (CraftingRecipe) holder.value();
 			crafted++;
 			int width = recipe instanceof ShapedRecipe shaped ? shaped.getWidth() : 3;
 			ItemStack[] grid = new ItemStack[9];
 			Arrays.fill(grid, ItemStack.EMPTY);
-			List<Ingredient> ingredients = recipe.getIngredients();
+			// A shaped recipe's slots in pattern order (empty where the pattern has a gap); a shapeless one's ingredients.
+			List<Optional<Ingredient>> ingredients = recipe instanceof ShapedRecipe shaped ? shaped.getIngredients()
+					: recipe.placementInfo().ingredients().stream().map(Optional::of).toList();
 			for (int i = 0; i < ingredients.size(); i++) {
-				ItemStack[] accepted = ingredients.get(i).getItems();
-				check(h, ingredients.get(i).isEmpty() || accepted.length > 0, holder.id() + " ingredient " + i + " accepts no item");
-				grid[(i / width) * 3 + i % width] = accepted.length > 0 ? accepted[0].copy() : ItemStack.EMPTY;
+				List<Holder<Item>> accepted = ingredients.get(i).map(Ingredient::items).orElse(List.of());
+				check(h, ingredients.get(i).isEmpty() || !accepted.isEmpty(), holder.id() + " ingredient " + i + " accepts no item");
+				grid[(i / width) * 3 + i % width] = accepted.isEmpty() ? ItemStack.EMPTY : new ItemStack(accepted.get(0));
 			}
 			Optional<ItemStack> made = craft(h, grid);
-			check(h, made.isPresent() && made.get().is(recipe.getResultItem(h.getLevel().registryAccess()).getItem()),
-					holder.id() + " should make " + recipe.getResultItem(h.getLevel().registryAccess()) + " from its ingredients, got " + made);
+			List<ItemStack> results = results(recipe, h.getLevel());
+			check(h, made.isPresent() && results.stream().anyMatch(result -> made.get().is(result.getItem())),
+					holder.id() + " should make " + results + " from its ingredients, got " + made);
 		}
 		check(h, crafted >= 20, "expected the mod's crafting recipes, found " + crafted);
 		h.succeed();

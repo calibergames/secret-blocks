@@ -1,12 +1,8 @@
 {
 	"type": "minecraft:crafting_shapeless",
 	"ingredients": [
-		{
-			"item": "secretblocks:solid_block"
-		},
-		{
-			"tag": "minecraft:wooden_buttons"
-		}
+		"secretblocks:solid_block",
+		"#minecraft:wooden_buttons"
 	],
 	"result": {
 		"id": "secretblocks:wooden_button",

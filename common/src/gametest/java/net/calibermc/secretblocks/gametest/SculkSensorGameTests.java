@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.core.registries.Registries;
 import net.calibermc.secretblocks.blocks.entity.SecretSculkSensorBlockEntity;
 import net.calibermc.secretblocks.registry.Counterparts;
@@ -337,7 +338,7 @@ public class SculkSensorGameTests {
 			}
 		}
 		// A warden first: vanilla's step ignores it.
-		Warden warden = EntityType.WARDEN.create(h.getLevel());
+		Warden warden = EntityType.WARDEN.create(h.getLevel(), EntitySpawnReason.COMMAND);
 		for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
 			BlockState state = h.getBlockState(pos);
 			state.getBlock().stepOn(h.getLevel(), h.absolutePos(pos), state, warden);
@@ -346,7 +347,7 @@ public class SculkSensorGameTests {
 		List<Pig> pigs = new ArrayList<>();
 		h.runAfterDelay(5, () -> {
 			for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
-				Pig pig = EntityType.PIG.create(h.getLevel());
+				Pig pig = EntityType.PIG.create(h.getLevel(), EntitySpawnReason.COMMAND);
 				Vec3 above = Vec3.atBottomCenterOf(h.absolutePos(pos.above(2)));
 				pig.moveTo(above.x, above.y, above.z);
 				h.getLevel().addFreshEntity(pig);
@@ -440,7 +441,7 @@ public class SculkSensorGameTests {
 		BlockPos secretSilk = new BlockPos(1, 1, 6);
 		BlockPos vanillaSilk = new BlockPos(6, 1, 6);
 		ItemStack silk = new ItemStack(Items.DIAMOND_PICKAXE);
-		silk.enchant(h.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.SILK_TOUCH), 1);
+		silk.enchant(h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH), 1);
 		for (BlockPos pos : new BlockPos[] {secretSilk, vanillaSilk}) {
 			h.setBlock(pos, pos == secretSilk ? SECRET : Blocks.SCULK_SENSOR);
 			BlockState state = h.getBlockState(pos);

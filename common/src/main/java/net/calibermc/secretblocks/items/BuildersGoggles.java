@@ -1,10 +1,6 @@
 package net.calibermc.secretblocks.items;
 
-import net.minecraft.core.Holder;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.Item;
 
 /**
  * Builder's Goggles: worn in the helmet slot, they show the wearer every
@@ -13,22 +9,14 @@ import net.minecraft.world.item.crafting.Ingredient;
  * (creative inventory and {@code /give} only). They look like the Secret
  * Goggles when worn.
  */
-public class BuildersGoggles extends ArmorItem {
+public class BuildersGoggles extends Item {
 
 	/**
-	 * Their armour material: no protection, not enchantable, nothing repairs
-	 * them; worn, they use the Secret Goggles' texture. They have no
-	 * durability (no maximum damage on the item), so they never wear out.
+	 * Worn like the Secret Goggles (see {@link SecretGoggles#helmet}). Not
+	 * enchantable, and nothing repairs them: they have no durability, so they
+	 * never wear out.
 	 */
-	public static final Holder<ArmorMaterial> MATERIAL = SecretGoggles.material(() -> Ingredient.EMPTY);
-
 	public BuildersGoggles(Properties properties) {
-		super(MATERIAL, ArmorItem.Type.HELMET, properties);
-	}
-
-	/** No armour or toughness modifiers at all (not even "+0 Armor"). */
-	@Override
-	public ItemAttributeModifiers getDefaultAttributeModifiers() {
-		return ItemAttributeModifiers.EMPTY;
+		super(SecretGoggles.helmet(properties));
 	}
 }

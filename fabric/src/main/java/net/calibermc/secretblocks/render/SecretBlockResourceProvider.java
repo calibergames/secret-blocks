@@ -14,7 +14,7 @@ public final class SecretBlockResourceProvider implements ModelLoadingPlugin {
 	public static final ResourceLocation CAMO_BLOCK = SecretBlocks.id("block/camo_block");
 
 	@Override
-	public void onInitializeModelLoader(Context context) {
+	public void initialize(Context context) {
 		context.resolveModel().register(model -> model.id().equals(CAMO_BLOCK) ? CAMO_MODEL : null);
 	}
 }

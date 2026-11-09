@@ -109,14 +109,14 @@ public class SecretChestBlockEntity extends SecretBlockEntity implements Impleme
 		if (customName != null) {
 			tag.putString("CustomName", Component.Serializer.toJson(customName, registries));
 		}
-		lockKey.addToTag(tag);
+		lockKey.addToTag(tag, registries);
 	}
 
 	@Override
 	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadAdditional(tag, registries);
 		customName = tag.contains("CustomName", 8) ? parseCustomNameSafe(tag.getString("CustomName"), registries) : null;
-		lockKey = LockCode.fromTag(tag);
+		lockKey = LockCode.fromTag(tag, registries);
 	}
 
 	/** The custom name, for the item a broken chest drops (its loot table copies {@code minecraft:custom_name}). */
