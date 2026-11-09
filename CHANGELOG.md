@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.1 (Minecraft 1.20.1: Fabric, Quilt, NeoForge, Forge; Fabric and Quilt also 1.20)
+
+- **One Way Glass walls read as one clean window,** now without a
+  connected-textures mod too. The faces between neighbouring One Way Glass
+  blocks are no longer drawn, with any disguise, grass included (in 2.1.0 a
+  grass disguise still showed them).
+- **Fixed:** with Carpet's `movableBlockEntities` rule on, a secret block
+  pushed by a piston lost its disguise.
+- When a Sodium or Embeddium version has changed so that the Builder's
+  Goggles' see-through view cannot hook into it, the log now says so.
+- Worlds from 2.0.0 and 2.1.0 load unchanged.
+
 ## 2.1.0 (Minecraft 1.20.1: Fabric, Quilt, NeoForge, Forge; Fabric and Quilt also 1.20)
 
 Secret Blocks now runs on all four loaders for Minecraft 1.20.1, with the
