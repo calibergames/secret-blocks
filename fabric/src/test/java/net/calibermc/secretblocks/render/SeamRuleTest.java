@@ -14,25 +14,20 @@ class SeamRuleTest {
 	private static final BooleanSupplier SOLID = () -> false;
 
 	@Test
-	void hidesTheSeamOfASeeThroughBlockWithConnectedTextures() {
-		assertTrue(SeamRule.hides(true, true, true, SEE_THROUGH));
-	}
-
-	@Test
-	void keepsEveryFaceWithoutConnectedTextures() {
-		assertFalse(SeamRule.hides(false, true, true, SEE_THROUGH));
+	void hidesTheSeamOfASeeThroughBlock() {
+		assertTrue(SeamRule.hides(true, true, SEE_THROUGH));
 	}
 
 	@Test
 	void keepsTheFacesOfASolidLookingBlock() {
 		// Seen through a One Way Glass window beside it: hiding them would show its inside.
-		assertFalse(SeamRule.hides(true, true, true, SOLID));
+		assertFalse(SeamRule.hides(true, true, SOLID));
 	}
 
 	@Test
-	void keepsFacesWhoseLooksDifferOrAreNotOpaque() {
-		assertFalse(SeamRule.hides(true, false, true, SEE_THROUGH));
-		assertFalse(SeamRule.hides(true, true, false, SEE_THROUGH));
+	void keepsFacesThatShowThroughOrBesideASeeThroughLook() {
+		assertFalse(SeamRule.hides(false, true, SEE_THROUGH));
+		assertFalse(SeamRule.hides(true, false, SEE_THROUGH));
 	}
 
 	@Test
@@ -40,8 +35,7 @@ class SeamRuleTest {
 		BooleanSupplier unexpected = () -> {
 			throw new AssertionError("the block's faces were read for a face that is drawn anyway");
 		};
-		assertFalse(SeamRule.hides(false, true, true, unexpected));
-		assertFalse(SeamRule.hides(true, false, true, unexpected));
-		assertFalse(SeamRule.hides(true, true, false, unexpected));
+		assertFalse(SeamRule.hides(false, true, unexpected));
+		assertFalse(SeamRule.hides(true, false, unexpected));
 	}
 }
