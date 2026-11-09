@@ -113,9 +113,9 @@ public class SecretDaylightDetector extends Block implements EntityBlock, Secret
 
 	/** As vanilla: a player who may build toggles inverted, and the signal is recomputed at once. */
 	@Override
-	public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
 		if (!player.mayBuild()) {
-			return super.use(state, level, pos, player, hand, hit);
+			return super.useWithoutItem(state, level, pos, player, hit);
 		}
 		if (level.isClientSide) {
 			return InteractionResult.SUCCESS;

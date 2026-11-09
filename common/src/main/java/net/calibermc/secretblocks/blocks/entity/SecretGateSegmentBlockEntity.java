@@ -2,9 +2,9 @@ package net.calibermc.secretblocks.blocks.entity;
 
 import net.calibermc.secretblocks.blocks.GateSegmentOwner;
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -99,20 +99,33 @@ public class SecretGateSegmentBlockEntity extends BlockEntity implements Disguis
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		disguise.save(tag);
 		if (owner != null) {
-			tag.put(OWNER, NbtUtils.writeBlockPos(owner));
+			tag.put(OWNER, writePos(owner));
 		}
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
 		disguise.load(tag);
-		owner = tag.contains(OWNER, CompoundTag.TAG_COMPOUND) ? NbtUtils.readBlockPos(tag.getCompound(OWNER)) : null;
+		owner = tag.contains(OWNER, CompoundTag.TAG_COMPOUND) ? readPos(tag.getCompound(OWNER)) : null;
 		DisguisedBlockEntity.redrawAfterLoad(this);
+	}
+
+	/** The owner's position as {@code {X, Y, Z}}, the format worlds saved by earlier versions hold. */
+	private static CompoundTag writePos(BlockPos pos) {
+		CompoundTag tag = new CompoundTag();
+		tag.putInt("X", pos.getX());
+		tag.putInt("Y", pos.getY());
+		tag.putInt("Z", pos.getZ());
+		return tag;
+	}
+
+	private static BlockPos readPos(CompoundTag tag) {
+		return new BlockPos(tag.getInt("X"), tag.getInt("Y"), tag.getInt("Z"));
 	}
 
 	@Override
@@ -122,7 +135,7 @@ public class SecretGateSegmentBlockEntity extends BlockEntity implements Disguis
 
 	/** What clients receive: the disguise only, never the owner's position. */
 	@Override
-	public CompoundTag getUpdateTag() {
+	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		return disguise.saveForClients(new CompoundTag());
 	}
 }

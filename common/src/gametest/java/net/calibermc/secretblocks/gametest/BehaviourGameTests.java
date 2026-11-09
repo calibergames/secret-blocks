@@ -130,9 +130,9 @@ public class BehaviourGameTests {
 		SecretChestBlockEntity chest = chest(h, A);
 		chest.setItem(0, new ItemStack(Items.DIAMOND, 5));
 		chest.setItem(26, new ItemStack(Items.OAK_LOG, 64));
-		CompoundTag saved = chest.saveWithoutMetadata();
+		CompoundTag saved = chest.saveWithoutMetadata(h.getLevel().registryAccess());
 		SecretChestBlockEntity copy = new SecretChestBlockEntity(h.absolutePos(A), h.getBlockState(A));
-		copy.load(saved);
+		copy.loadWithComponents(saved, h.getLevel().registryAccess());
 		check(h, ItemStack.matches(copy.getItem(0), new ItemStack(Items.DIAMOND, 5)), "slot 0 should hold 5 diamonds");
 		check(h, ItemStack.matches(copy.getItem(26), new ItemStack(Items.OAK_LOG, 64)), "slot 26 should hold 64 oak logs");
 		check(h, copy.getItem(1).isEmpty(), "slot 1 should be empty");
@@ -167,12 +167,12 @@ public class BehaviourGameTests {
 		StringBuilder leftBehind = new StringBuilder();
 		for (Block block : ModBlocks.secretBlocksList) {
 			h.setBlock(A, block);
-			if (!(h.getBlockEntity(A) instanceof DisguisedBlockEntity)) {
+			if (!(blockEntityAt(h, A) instanceof DisguisedBlockEntity)) {
 				leftBehind.append(block).append(" (no block entity after placing) ");
 				continue;
 			}
 			h.getLevel().destroyBlock(h.absolutePos(A), false);
-			if (h.getBlockEntity(A) != null) {
+			if (blockEntityAt(h, A) != null) {
 				leftBehind.append(block).append(' ');
 				h.getLevel().removeBlockEntity(h.absolutePos(A));
 			}
@@ -207,7 +207,7 @@ public class BehaviourGameTests {
 			net.minecraft.world.level.block.state.properties.Property<?> property = state.getProperties().iterator().next();
 			h.getLevel().setBlock(h.absolutePos(A), state.cycle(property), 2);
 			BlockState after = h.getBlockState(A);
-			if (!after.is(block) || !(h.getBlockEntity(A) instanceof DisguisedBlockEntity secret)
+			if (!after.is(block) || !(blockEntityAt(h, A) instanceof DisguisedBlockEntity secret)
 					|| !secret.getState(Direction.NORTH).is(Blocks.BRICKS)) {
 				lost.append(block).append(" (").append(property.getName()).append(") ");
 			}
@@ -251,9 +251,9 @@ public class BehaviourGameTests {
 			h.setBlock(A, block);
 			boolean broken = player.gameMode.destroyBlock(h.absolutePos(A));
 			BlockState after = h.getBlockState(A);
-			if (!broken || !after.isAir() || h.getBlockEntity(A) != null) {
+			if (!broken || !after.isAir() || blockEntityAt(h, A) != null) {
 				problems.append(block).append(" -> broken=").append(broken).append(", left ").append(after)
-						.append(", block entity ").append(h.getBlockEntity(A)).append("; ");
+						.append(", block entity ").append(blockEntityAt(h, A)).append("; ");
 			}
 			var drops = h.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
 					new net.minecraft.world.phys.AABB(h.absolutePos(A)).inflate(3));

@@ -1,5 +1,7 @@
 package net.calibermc.secretblocks.gametest.neoforge;
 
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
 import com.google.gson.JsonObject;
 import net.calibermc.secretblocks.gametest.support.GameTestPlatform;
 import net.minecraft.core.BlockPos;
@@ -13,25 +15,24 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.conditions.ICondition;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.common.CommonHooks;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 
-/** {@link GameTestPlatform} on NeoForge and Forge 1.20.1. */
+/** {@link GameTestPlatform} on NeoForge. */
 public class NeoForgeGameTestPlatform implements GameTestPlatform {
 
 	@Override
 	public InteractionResult useBlockHooks(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
-		PlayerInteractEvent.RightClickBlock event = ForgeHooks.onRightClickBlock(player, hand, hit.getBlockPos(), hit);
+		PlayerInteractEvent.RightClickBlock event = CommonHooks.onRightClickBlock(player, hand, hit.getBlockPos(), hit);
 		return event.isCanceled() ? event.getCancellationResult() : InteractionResult.PASS;
 	}
 
 	@Override
 	public boolean conditionsPass(JsonObject json) {
-		return CraftingHelper.processConditions(json, "conditions", ICondition.IContext.EMPTY);
+		return ICondition.conditionsMatched(JsonOps.INSTANCE, (JsonElement) json);
 	}
 
 	@Override
@@ -41,6 +42,6 @@ public class NeoForgeGameTestPlatform implements GameTestPlatform {
 
 	@Override
 	public void chunkLoaded(ServerLevel level, LevelChunk chunk) {
-		MinecraftForge.EVENT_BUS.post(new ChunkEvent.Load(chunk, false));
+		NeoForge.EVENT_BUS.post(new ChunkEvent.Load(chunk, false));
 	}
 }

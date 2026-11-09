@@ -116,7 +116,7 @@ dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
 	mappings loom.layered() {
 		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_mappings}@zip")
+		parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_mappings}@zip")
 	}
 	modImplementation "net.fabricmc:fabric-loader:${loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
@@ -128,10 +128,11 @@ dependencies {
 }
 
 processResources {
-	inputs.property "version", project.version
-
+	def props = [version: project.version, fabric_loader_min: fabric_loader_min, fabric_api_min: fabric_api_min,
+			minecraft_versions: minecraft_versions.split(',').collect { '"' + it.trim() + '"' }.join(', ')]
+	inputs.properties props
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand props
 	}
 }
 

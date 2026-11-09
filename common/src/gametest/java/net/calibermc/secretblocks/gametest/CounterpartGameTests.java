@@ -221,14 +221,14 @@ public class CounterpartGameTests {
 				continue;
 			}
 			h.setBlock(rel, block.defaultBlockState());
-			BlockEntity entity = h.getBlockEntity(rel);
+			BlockEntity entity = blockEntityAt(h, rel);
 			check(h, entity instanceof DisguisedBlockEntity, BuiltInRegistries.BLOCK.getKey(block) + " has no disguise block entity, has " + entity);
 			((DisguisedBlockEntity) entity).setState(Direction.NORTH, Blocks.BRICKS.defaultBlockState());
 			if (entity instanceof Container container && container.getContainerSize() > 0) {
 				container.setItem(0, new ItemStack(Items.DIAMOND, 3));
 			}
 			// Both paths to the client: the chunk-load tag and the update packet.
-			CompoundTag update = entity.getUpdateTag();
+			CompoundTag update = entity.getUpdateTag(h.getLevel().registryAccess());
 			var packet = entity.getUpdatePacket();
 			CompoundTag packetTag = packet instanceof ClientboundBlockEntityDataPacket data ? data.getTag() : null;
 			check(h, packetTag != null, BuiltInRegistries.BLOCK.getKey(block) + " sends no block-entity update packet");

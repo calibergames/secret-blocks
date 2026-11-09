@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
@@ -38,7 +39,7 @@ public class ClamberGameTests {
 
 	/** A jumping player at the foot of the column; returns it so its height can be read. */
 	private static Player jumperIn(GameTestHelper h, int x) {
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		Vec3 feet = abs(h, new Vec3(x + 0.5, 1, 3.5));
 		player.moveTo(feet.x, feet.y, feet.z, 0, 0);
 		player.setJumping(true);
@@ -113,8 +114,8 @@ public class ClamberGameTests {
 		CraftingContainer grid = new net.minecraft.world.inventory.TransientCraftingContainer(menu, 3, 3);
 		grid.setItem(0, new ItemStack(ModBlocks.GHOST_BLOCK));
 		grid.setItem(1, new ItemStack(Items.LADDER));
-		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, h.getLevel())
-				.map((CraftingRecipe recipe) -> recipe.assemble(grid, h.getLevel().registryAccess()));
+		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
+				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
 		check(h, result.isPresent() && result.get().is(ModBlocks.SECRET_CLAMBER.asItem()),
 				"Ghost Block + ladder should craft a Secret Clamber, got " + result);
 		h.succeed();

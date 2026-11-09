@@ -21,27 +21,30 @@ import net.minecraft.world.level.material.PushReaction;
 public class ModBlocks {
 
     // Blocks
+    // Settings are copied with ofLegacyCopy, which copies what Properties.copy
+    // did before 1.20.5 (not drops, suffocation or spawn rules), so the blocks
+    // behave as on older versions.
     // Wool settings: drops without a tool. How long a secret block takes to
     // mine, how it sounds and how it stands up to a blast follow its look
     // (blocks/DisguiseLook), not these settings.
     public static final Block SOLID_BLOCK = registerBlock("solid_block",
-            new SolidBlock(BlockBehaviour.Properties.copy(Blocks.WHITE_WOOL)));
+            new SolidBlock(BlockBehaviour.Properties.ofLegacyCopy(Blocks.WHITE_WOOL)));
 
     public static final Block STAIR_BLOCK = registerBlock("stair_block",
-            new StairBlock(SOLID_BLOCK.defaultBlockState(), BlockBehaviour.Properties.copy(SOLID_BLOCK)));
+            new StairBlock(SOLID_BLOCK.defaultBlockState(), BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK)));
 
     public static final Block SLAB_BLOCK = registerBlock("slab_block",
-            new SlabBlock(BlockBehaviour.Properties.copy(SOLID_BLOCK)));
+            new SlabBlock(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK)));
 
     public static final Block GHOST_BLOCK = registerBlock("ghost_block",
-            new GhostBlock(BlockBehaviour.Properties.copy(SOLID_BLOCK).noCollission()));
+            new GhostBlock(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).noCollission()));
 
     public static final Block ONE_WAY_GLASS = registerBlock("one_way_glass",
-            new OneWayGlassBlock(BlockBehaviour.Properties.copy(SOLID_BLOCK).noOcclusion()));
+            new OneWayGlassBlock(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).noOcclusion()));
 
     // Doors break when a piston pushes them, as vanilla's.
     public static final Block DOOR_BLOCK = registerBlock("door_block",
-            new DoorBlock(BlockBehaviour.Properties.copy(SOLID_BLOCK).pushReaction(PushReaction.DESTROY), BlockSetType.OAK));
+            new DoorBlock(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).pushReaction(PushReaction.DESTROY), BlockSetType.OAK));
 
     // Iron door and trapdoor: vanilla iron settings but for the tool needed to
     // drop (a secret block always drops; mining time, sounds and blast
@@ -53,7 +56,7 @@ public class ModBlocks {
             new DoorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(5.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.DESTROY), BlockSetType.IRON));
 
     public static final Block TRAPDOOR_BLOCK = registerBlock("trapdoor_block",
-            new TrapdoorBlock(BlockBehaviour.Properties.copy(SOLID_BLOCK), BlockSetType.OAK));
+            new TrapdoorBlock(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK), BlockSetType.OAK));
 
     public static final Block IRON_TRAPDOOR_BLOCK = registerBlock("iron_trapdoor_block",
             new TrapdoorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(5.0F).sound(SoundType.METAL).noOcclusion()
@@ -61,119 +64,122 @@ public class ModBlocks {
 
     // Buttons and the lever are not conductors, like the vanilla ones they stand in for.
     public static final Block WOODEN_BUTTON = registerBlock("wooden_button",
-            new WoodButton(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new WoodButton(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     public static final Block STONE_BUTTON = registerBlock("stone_button",
-            new StoneButton(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new StoneButton(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     public static final Block SECRET_LEVER = registerBlock("secret_lever",
-            new SecretLever(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretLever(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // A climbable Ghost Block: climbable through the vanilla minecraft:climbable
-    // block tag (data/minecraft/tags/blocks/climbable.json), like the original
+    // block tag (data/minecraft/tags/block/climbable.json), like the original
     // Secret Rooms Mod's Secret Clamber.
     public static final Block SECRET_CLAMBER = registerBlock("secret_clamber",
-            new GhostBlock(BlockBehaviour.Properties.copy(SOLID_BLOCK).noCollission()));
+            new GhostBlock(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).noCollission()));
 
 //    public static final Block SECRET_LADDER = registerBlock("secret_ladder",
-//            new SecretLadder(SOLID_BLOCK.getDefaultState(), BlockBehaviour.Properties.copy(SOLID_BLOCK)));
+//            new SecretLadder(SOLID_BLOCK.getDefaultState(), BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK)));
 
     // Not a conductor, as vanilla's observer.
     public static final Block SECRET_OBSERVER = registerBlock("secret_observer",
-            new SecretObserver(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretObserver(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // Has its own block entity type (a vanilla dispenser block entity), see ModEntities.
     public static final Block SECRET_DISPENSER = registerBlock("secret_dispenser",
-            new SecretDispenser(BlockBehaviour.Properties.copy(SOLID_BLOCK)));
+            new SecretDispenser(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK)));
 
     // Shares the Secret Dispenser's block entity type, see ModEntities.
     public static final Block SECRET_DROPPER = registerBlock("secret_dropper",
-            new SecretDropper(BlockBehaviour.Properties.copy(SOLID_BLOCK)));
+            new SecretDropper(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK)));
 
     // Has its own block entity type (a vanilla sculk sensor block entity), see ModEntities.
     // No light (vanilla's sensor gives 1, which would show where it is hidden); not a conductor.
     public static final Block SECRET_SCULK_SENSOR = registerBlock("secret_sculk_sensor",
-            new SecretSculkSensor(BlockBehaviour.Properties.copy(SOLID_BLOCK).lightLevel(state -> 0)
+            new SecretSculkSensor(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).lightLevel(state -> 0)
                     .isRedstoneConductor((state, level, pos) -> false)));
 
     // Has its own block entity type (a vanilla hopper block entity), see ModEntities.
     // A full, occluding block, unlike the vanilla funnel, but not a conductor,
     // as vanilla's.
     public static final Block SECRET_HOPPER = registerBlock("secret_hopper",
-            new SecretHopper(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretHopper(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // Not conductors, like the vanilla plates they stand in for.
     public static final Block PRESSURE_PLATE = registerBlock("pressure_plate",
-            new PressurePlate(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false), entity -> true));
+            new PressurePlate(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false), entity -> true));
 
     public static final Block PLAYER_PRESSURE_PLATE = registerBlock("player_pressure_plate",
-            new PressurePlate(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false),
+            new PressurePlate(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false),
                     entity -> entity instanceof Player));
 
     // Vanilla's weighted plates: full signal at 15 entities (light) or 150 (heavy).
     // Not conductors either.
     public static final Block LIGHT_WEIGHTED_PRESSURE_PLATE = registerBlock("light_weighted_pressure_plate",
-            new WeightedPressurePlate(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false), 15));
+            new WeightedPressurePlate(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false), 15));
 
     public static final Block HEAVY_WEIGHTED_PRESSURE_PLATE = registerBlock("heavy_weighted_pressure_plate",
-            new WeightedPressurePlate(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false), 150));
+            new WeightedPressurePlate(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false), 150));
 
     // A full block, but not a redstone conductor, like vanilla wire.
     public static final Block SECRET_REDSTONE = registerBlock("secret_redstone",
-            new SecretRedstone(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretRedstone(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // The original mod's six-sided wire; not a conductor.
     public static final Block SECRET_REDSTONE_WIRE = registerBlock("secret_redstone_wire",
-            new SecretRedstoneWire(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretRedstoneWire(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // A vanilla repeater in a full disguised block; not a conductor.
     public static final Block SECRET_REPEATER = registerBlock("secret_repeater",
-            new SecretRepeater(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretRepeater(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // A vanilla comparator in a full disguised block; not a conductor.
     public static final Block SECRET_COMPARATOR = registerBlock("secret_comparator",
-            new SecretComparator(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretComparator(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // Not a conductor, as vanilla's chest.
     public static final Block SECRET_CHEST = registerBlock("secret_chest",
-            new SecretChest(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretChest(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // A Secret Chest that signals how many players look into it; not a conductor, as vanilla.
     public static final Block SECRET_TRAPPED_CHEST = registerBlock("secret_chest_trapped",
-            new SecretTrappedChest(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretTrappedChest(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
 
     // A daylight detector in a full disguised block; not a conductor.
     public static final Block SECRET_DAYLIGHT_DETECTOR = registerBlock("secret_daylight_detector",
-            new SecretDaylightDetector(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretDaylightDetector(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // Torch Lever: not a secret block. A vanilla torch, floor and wall, that toggles like a
     // lever. One item places both, as with vanilla's torch (the exception to registerBlock's one item per
     // block); the wall block drops what the floor block drops.
     public static final Block TORCH_LEVER = registerBlockWithoutBlockItem("torch_lever",
-            new TorchLever(BlockBehaviour.Properties.copy(Blocks.TORCH)));
+            new TorchLever(BlockBehaviour.Properties.ofLegacyCopy(Blocks.TORCH)));
 
     // Builds a line of segments while open. The shared block entity type; wool-like.
     // The gate and its segments are not conductors, like the other redstone blocks.
     public static final Block SECRET_GATE = registerBlock("secret_gate",
-            new SecretGate(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretGate(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
 
     // Pistons: not conductors (as vanilla). The head has no item and drops nothing.
     public static final Block SECRET_PISTON = registerBlock("secret_piston",
-            new SecretPiston(false, BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretPiston(false, BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
     public static final Block SECRET_STICKY_PISTON = registerBlock("secret_sticky_piston",
-            new SecretPiston(true, BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
+            new SecretPiston(true, BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false)));
     public static final Block SECRET_PISTON_HEAD = registerBlockWithoutBlockItem("secret_piston_head",
-            new SecretPistonHead(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false).noLootTable()));
+            new SecretPistonHead(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false).noLootTable()));
 
     // No item: a Secret Gate builds it. Drops nothing; wool-like as the Dummy Block.
     public static final Block SECRET_GATE_SEGMENT = registerBlockWithoutBlockItem("secret_gate_segment",
-            new SecretGateSegment(BlockBehaviour.Properties.copy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false).noLootTable()));
+            new SecretGateSegment(BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).isRedstoneConductor((state, level, pos) -> false).noLootTable()));
 
+    // Drops a Torch Lever through its own loot table (loot_table/blocks/wall_torch_lever.json), not
+    // dropsLike: a loader that registers blocks later reads the other block's table there before that
+    // block has its id, and keeps a wrong one.
     public static final Block WALL_TORCH_LEVER = registerBlockWithoutBlockItem("wall_torch_lever",
-            new WallTorchLever(BlockBehaviour.Properties.copy(Blocks.WALL_TORCH).dropsLike(TORCH_LEVER)));
+            new WallTorchLever(BlockBehaviour.Properties.ofLegacyCopy(Blocks.WALL_TORCH)));
 
-    public static final Item TORCH_LEVER_ITEM = ModCreativeTab.add(Services.PLATFORM.register(BuiltInRegistries.ITEM, new ResourceLocation(SecretBlocks.MOD_ID, "torch_lever"),
+    public static final Item TORCH_LEVER_ITEM = ModCreativeTab.add(Services.PLATFORM.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, "torch_lever"),
             new StandingAndWallBlockItem(TORCH_LEVER, WALL_TORCH_LEVER, new Item.Properties(), Direction.DOWN)));
 
     // Render Assignment
@@ -189,16 +195,16 @@ public class ModBlocks {
 
     // Registry
     private static Block registerBlockWithoutBlockItem(String name, Block block) {
-        return Services.PLATFORM.register(BuiltInRegistries.BLOCK, new ResourceLocation(SecretBlocks.MOD_ID, name), block);
+        return Services.PLATFORM.register(BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, name), block);
     }
 
     private static Block registerBlock(String name, Block block) {
         registerBlockItem(name, block);
-        return Services.PLATFORM.register(BuiltInRegistries.BLOCK, new ResourceLocation(SecretBlocks.MOD_ID, name), block);
+        return Services.PLATFORM.register(BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, name), block);
     }
 
     private static Item registerBlockItem(String name, Block block) {
-        return ModCreativeTab.add(Services.PLATFORM.register(BuiltInRegistries.ITEM, new ResourceLocation(SecretBlocks.MOD_ID, name),
+        return ModCreativeTab.add(Services.PLATFORM.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, name),
                 new SecretBlockItem(block, new Item.Properties())));
     }
 

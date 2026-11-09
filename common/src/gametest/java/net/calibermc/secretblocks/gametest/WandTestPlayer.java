@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.server.level.ClientInformation;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -42,7 +43,7 @@ final class WandTestPlayer extends ServerPlayer {
 	final List<Component> messages = new ArrayList<>();
 
 	WandTestPlayer(ServerLevel level, boolean creative, int permission) {
-		super(level.getServer(), level, PROFILE);
+		super(level.getServer(), level, PROFILE, ClientInformation.createDefault());
 		this.creative = creative;
 		this.permission = permission;
 	}

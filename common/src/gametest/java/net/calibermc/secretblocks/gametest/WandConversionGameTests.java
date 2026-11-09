@@ -1,5 +1,7 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.world.RandomizableContainer;
+import net.calibermc.secretblocks.items.ItemData;
 import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.blocks.entity.Disguise;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
@@ -111,7 +113,7 @@ public class WandConversionGameTests {
 	private static ItemStack wand(BlockState disguise) {
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		if (disguise != null) {
-			wand.getOrCreateTag().put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(disguise));
+			ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(disguise)));
 		}
 		return wand;
 	}
@@ -161,7 +163,7 @@ public class WandConversionGameTests {
 				continue;
 			}
 			for (BlockPos part : vanilla.getBlock() instanceof DoorBlock ? List.of(TARGET, TARGET.above()) : List.of(TARGET)) {
-				if (!(h.getBlockEntity(part) instanceof DisguisedBlockEntity entity)) {
+				if (!(blockEntityAt(h, part) instanceof DisguisedBlockEntity entity)) {
 					problems.append(name(vanilla.getBlock())).append(": no disguise at ").append(part).append("; ");
 					continue;
 				}
@@ -210,7 +212,7 @@ public class WandConversionGameTests {
 				Blocks.POLISHED_BLACKSTONE_PRESSURE_PLATE.defaultBlockState())) {
 			place(h, vanilla);
 			convert(h, op(h), wand(GRANITE));
-			if (!(h.getBlockEntity(TARGET) instanceof DisguisedBlockEntity entity) || entity.getOriginal() != vanilla.getBlock()) {
+			if (!(blockEntityAt(h, TARGET) instanceof DisguisedBlockEntity entity) || entity.getOriginal() != vanilla.getBlock()) {
 				problems.append(name(vanilla.getBlock())).append(": original not kept; ");
 			}
 			convert(h, op(h), wand(GRANITE));
@@ -243,13 +245,13 @@ public class WandConversionGameTests {
 	public void aGlassLookConversionLetsLightThrough(GameTestHelper h) {
 		floor(h);
 		place(h, Blocks.CHEST.defaultBlockState());
-		((net.minecraft.world.Container) h.getBlockEntity(TARGET)).setItem(3, new ItemStack(Items.DIAMOND, 2));
+		((net.minecraft.world.Container) blockEntityAt(h, TARGET)).setItem(3, new ItemStack(Items.DIAMOND, 2));
 		convert(h, op(h), wand(Blocks.GLASS.defaultBlockState()));
 		BlockState state = h.getBlockState(TARGET);
 		check(h, state.is(ModBlocks.SECRET_CHEST), "the chest should be secret: " + state);
 		check(h, !state.getValue(net.calibermc.secretblocks.blocks.Opacity.OPAQUE)
 				&& state.getLightBlock(h.getLevel(), h.absolutePos(TARGET)) == 0, "it should let light through: " + state);
-		check(h, ((net.minecraft.world.Container) h.getBlockEntity(TARGET)).getItem(3).is(Items.DIAMOND), "it should keep its contents");
+		check(h, ((net.minecraft.world.Container) blockEntityAt(h, TARGET)).getItem(3).is(Items.DIAMOND), "it should keep its contents");
 		h.succeed();
 	}
 
@@ -259,19 +261,19 @@ public class WandConversionGameTests {
 		floor(h);
 		place(h, Blocks.SPRUCE_DOOR.defaultBlockState());
 		convert(h, op(h), wand(GRANITE));
-		BlockEntity entity = h.getBlockEntity(TARGET);
-		CompoundTag saved = entity.saveWithFullMetadata();
+		BlockEntity entity = blockEntityAt(h, TARGET);
+		CompoundTag saved = entity.saveWithFullMetadata(h.getLevel().registryAccess());
 		check(h, "minecraft:spruce_door".equals(saved.getString(Disguise.ORIGINAL)), "the original should be saved, got " + saved);
-		var loaded = (DisguisedBlockEntity) BlockEntity.loadStatic(h.absolutePos(TARGET), h.getBlockState(TARGET), saved);
+		var loaded = (DisguisedBlockEntity) BlockEntity.loadStatic(h.absolutePos(TARGET), h.getBlockState(TARGET), saved, h.getLevel().registryAccess());
 		check(h, loaded.getOriginal() == Blocks.SPRUCE_DOOR, "the original should load back");
-		check(h, !entity.getUpdateTag().contains(Disguise.ORIGINAL), "clients must not get the original");
-		check(h, entity.getUpdateTag().contains("northState"), "clients still get the disguise");
+		check(h, !entity.getUpdateTag(h.getLevel().registryAccess()).contains(Disguise.ORIGINAL), "clients must not get the original");
+		check(h, entity.getUpdateTag(h.getLevel().registryAccess()).contains("northState"), "clients still get the disguise");
 		h.succeed();
 	}
 
 	private static void fill(Container container) {
 		container.setItem(0, new ItemStack(Items.DIAMOND, 5));
-		container.setItem(3, new ItemStack(Items.STICK).setHoverName(Component.literal("Marked")));
+		container.setItem(3, named(new ItemStack(Items.STICK), Component.literal("Marked")));
 		container.setItem(container.getContainerSize() - 1, new ItemStack(Items.COBBLESTONE, 64));
 	}
 
@@ -295,32 +297,32 @@ public class WandConversionGameTests {
 		for (BlockState vanilla : List.of(Blocks.CHEST.defaultBlockState(), Blocks.TRAPPED_CHEST.defaultBlockState(),
 				Blocks.DISPENSER.defaultBlockState(), Blocks.DROPPER.defaultBlockState(), Blocks.HOPPER.defaultBlockState())) {
 			place(h, vanilla);
-			BaseContainerBlockEntity original = (BaseContainerBlockEntity) h.getBlockEntity(TARGET);
+			BaseContainerBlockEntity original = (BaseContainerBlockEntity) blockEntityAt(h, TARGET);
 			fill(original);
-			original.setCustomName(Component.literal("Stash"));
-			CompoundTag lock = original.saveWithoutMetadata();
+			nameContainer(original, Component.literal("Stash"));
+			CompoundTag lock = original.saveWithoutMetadata(h.getLevel().registryAccess());
 			lock.putString("Lock", "key");
-			original.load(lock);
+			original.loadWithComponents(lock, h.getLevel().registryAccess());
 			Container reference = new net.minecraft.world.SimpleContainer(original.getContainerSize());
 			for (int i = 0; i < original.getContainerSize(); i++) {
 				reference.setItem(i, original.getItem(i).copy());
 			}
 			convert(h, op(h), wand(GRANITE));
-			BlockEntity secret = h.getBlockEntity(TARGET);
+			BlockEntity secret = blockEntityAt(h, TARGET);
 			String label = name(vanilla.getBlock());
 			if (!(secret instanceof Container items) || sameItems(reference, items) != null) {
 				problems.append(label).append(" secret: ").append(secret instanceof Container c ? sameItems(reference, c) : secret).append("; ");
 			}
-			CompoundTag secretData = secret.saveWithoutMetadata();
+			CompoundTag secretData = secret.saveWithoutMetadata(h.getLevel().registryAccess());
 			if (!secretData.getString("CustomName").contains("Stash") || !"key".equals(secretData.getString("Lock"))) {
 				problems.append(label).append(" secret name/lock: ").append(secretData.getString("CustomName")).append(" / ")
 						.append(secretData.getString("Lock")).append("; ");
 			}
 			convert(h, op(h), wand(GRANITE));
-			BlockEntity back = h.getBlockEntity(TARGET);
+			BlockEntity back = blockEntityAt(h, TARGET);
 			if (!(back instanceof BaseContainerBlockEntity container) || sameItems(reference, container) != null
 					|| container.getCustomName() == null || !"Stash".equals(container.getCustomName().getString())
-					|| !"key".equals(container.saveWithoutMetadata().getString("Lock"))) {
+					|| !"key".equals(container.saveWithoutMetadata(h.getLevel().registryAccess()).getString("Lock"))) {
 				problems.append(label).append(" back: ").append(back instanceof Container c ? sameItems(reference, c) : back).append("; ");
 			}
 			if (!h.getEntities(EntityType.ITEM, TARGET, 6).isEmpty()) {
@@ -341,21 +343,21 @@ public class WandConversionGameTests {
 		BlockState state = h.getBlockState(TARGET);
 		WandTestPlayer player = op(h);
 		ModBlocks.SECRET_CHEST.setPlacedBy(h.getLevel(), h.absolutePos(TARGET), state, player,
-				new ItemStack(ModBlocks.SECRET_CHEST).setHoverName(Component.literal("Hidden")));
-		SecretChestBlockEntity chest = (SecretChestBlockEntity) h.getBlockEntity(TARGET);
+				named(new ItemStack(ModBlocks.SECRET_CHEST), Component.literal("Hidden")));
+		SecretChestBlockEntity chest = (SecretChestBlockEntity) blockEntityAt(h, TARGET);
 		check(h, chest.getCustomName() != null && "Hidden".equals(chest.getCustomName().getString()), "a renamed item should name the chest");
-		var provider = ModBlocks.SECRET_CHEST.getMenuProvider(state, h.getLevel(), h.absolutePos(TARGET));
+		var provider = state.getMenuProvider(h.getLevel(), h.absolutePos(TARGET));
 		check(h, "Hidden".equals(provider.getDisplayName().getString()), "the title should be the name, got " + provider.getDisplayName());
-		CompoundTag lock = chest.saveWithoutMetadata();
+		CompoundTag lock = chest.saveWithoutMetadata(h.getLevel().registryAccess());
 		lock.putString("Lock", "key");
-		chest.load(lock);
+		chest.loadWithComponents(lock, h.getLevel().registryAccess());
 		// An empty hand, through the server's real use path.
 		player.click(h, ItemStack.EMPTY, TARGET, Direction.NORTH, false);
 		check(h, "container.isLocked".equals(player.lastMessageKey()), "a locked chest should refuse, got " + player.messages);
 		check(h, player.containerMenu == player.inventoryMenu, "the locked chest must not open");
-		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.TRIPWIRE_HOOK).setHoverName(Component.literal("key")));
+		player.setItemInHand(InteractionHand.MAIN_HAND, named(new ItemStack(Items.TRIPWIRE_HOOK), Component.literal("key")));
 		check(h, BaseContainerBlockEntity.canUnlock(player, chest.getLockKey(), Component.empty()), "the key should open it");
-		check(h, chest.getUpdateTag().getAllKeys().stream().noneMatch(k -> k.equals("Lock") || k.equals("CustomName")),
+		check(h, chest.getUpdateTag(h.getLevel().registryAccess()).getAllKeys().stream().noneMatch(k -> k.equals("Lock") || k.equals("CustomName")),
 				"clients must not get the lock or the name");
 		// Mined, it drops a chest item with the name, as vanilla's does.
 		List<ItemStack> drops = Block.getDrops(state, h.getLevel(), h.absolutePos(TARGET), chest);
@@ -432,14 +434,14 @@ public class WandConversionGameTests {
 	public void stuckItemsDropWhenTurningVanilla(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, ModBlocks.SECRET_LEVER.defaultBlockState().setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR));
-		BlockEntity entity = h.getBlockEntity(TARGET);
-		CompoundTag stuck = entity.saveWithoutMetadata();
-		CompoundTag diamonds = new ItemStack(Items.DIAMOND, 3).save(new CompoundTag());
+		BlockEntity entity = blockEntityAt(h, TARGET);
+		CompoundTag stuck = entity.saveWithoutMetadata(h.getLevel().registryAccess());
+		CompoundTag diamonds = (CompoundTag) new ItemStack(Items.DIAMOND, 3).save(h.getLevel().registryAccess(), new CompoundTag());
 		diamonds.putByte("Slot", (byte) 0);
 		net.minecraft.nbt.ListTag list = new net.minecraft.nbt.ListTag();
 		list.add(diamonds);
 		stuck.put("Items", list);
-		entity.load(stuck);
+		entity.loadWithComponents(stuck, h.getLevel().registryAccess());
 		convert(h, op(h), wand(GRANITE));
 		check(h, h.getBlockState(TARGET).is(Blocks.LEVER), "the lever should turn vanilla: " + h.getBlockState(TARGET));
 		int dropped = h.getEntities(EntityType.ITEM, TARGET, 3).stream().mapToInt(e -> e.getItem().is(Items.DIAMOND) ? e.getItem().getCount() : 0).sum();
@@ -499,12 +501,12 @@ public class WandConversionGameTests {
 	private static void refused(GameTestHelper h, WandTestPlayer player, BlockState placed, String reason, boolean listed) {
 		place(h, placed);
 		ItemStack wand = wand(GRANITE);
-		CompoundTag wandBefore = wand.getTag().copy();
+		CompoundTag wandBefore = ItemData.read(wand).copy();
 		BlockState before = h.getBlockState(TARGET);
 		InteractionResult result = player.click(h, wand, TARGET, Direction.NORTH, listed);
 		check(h, result == InteractionResult.FAIL, reason + ": the click should fail, got " + result);
 		check(h, h.getBlockState(TARGET).equals(before), reason + ": the block changed to " + h.getBlockState(TARGET));
-		check(h, wandBefore.equals(wand.getTag()), reason + ": the wand changed");
+		check(h, wandBefore.equals(ItemData.read(wand)), reason + ": the wand changed");
 		check(h, player.lastMessageKey().endsWith("." + reason), reason + ": expected that reason, got " + player.messages);
 		h.setBlock(TARGET.above(), Blocks.AIR);
 		h.setBlock(TARGET.west(), Blocks.AIR);
@@ -524,7 +526,7 @@ public class WandConversionGameTests {
 		refused(h, op(h), ModBlocks.SECRET_PISTON.defaultBlockState().setValue(PistonBaseBlock.EXTENDED, true), "piston_extended", true);
 		for (Block container : new Block[] {Blocks.CHEST, Blocks.DISPENSER}) {
 			h.setBlock(TARGET, container);
-			RandomizableContainerBlockEntity.setLootTable(h.getLevel(), h.getLevel().getRandom(), h.absolutePos(TARGET), BuiltInLootTables.SIMPLE_DUNGEON);
+			RandomizableContainer.setBlockEntityLootTable(h.getLevel(), h.getLevel().getRandom(), h.absolutePos(TARGET), BuiltInLootTables.SIMPLE_DUNGEON);
 			WandTestPlayer player = op(h);
 			InteractionResult result = player.click(h, wand(GRANITE), TARGET, Direction.NORTH, true);
 			check(h, result == InteractionResult.FAIL && h.getBlockState(TARGET).is(container), name(container) + " with a loot table should be refused");

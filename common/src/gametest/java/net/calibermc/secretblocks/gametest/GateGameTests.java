@@ -71,7 +71,7 @@ public class GateGameTests {
 		for (int i = 1; i <= length; i++) {
 			BlockPos pos = gate.relative(facing, i);
 			checkBlock(h, pos, SEGMENT);
-			SecretGateSegmentBlockEntity segment = (SecretGateSegmentBlockEntity) h.getBlockEntity(pos);
+			SecretGateSegmentBlockEntity segment = (SecretGateSegmentBlockEntity) blockEntityAt(h, pos);
 			check(h, gateAbs.equals(segment.getOwner()), "segment " + i + " should belong to the gate at " + gateAbs + ", belongs to " + segment.getOwner());
 			if (disguise != null) {
 				check(h, segment.getState(Direction.NORTH).is(disguise), "segment " + i + " should be disguised as " + disguise + ", is " + segment.getState(Direction.NORTH));
@@ -87,11 +87,11 @@ public class GateGameTests {
 
 	private static List<ItemEntity> items(GameTestHelper h) {
 		// Wider than the area: a dropped item can fly a little way out of it.
-		return h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(BlockPos.ZERO), h.absolutePos(new BlockPos(8, 12, 8))).inflate(3));
+		return h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(Vec3.atLowerCornerOf(h.absolutePos(BlockPos.ZERO)), Vec3.atLowerCornerOf(h.absolutePos(new BlockPos(8, 12, 8)))).inflate(3));
 	}
 
 	/** Placed through the item it faces the side it was placed on and copies the clicked block, as other secret blocks do. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void facesTheSideItWasPlacedOn(GameTestHelper h) {
 		floor(h);
 		h.setBlock(new BlockPos(5, 1, 3), Blocks.BRICKS);
@@ -110,7 +110,7 @@ public class GateGameTests {
 	 * Powered, it builds 9 segments disguised as itself, and no tenth;
 	 * unpowered, it removes them, and nothing drops.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void buildsNineSegmentsAndRemovesThem(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(3, 1, 3);
@@ -140,12 +140,12 @@ public class GateGameTests {
 	 * Replaceable blocks (grass, water) are replaced by segments, and are gone
 	 * when the gate closes.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void stopsAtABlockAndReplacesReplaceableOnes(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(0, 1, 3);
 		gate(h, gate, Direction.EAST, Blocks.BRICKS);
-		h.setBlock(new BlockPos(1, 1, 3), Blocks.GRASS);
+		h.setBlock(new BlockPos(1, 1, 3), Blocks.SHORT_GRASS);
 		h.setBlock(new BlockPos(2, 1, 3), Blocks.WATER);
 		h.setBlock(new BlockPos(5, 1, 3), Blocks.STONE);
 		h.setBlock(gate.north(), Blocks.REDSTONE_BLOCK);
@@ -164,7 +164,7 @@ public class GateGameTests {
 	}
 
 	/** A block exactly at the ninth position stops the line at eight and stays. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void aBlockAtTheNinthPositionStaysAndStopsTheLine(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(3, 1, 3);
@@ -185,7 +185,7 @@ public class GateGameTests {
 	}
 
 	/** Its line stops at another gate's segment, and closing removes only its own segments. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void removesOnlyItsOwnSegments(GameTestHelper h) {
 		floor(h);
 		BlockPos up = new BlockPos(3, 1, 3);
@@ -213,7 +213,7 @@ public class GateGameTests {
 	 * A line that ends at a gate opens it, one tick later; closing closes it
 	 * again, and its segments go too.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void opensAndClosesTheGateItMeets(GameTestHelper h) {
 		floor(h);
 		BlockPos first = new BlockPos(0, 1, 3);
@@ -236,7 +236,7 @@ public class GateGameTests {
 	}
 
 	/** A gate beside the line (across it) opens too, as in the original. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void opensTheGatesBesideItsLine(GameTestHelper h) {
 		floor(h);
 		BlockPos first = new BlockPos(0, 1, 3);
@@ -264,7 +264,7 @@ public class GateGameTests {
 	 * gate of the pair with a gap is blocked by the first one's segments and
 	 * looks again once a second, so only its partner is checked for that.)
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void gatesFacingEachOtherSettle(GameTestHelper h) {
 		floor(h);
 		BlockPos[][] pairs = {{new BlockPos(0, 1, 1), new BlockPos(5, 1, 1)}, {new BlockPos(2, 1, 5), new BlockPos(3, 1, 5)}};
@@ -300,7 +300,7 @@ public class GateGameTests {
 	}
 
 	/** A gate just past the ninth segment opens too, as in the original. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void aGateJustPastAFullLineOpens(GameTestHelper h) {
 		floor(h);
 		BlockPos first = new BlockPos(3, 1, 3);
@@ -326,7 +326,7 @@ public class GateGameTests {
 	 * A gate that is closed does nothing to the gates in front of it: placed, or
 	 * broken, in front of a gate that another holds open, it leaves it open.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void aClosedGateLeavesAHeldOpenGateAlone(GameTestHelper h) {
 		floor(h);
 		BlockPos opener = new BlockPos(0, 1, 3);
@@ -359,7 +359,7 @@ public class GateGameTests {
 	 * A gap in the line when it closes (a segment just broken) does not leave
 	 * the gates further on open.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void aGapDoesNotLeaveTheChainOpen(GameTestHelper h) {
 		floor(h);
 		BlockPos first = new BlockPos(0, 1, 3);
@@ -385,7 +385,7 @@ public class GateGameTests {
 	}
 
 	/** Breaking one segment leaves the rest of the line standing, tick after tick, until the gap is built again. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void breakingOneSegmentLeavesTheRestStanding(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(0, 1, 3);
@@ -412,7 +412,7 @@ public class GateGameTests {
 	 * its segments. When the first is switched off, the second builds its own
 	 * line within a second.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void aBlockedGateBuildsWhenTheOtherLineGoes(GameTestHelper h) {
 		floor(h);
 		BlockPos west = new BlockPos(0, 1, 3);
@@ -423,7 +423,7 @@ public class GateGameTests {
 		h.setBlock(east.north(), Blocks.REDSTONE_BLOCK);
 		BlockPos[] other = new BlockPos[1];
 		h.runAfterDelay(6, () -> {
-			BlockPos owner = ((SecretGateSegmentBlockEntity) h.getBlockEntity(new BlockPos(2, 1, 3))).getOwner();
+			BlockPos owner = ((SecretGateSegmentBlockEntity) blockEntityAt(h, new BlockPos(2, 1, 3))).getOwner();
 			boolean westBuilt = h.absolutePos(west).equals(owner);
 			check(h, westBuilt || h.absolutePos(east).equals(owner), "one of the two should have built the line, owner " + owner);
 			BlockPos builder = westBuilt ? west : east;
@@ -443,7 +443,7 @@ public class GateGameTests {
 	 * line's gate tries again (here paused by an armor stand, so it retries each
 	 * second).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 120)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, timeoutTicks = 120)
 	public void aRetryDoesNotReopenAGateThatClosedItself(GameTestHelper h) {
 		floor(h);
 		BlockPos first = new BlockPos(0, 1, 3);
@@ -475,7 +475,7 @@ public class GateGameTests {
 	 * Placed by a player beside powered redstone dust, it builds with the
 	 * disguise the placement gives it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void placedBesidePoweredDustItBuildsWithItsDisguise(GameTestHelper h) {
 		floor(h);
 		h.setBlock(new BlockPos(1, 1, 3), Blocks.REDSTONE_BLOCK);
@@ -498,7 +498,7 @@ public class GateGameTests {
 	 * not build yet: it waits a tick, and the segments wear the disguise set
 	 * in between.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void aNeighbourUpdateBeforeTheDisguiseWaits(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(3, 1, 3);
@@ -506,7 +506,7 @@ public class GateGameTests {
 		h.setBlock(gate, GATE.defaultBlockState().setValue(SecretGate.FACING, Direction.UP));
 		check(h, secret(h, gate).getState(Direction.NORTH).isAir(), "control: no disguise yet");
 		BlockState state = h.getBlockState(gate);
-		state.neighborChanged(h.getLevel(), h.absolutePos(gate), Blocks.REDSTONE_WIRE, h.absolutePos(gate.west()), false);
+		state.handleNeighborChanged(h.getLevel(), h.absolutePos(gate), Blocks.REDSTONE_WIRE, h.absolutePos(gate.west()), false);
 		checkBlock(h, gate.above(), Blocks.AIR);
 		check(h, !h.getBlockState(gate).getValue(SecretGate.POWERED), "it should not act yet");
 		// What the placement does next, in the same tick.
@@ -519,7 +519,7 @@ public class GateGameTests {
 	}
 
 	/** A gate that is powered itself stays open when the gate that opened it closes. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void aPoweredGateStaysOpenWhenTheChainCloses(GameTestHelper h) {
 		floor(h);
 		BlockPos first = new BlockPos(0, 1, 3);
@@ -539,7 +539,7 @@ public class GateGameTests {
 	}
 
 	/** Breaking an open gate removes its segments and closes the gates it opened. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void breakingTheGateRemovesItsLine(GameTestHelper h) {
 		floor(h);
 		BlockPos first = new BlockPos(0, 1, 3);
@@ -566,7 +566,7 @@ public class GateGameTests {
 	 * An entity in the way (one a player could not place a block into) pauses
 	 * the line there; it carries on within a second of the entity leaving.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void anEntityInTheWayPausesTheLine(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(0, 1, 3);
@@ -593,7 +593,7 @@ public class GateGameTests {
 	}
 
 	/** A segment broken by a player while the gate is open drops nothing and is built again a second later. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void aBrokenSegmentIsRebuilt(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(0, 1, 3);
@@ -622,7 +622,7 @@ public class GateGameTests {
 	 * state set directly, as a crash or an edit could leave it), its segments go
 	 * on their next check.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void segmentsOfAClosedGateRemoveThemselves(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(3, 1, 3);
@@ -646,7 +646,7 @@ public class GateGameTests {
 	 * A segment copied onto the gate's own line but past the block that stops it
 	 * (by {@code /clone}) is not one the gate built: it goes.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void aCopyPastTheObstructionIsRemoved(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(0, 1, 3);
@@ -676,7 +676,7 @@ public class GateGameTests {
 	 * chunk loads), the gate keeps its disguise and its segments stay, owned and
 	 * disguised.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void disguiseAndSegmentsSurviveSaveAndLoad(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(3, 1, 3);
@@ -685,12 +685,12 @@ public class GateGameTests {
 		h.runAfterDelay(5, () -> {
 			for (int i = 0; i <= 9; i++) {
 				BlockPos pos = gate.above(i);
-				CompoundTag saved = h.getBlockEntity(pos).saveWithFullMetadata();
-				h.getLevel().setBlockEntity(BlockEntity.loadStatic(h.absolutePos(pos), h.getBlockState(pos), saved));
+				CompoundTag saved = blockEntityAt(h, pos).saveWithFullMetadata(h.getLevel().registryAccess());
+				h.getLevel().setBlockEntity(BlockEntity.loadStatic(h.absolutePos(pos), h.getBlockState(pos), saved, h.getLevel().registryAccess()));
 			}
 		});
 		h.runAfterDelay(5 + 2 * SecretGateSegmentBlockEntity.CHECK_INTERVAL, () -> {
-			check(h, h.getBlockEntity(gate) instanceof SecretBlockEntity, "the gate should have its block entity");
+			check(h, blockEntityAt(h, gate) instanceof SecretBlockEntity, "the gate should have its block entity");
 			checkFaces(h, gate, Blocks.BRICKS);
 			line(h, gate, Direction.UP, 9, Blocks.BRICKS);
 			h.setBlock(gate.west(), Blocks.AIR);
@@ -702,7 +702,7 @@ public class GateGameTests {
 	 * Placed by a player beside a redstone block, it builds once the placement
 	 * has given it its disguise, so the segments wear it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void placedPoweredItBuildsWithItsDisguise(GameTestHelper h) {
 		floor(h);
 		h.setBlock(new BlockPos(2, 1, 3), Blocks.REDSTONE_BLOCK);
@@ -723,7 +723,7 @@ public class GateGameTests {
 	 * loaded (a game test cannot unload a chunk beside a running test).
 	 * {@code spotAt} reports a far position as not loaded without loading it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void theLinePlan(GameTestHelper h) {
 		check(h, SecretGate.plan(i -> Spot.FREE).equals(new Line(9, null)), "all free: 9, got " + SecretGate.plan(i -> Spot.FREE));
 		check(h, SecretGate.plan(i -> i % 2 == 0 ? Spot.OWN : Spot.FREE).equals(new Line(9, null)), "its own segments count as built");
@@ -740,7 +740,7 @@ public class GateGameTests {
 	}
 
 	/** Wool-like, a conductor, a full block with the shared block entity, no counterpart; the recipe. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
 	public void propertiesAndRecipe(GameTestHelper h) {
 		floor(h);
 		BlockPos rel = new BlockPos(2, 1, 2);
@@ -750,7 +750,7 @@ public class GateGameTests {
 		check(h, state.getDestroySpeed(h.getLevel(), abs) == Blocks.WHITE_WOOL.defaultBlockState().getDestroySpeed(h.getLevel(), abs),
 				"it should be as hard as wool (0.8), is " + state.getDestroySpeed(h.getLevel(), abs));
 		check(h, !state.isRedstoneConductor(h.getLevel(), abs) && state.isCollisionShapeFullBlock(h.getLevel(), abs), "it should be a full block and not a conductor");
-		check(h, h.getBlockEntity(rel) instanceof SecretBlockEntity, "it should have the shared block entity");
+		check(h, blockEntityAt(h, rel) instanceof SecretBlockEntity, "it should have the shared block entity");
 		check(h, Counterparts.hasNone(GATE), "it should have no counterpart");
 		Optional<ItemStack> result = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.PISTON, Items.REDSTONE);
 		check(h, result.isPresent() && result.get().is(GATE.asItem()) && result.get().getCount() == 1,

@@ -1,5 +1,8 @@
 package net.calibermc.secretblocks.gametest.fabric;
 
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
+import com.mojang.serialization.JsonOps;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.calibermc.secretblocks.gametest.support.GameTestPlatform;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
@@ -27,7 +30,9 @@ public class FabricGameTestPlatform implements GameTestPlatform {
 
 	@Override
 	public boolean conditionsPass(JsonObject json) {
-		return ResourceConditions.objectMatchesConditions(json);
+		JsonElement conditions = json.get(ResourceConditions.CONDITIONS_KEY);
+		// The mod's own files use no condition that needs the registries (tag conditions do).
+		return conditions == null || ResourceCondition.CONDITION_CODEC.parse(JsonOps.INSTANCE, conditions).getOrThrow().test(null);
 	}
 
 	@Override

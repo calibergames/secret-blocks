@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HopperBlock;
@@ -50,7 +51,7 @@ public class HopperGameTests {
 	}
 
 	private static SecretHopperBlockEntity hopper(GameTestHelper h, BlockPos rel) {
-		BlockEntity entity = h.getBlockEntity(rel);
+		BlockEntity entity = blockEntityAt(h, rel);
 		if (entity instanceof SecretHopperBlockEntity hopper) {
 			return hopper;
 		}
@@ -59,7 +60,7 @@ public class HopperGameTests {
 	}
 
 	private static Container container(GameTestHelper h, BlockPos rel) {
-		return (Container) h.getBlockEntity(rel);
+		return (Container) blockEntityAt(h, rel);
 	}
 
 	private static int count(Container container, Item item) {
@@ -240,9 +241,9 @@ public class HopperGameTests {
 		h.setBlock(HOPPER, facing(Direction.DOWN));
 		hopper(h, HOPPER).setDisguise(all(Blocks.BRICKS));
 		hopper(h, HOPPER).setItem(4, new ItemStack(Items.DIAMOND, 7));
-		CompoundTag saved = hopper(h, HOPPER).saveWithFullMetadata();
+		CompoundTag saved = hopper(h, HOPPER).saveWithFullMetadata(h.getLevel().registryAccess());
 		check(h, "secretblocks:secret_hopper".equals(saved.getString("id")), "saved id should be secretblocks:secret_hopper, got " + saved.getString("id"));
-		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(HOPPER), h.getBlockState(HOPPER), saved);
+		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(HOPPER), h.getBlockState(HOPPER), saved, h.getLevel().registryAccess());
 		check(h, loaded instanceof SecretHopperBlockEntity, "loads back as a SecretHopperBlockEntity, got " + loaded);
 		SecretHopperBlockEntity copy = (SecretHopperBlockEntity) loaded;
 		check(h, ItemStack.matches(copy.getItem(4), new ItemStack(Items.DIAMOND, 7)), "slot 4 should hold 7 diamonds");
@@ -255,7 +256,7 @@ public class HopperGameTests {
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void opensTheVanillaHopperScreen(GameTestHelper h) {
 		h.setBlock(HOPPER, facing(Direction.DOWN));
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		AbstractContainerMenu menu = hopper(h, HOPPER).createMenu(0, player.getInventory(), player);
 		check(h, menu instanceof HopperMenu, "expected a vanilla HopperMenu, got " + menu);
 		check(h, hopper(h, HOPPER).getDisplayName().getContents() instanceof TranslatableContents title
@@ -270,7 +271,7 @@ public class HopperGameTests {
 		h.setBlock(HOPPER.below(), Blocks.STONE);
 		h.setBlock(HOPPER, facing(Direction.DOWN));
 		hopper(h, HOPPER).setItem(2, new ItemStack(Items.DIAMOND, 3));
-		hopper(h, HOPPER).setCustomName(Component.literal("Sorter"));
+		nameContainer(hopper(h, HOPPER), Component.literal("Sorter"));
 		h.getLevel().destroyBlock(h.absolutePos(HOPPER), true);
 		checkBlock(h, HOPPER, Blocks.AIR);
 		AABB around = new AABB(h.absolutePos(HOPPER)).inflate(1.5);
@@ -289,7 +290,7 @@ public class HopperGameTests {
 		h.setBlock(HOPPER, facing(Direction.DOWN));
 		hopper(h, HOPPER).setDisguise(all(Blocks.BRICKS));
 		hopper(h, HOPPER).setItem(0, new ItemStack(Items.DIAMOND, 5));
-		CompoundTag tag = hopper(h, HOPPER).getUpdateTag();
+		CompoundTag tag = hopper(h, HOPPER).getUpdateTag(h.getLevel().registryAccess());
 		CompoundTag packet = hopper(h, HOPPER).getUpdatePacket().getTag();
 		check(h, tag.contains("northState") && !tag.contains("Items"), "update tag should carry the disguise only: " + tag);
 		check(h, packet != null && packet.contains("northState") && !packet.contains("Items"), "update packet should carry the disguise only: " + packet);
@@ -326,8 +327,8 @@ public class HopperGameTests {
 		CraftingContainer grid = new net.minecraft.world.inventory.TransientCraftingContainer(menu, 3, 3);
 		grid.setItem(0, new ItemStack(ModBlocks.SOLID_BLOCK));
 		grid.setItem(1, new ItemStack(Items.HOPPER));
-		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, h.getLevel())
-				.map((CraftingRecipe recipe) -> recipe.assemble(grid, h.getLevel().registryAccess()));
+		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
+				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
 		check(h, result.isPresent() && result.get().is(ModBlocks.SECRET_HOPPER.asItem()),
 				"Dummy Block + hopper should craft a Secret Hopper, got " + result);
 		h.succeed();

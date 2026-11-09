@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComparatorBlock;
@@ -49,7 +50,7 @@ public class DispenserGameTests {
 	}
 
 	private static SecretDispenserBlockEntity dispenser(GameTestHelper h) {
-		BlockEntity entity = h.getBlockEntity(DISPENSER);
+		BlockEntity entity = blockEntityAt(h, DISPENSER);
 		if (entity instanceof SecretDispenserBlockEntity dispenser) {
 			return dispenser;
 		}
@@ -148,7 +149,7 @@ public class DispenserGameTests {
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void opensTheVanillaDispenserScreen(GameTestHelper h) {
 		h.setBlock(DISPENSER, facingNorth());
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		AbstractContainerMenu menu = dispenser(h).createMenu(0, player.getInventory(), player);
 		check(h, menu instanceof DispenserMenu, "expected a vanilla DispenserMenu, got " + menu);
 		check(h, dispenser(h).getDisplayName().getContents() instanceof TranslatableContents title
@@ -165,8 +166,8 @@ public class DispenserGameTests {
 		dispenser(h).setItem(8, new ItemStack(Items.ARROW, 64));
 		dispenser(h).setDirection(Direction.NORTH, Direction.UP);
 		dispenser(h).setRotation(Direction.EAST, 180);
-		CompoundTag saved = dispenser(h).saveWithFullMetadata();
-		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(DISPENSER), h.getBlockState(DISPENSER), saved);
+		CompoundTag saved = dispenser(h).saveWithFullMetadata(h.getLevel().registryAccess());
+		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(DISPENSER), h.getBlockState(DISPENSER), saved, h.getLevel().registryAccess());
 		check(h, loaded instanceof SecretDispenserBlockEntity, "loads back as a SecretDispenserBlockEntity, got " + loaded);
 		SecretDispenserBlockEntity copy = (SecretDispenserBlockEntity) loaded;
 		check(h, ItemStack.matches(copy.getItem(0), new ItemStack(Items.DIAMOND, 5)), "slot 0 should hold 5 diamonds");
@@ -213,7 +214,7 @@ public class DispenserGameTests {
 		h.setBlock(DISPENSER, facingNorth());
 		dispenser(h).setDisguise(all(Blocks.BRICKS));
 		dispenser(h).setItem(0, new ItemStack(Items.DIAMOND, 5));
-		CompoundTag update = dispenser(h).getUpdateTag();
+		CompoundTag update = dispenser(h).getUpdateTag(h.getLevel().registryAccess());
 		check(h, update.contains("northState") && !update.contains("Items"), "update tag should carry the disguise only: " + update);
 		h.succeed();
 	}
@@ -246,7 +247,7 @@ public class DispenserGameTests {
 	public void keepsItsCustomNameWhenBroken(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DISPENSER, facingNorth());
-		dispenser(h).setCustomName(net.minecraft.network.chat.Component.literal("Trap"));
+		nameContainer(dispenser(h), net.minecraft.network.chat.Component.literal("Trap"));
 		h.getLevel().destroyBlock(h.absolutePos(DISPENSER), true);
 		List<ItemEntity> drops = itemsNear(h, DISPENSER, ModBlocks.SECRET_DISPENSER.asItem());
 		check(h, drops.size() == 1 && drops.get(0).getItem().getHoverName().getString().equals("Trap"),
@@ -271,8 +272,8 @@ public class DispenserGameTests {
 		CraftingContainer grid = new net.minecraft.world.inventory.TransientCraftingContainer(menu, 3, 3);
 		grid.setItem(0, new ItemStack(ModBlocks.SOLID_BLOCK));
 		grid.setItem(1, new ItemStack(Items.DISPENSER));
-		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, h.getLevel())
-				.map((CraftingRecipe recipe) -> recipe.assemble(grid, h.getLevel().registryAccess()));
+		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
+				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
 		check(h, result.isPresent() && result.get().is(ModBlocks.SECRET_DISPENSER.asItem()),
 				"Dummy Block + dispenser should craft a Secret Dispenser, got " + result);
 		h.succeed();

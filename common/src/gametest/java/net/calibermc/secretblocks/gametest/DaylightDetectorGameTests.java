@@ -15,6 +15,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -233,10 +234,10 @@ public class DaylightDetectorGameTests {
 		secret(h, secret).setState(Blocks.BRICKS.defaultBlockState());
 		h.runAfterDelay(45, () -> {
 			both(h, "noon", 15, power(h, 1, 1, 1), power(h, 5, 1, 1));
-			Player player = h.makeMockPlayer();
+			Player player = h.makeMockPlayer(GameType.CREATIVE);
 			for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
 				BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(pos)), Direction.UP, h.absolutePos(pos), false);
-				InteractionResult result = h.getBlockState(pos).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+				InteractionResult result = use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 				check(h, result.consumesAction(), "use should toggle the detector at " + pos + ", got " + result);
 				check(h, h.getBlockState(pos).getValue(DaylightDetectorBlock.INVERTED), "used once, the detector at " + pos + " should be inverted");
 			}
@@ -245,7 +246,7 @@ public class DaylightDetectorGameTests {
 			checkFaces(h, secret, Blocks.BRICKS);
 			player.getAbilities().mayBuild = false;
 			BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(secret)), Direction.UP, h.absolutePos(secret), false);
-			InteractionResult refused = h.getBlockState(secret).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+			InteractionResult refused = use(h.getBlockState(secret), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 			check(h, refused == InteractionResult.PASS && h.getBlockState(secret).getValue(DaylightDetectorBlock.INVERTED),
 					"a player who may not build must not toggle it, got " + refused);
 		});

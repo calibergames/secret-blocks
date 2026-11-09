@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
+import net.minecraft.world.level.LevelReader;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
@@ -53,7 +54,7 @@ public class SecretPistonHead extends PistonHeadBlock implements EntityBlock, Se
 
 	/** Pick-block gives the piston it belongs to, as vanilla's head does. */
 	@Override
-	public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
 		return new ItemStack(state.getValue(TYPE) == PistonType.STICKY ? ModBlocks.SECRET_STICKY_PISTON : ModBlocks.SECRET_PISTON);
 	}
 }

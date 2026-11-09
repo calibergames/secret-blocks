@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "LGPL-3.0"
+issueTrackerURL = "https://github.com/calibergames/secret-blocks/issues"
+
+[[mods]]
+modId = "secretblocks"
+version = "${version}"
+displayName = "Secret Blocks"
+displayURL = "https://github.com/calibergames/secret-blocks"
+logoFile = "assets/secretblocks/icon.png"
+authors = "CaliberMC"
+description = '''Hidden blocks that look like the blocks around them.'''
+
+[[dependencies.secretblocks]]
+modId = "forge"
+mandatory = true
+versionRange = "${forge_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.secretblocks]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[${minecraft_version},${next_minecraft_version})"
+ordering = "NONE"
+side = "BOTH"

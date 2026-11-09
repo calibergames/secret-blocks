@@ -1,8 +1,10 @@
 package net.calibermc.secretblocks.blocks;
 
+import com.mojang.serialization.MapCodec;
 import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.screen.SecretChestScreenHandler;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -29,6 +31,13 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class SecretChest extends BaseEntityBlock implements EntityBlock, SecretBlock {
 
+    public static final MapCodec<SecretChest> CODEC = simpleCodec(SecretChest::new);
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public SecretChest(Properties settings) {
         super(settings);
     }
@@ -43,7 +52,7 @@ public class SecretChest extends BaseEntityBlock implements EntityBlock, SecretB
      * block's menu is made.
      */
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         if (!world.isClientSide) {
             MenuProvider provider = state.getMenuProvider(world, pos);
             // A locked chest opens only for a player holding the key, as vanilla's.
@@ -59,7 +68,7 @@ public class SecretChest extends BaseEntityBlock implements EntityBlock, SecretB
     @Override
     public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(world, pos, state, placer, stack);
-        if (stack.hasCustomHoverName() && world.getBlockEntity(pos) instanceof SecretChestBlockEntity chest) {
+        if (stack.has(DataComponents.CUSTOM_NAME) && world.getBlockEntity(pos) instanceof SecretChestBlockEntity chest) {
             chest.setCustomName(stack.getHoverName());
         }
     }

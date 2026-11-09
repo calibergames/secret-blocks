@@ -250,8 +250,8 @@ public class RedstoneGameTests {
 			h.setBlock(new BlockPos(2, 1, z), Blocks.REDSTONE_BLOCK);
 		}
 		h.runAfterDelay(10, () -> {
-			int control = ((ComparatorBlockEntity) h.getBlockEntity(new BlockPos(3, 1, CONTROL_ROW))).getOutputSignal();
-			int secret = ((ComparatorBlockEntity) h.getBlockEntity(new BlockPos(3, 1, SECRET_ROW))).getOutputSignal();
+			int control = ((ComparatorBlockEntity) blockEntityAt(h, new BlockPos(3, 1, CONTROL_ROW))).getOutputSignal();
+			int secret = ((ComparatorBlockEntity) blockEntityAt(h, new BlockPos(3, 1, SECRET_ROW))).getOutputSignal();
 			check(h, control == 1, "control: 15 minus the side wire's 14 should be 1, is " + control);
 			check(h, secret == control, "comparator beside Secret Redstone Dust outputs " + secret + ", beside vanilla wire " + control);
 			h.succeed();

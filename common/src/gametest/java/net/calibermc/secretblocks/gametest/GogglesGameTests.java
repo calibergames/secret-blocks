@@ -1,5 +1,11 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
+import net.minecraft.core.Holder;
 import net.calibermc.secretblocks.items.SecretGoggles;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.core.BlockPos;
@@ -14,6 +20,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -37,7 +44,7 @@ public class GogglesGameTests {
 
 	/** A test player wearing {@code stack}, at the given wear-check tick. */
 	private static Player wearer(GameTestHelper h, ItemStack stack) {
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		player.setItemSlot(EquipmentSlot.HEAD, stack);
 		return player;
 	}
@@ -95,11 +102,12 @@ public class GogglesGameTests {
 	/** Helmet slot, no armor value, equipped by using them. */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void wornOnTheHeadWithNoArmor(GameTestHelper h) {
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		player.setItemInHand(InteractionHand.MAIN_HAND, goggles());
 		player.getItemInHand(InteractionHand.MAIN_HAND).use(h.getLevel(), player, InteractionHand.MAIN_HAND);
 		check(h, player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.SECRET_GOGGLES), "using them should put them on the head");
-		check(h, goggles().getAttributeModifiers(EquipmentSlot.HEAD).isEmpty(), "no armor or other modifiers");
+		check(h, goggles().getItem().getDefaultAttributeModifiers().modifiers().isEmpty()
+				&& goggles().getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY).modifiers().isEmpty(), "no armor or other modifiers");
 		check(h, player.getArmorValue() == 0, "armor value should be 0, is " + player.getArmorValue());
 		h.succeed();
 	}
@@ -128,27 +136,34 @@ public class GogglesGameTests {
 		return menu.getSlot(2).getItem();
 	}
 
-	private static ItemStack book(Enchantment enchantment, int level) {
+	private static ItemStack book(Holder<Enchantment> enchantment, int level) {
 		return net.minecraft.world.item.EnchantedBookItem.createForEnchantment(
 				new net.minecraft.world.item.enchantment.EnchantmentInstance(enchantment, level));
 	}
 
+	/** The enchantment registered under {@code key} in this world (enchantments are data in 1.21). */
+	private static Holder<Enchantment> enchantment(GameTestHelper h, ResourceKey<Enchantment> key) {
+		return h.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(key);
+	}
+
 	/**
 	 * In a real anvil (survival rules: the test player has no instabuild):
-	 * Unbreaking and Mending books apply, other books do not; a prismarine
+	 * Unbreaking and Mending books apply, armour books do not; a prismarine
 	 * shard repairs; two worn pairs combine.
 	 */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void anvilRules(GameTestHelper h) {
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		check(h, !player.getAbilities().instabuild, "the test player must use survival anvil rules");
-		ItemStack withUnbreaking = anvil(player, goggles(), book(Enchantments.UNBREAKING, 3));
-		check(h, EnchantmentHelper.getItemEnchantmentLevel(Enchantments.UNBREAKING, withUnbreaking) == 3, "Unbreaking III should apply, got " + withUnbreaking);
-		ItemStack withMending = anvil(player, goggles(), book(Enchantments.MENDING, 1));
-		check(h, EnchantmentHelper.getItemEnchantmentLevel(Enchantments.MENDING, withMending) == 1, "Mending should apply, got " + withMending);
-		for (Enchantment other : List.of(Enchantments.ALL_DAMAGE_PROTECTION, Enchantments.THORNS, Enchantments.RESPIRATION)) {
-			ItemStack result = anvil(player, goggles(), book(other, 1));
-			check(h, result.isEmpty(), other.getDescriptionId() + " book must give no result, got " + result);
+		Holder<Enchantment> unbreaking = enchantment(h, Enchantments.UNBREAKING);
+		ItemStack withUnbreaking = anvil(player, goggles(), book(unbreaking, 3));
+		check(h, EnchantmentHelper.getItemEnchantmentLevel(unbreaking, withUnbreaking) == 3, "Unbreaking III should apply, got " + withUnbreaking);
+		Holder<Enchantment> mending = enchantment(h, Enchantments.MENDING);
+		ItemStack withMending = anvil(player, goggles(), book(mending, 1));
+		check(h, EnchantmentHelper.getItemEnchantmentLevel(mending, withMending) == 1, "Mending should apply, got " + withMending);
+		for (ResourceKey<Enchantment> other : List.of(Enchantments.PROTECTION, Enchantments.THORNS, Enchantments.RESPIRATION)) {
+			ItemStack result = anvil(player, goggles(), book(enchantment(h, other), 1));
+			check(h, result.isEmpty(), other.location() + " book must give no result, got " + result);
 		}
 		ItemStack worn = goggles();
 		worn.setDamageValue(600);
@@ -163,19 +178,24 @@ public class GogglesGameTests {
 		h.succeed();
 	}
 
-	/** Only Unbreaking and Mending apply; nothing comes from the enchanting table. */
+	/**
+	 * The enchantments for durability items apply (Unbreaking, Mending and, as
+	 * on every such item, Curse of Vanishing), no armour enchantment does, and
+	 * nothing comes from the enchanting table.
+	 */
 	@GameTest(template = EMPTY_STRUCTURE)
-	public void onlyUnbreakingAndMending(GameTestHelper h) {
+	public void onlyTheDurabilityEnchantments(GameTestHelper h) {
 		ItemStack stack = goggles();
-		check(h, Enchantments.UNBREAKING.canEnchant(stack), "Unbreaking should apply");
-		check(h, Enchantments.MENDING.canEnchant(stack), "Mending should apply");
-		for (Enchantment other : List.of(Enchantments.ALL_DAMAGE_PROTECTION, Enchantments.PROJECTILE_PROTECTION,
-				Enchantments.RESPIRATION, Enchantments.AQUA_AFFINITY, Enchantments.THORNS,
-				Enchantments.BINDING_CURSE, Enchantments.VANISHING_CURSE)) {
-			check(h, !other.canEnchant(stack), other.getDescriptionId() + " must not apply to the goggles");
+		for (ResourceKey<Enchantment> applies : List.of(Enchantments.UNBREAKING, Enchantments.MENDING, Enchantments.VANISHING_CURSE)) {
+			check(h, enchantment(h, applies).value().canEnchant(stack), applies.location() + " should apply to the goggles");
+		}
+		for (ResourceKey<Enchantment> other : List.of(Enchantments.PROTECTION, Enchantments.PROJECTILE_PROTECTION,
+				Enchantments.RESPIRATION, Enchantments.AQUA_AFFINITY, Enchantments.THORNS, Enchantments.BINDING_CURSE)) {
+			check(h, !enchantment(h, other).value().canEnchant(stack), other.location() + " must not apply to the goggles");
 		}
 		check(h, ModItems.SECRET_GOGGLES.getEnchantmentValue() == 0, "enchantability should be 0");
-		check(h, EnchantmentHelper.selectEnchantment(RandomSource.create(1), goggles(), 30, true).isEmpty(),
+		Registry<Enchantment> all = h.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT);
+		check(h, EnchantmentHelper.selectEnchantment(RandomSource.create(1), goggles(), 30, all.holders().map(e -> (Holder<Enchantment>) e)).isEmpty(),
 				"the enchanting table should offer nothing");
 		h.succeed();
 	}
@@ -183,7 +203,7 @@ public class GogglesGameTests {
 	/** End City treasure: about 10% of chests hold a pair (400 rolls → about 40). */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void foundInEndCityTreasure(GameTestHelper h) {
-		LootTable table = h.getLevel().getServer().getLootData().getLootTable(BuiltInLootTables.END_CITY_TREASURE);
+		LootTable table = h.getLevel().getServer().reloadableRegistries().getLootTable(BuiltInLootTables.END_CITY_TREASURE);
 		int withGoggles = 0;
 		for (int roll = 0; roll < 400; roll++) {
 			net.minecraft.world.level.storage.loot.LootParams params = new net.minecraft.world.level.storage.loot.LootParams.Builder(h.getLevel())

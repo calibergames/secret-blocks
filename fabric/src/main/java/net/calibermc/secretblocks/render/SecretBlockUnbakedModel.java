@@ -19,7 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 @Environment(EnvType.CLIENT)
 public class SecretBlockUnbakedModel implements UnbakedModel {
 
-	private static final ResourceLocation DEFAULT_BLOCK_MODEL = new ResourceLocation("minecraft:block/block");
+	private static final ResourceLocation DEFAULT_BLOCK_MODEL = ResourceLocation.parse("minecraft:block/block");
 
 	@Override
 	public Collection<ResourceLocation> getDependencies() {
@@ -33,7 +33,7 @@ public class SecretBlockUnbakedModel implements UnbakedModel {
 
 	/** Held and shown as items like any full block: vanilla's block/block display transforms. */
 	@Override
-	public BakedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer, ResourceLocation modelId) {
+	public BakedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer) {
 		UnbakedModel block = baker.getModel(DEFAULT_BLOCK_MODEL);
 		return new SecretBlockBakedModel(block instanceof BlockModel model ? model.getTransforms() : ItemTransforms.NO_TRANSFORMS);
 	}

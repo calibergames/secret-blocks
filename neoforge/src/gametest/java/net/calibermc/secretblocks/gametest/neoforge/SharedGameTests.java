@@ -10,9 +10,9 @@ import net.minecraft.gametest.framework.GameTestRegistry;
 import net.minecraft.gametest.framework.StructureUtils;
 import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
-import net.minecraftforge.forgespi.language.ModFileScanData;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.neoforgespi.language.ModFileScanData;
 import org.slf4j.Logger;
 
 import java.lang.annotation.ElementType;
@@ -54,8 +54,7 @@ final class SharedGameTests {
 		registered = true;
 		// The annotations as the class files hold them, from Forge's scan, by class
 		// and method name. Their values are read from there, not through the
-		// annotation getters: in production those carry SRG names, while the
-		// values in the test classes keep the names they were written with.
+		// annotation getters.
 		Map<String, Map<String, Map<String, Map<String, Object>>>> found = new TreeMap<>();
 		for (ModFileScanData scan : ModList.get().getAllScanData()) {
 			for (ModFileScanData.AnnotationData annotation : scan.getAnnotations()) {
@@ -71,11 +70,11 @@ final class SharedGameTests {
 			}
 		}
 		try {
-			// By SRG name, which Forge maps to the running names (Mojang's in development).
-			Collection<TestFunction> functions = field("f_177495_"); // TEST_FUNCTIONS
-			Set<String> classNames = field("f_177496_"); // TEST_CLASS_NAMES
-			Map<String, Consumer<ServerLevel>> before = field("f_177497_"); // BEFORE_BATCH_FUNCTIONS
-			Map<String, Consumer<ServerLevel>> after = field("f_177498_"); // AFTER_BATCH_FUNCTIONS
+			// NeoForge runs on Mojang names, in development and in production.
+			Collection<TestFunction> functions = field("TEST_FUNCTIONS");
+			Set<String> classNames = field("TEST_CLASS_NAMES");
+			Map<String, Consumer<ServerLevel>> before = field("BEFORE_BATCH_FUNCTIONS");
+			Map<String, Consumer<ServerLevel>> after = field("AFTER_BATCH_FUNCTIONS");
 			for (Map.Entry<String, Map<String, Map<String, Map<String, Object>>>> byClass : found.entrySet()) {
 				Class<?> type = Class.forName(byClass.getKey(), true, SharedGameTests.class.getClassLoader());
 				for (Map.Entry<String, Map<String, Map<String, Object>>> byMethod : byClass.getValue().entrySet()) {
@@ -115,7 +114,8 @@ final class SharedGameTests {
 		return new TestFunction(value(test, "batch", "defaultBatch"), name, value(test, "template", ""),
 				StructureUtils.getRotationForRotationSteps(value(test, "rotationSteps", 0)),
 				value(test, "timeoutTicks", 100), value(test, "setupTicks", 0L), value(test, "required", true),
-				value(test, "requiredSuccesses", 1), value(test, "attempts", 1), run);
+				value(test, "manualOnly", false), value(test, "attempts", 1), value(test, "requiredSuccesses", 1),
+				value(test, "skyAccess", false), run);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -145,7 +145,7 @@ final class SharedGameTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> T field(String srgName) throws ReflectiveOperationException {
-		return (T) ObfuscationReflectionHelper.findField(GameTestRegistry.class, srgName).get(null);
+	private static <T> T field(String name) throws ReflectiveOperationException {
+		return (T) ObfuscationReflectionHelper.findField(GameTestRegistry.class, name).get(null);
 	}
 }

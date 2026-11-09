@@ -89,7 +89,7 @@ public class ApprovedPlacementGameTests {
 	public void tallGrassCopiesTheGroundBelow(GameTestHelper h) {
 		floor(h);
 		h.setBlock(PLACED.below(), Blocks.GRASS_BLOCK);
-		h.setBlock(PLACED, Blocks.GRASS);
+		h.setBlock(PLACED, Blocks.SHORT_GRASS);
 		h.setBlock(TARGET, Blocks.BRICKS);
 		place(h, ModBlocks.SOLID_BLOCK.asItem(), FEET, PLACED, Direction.NORTH, new Vec3(3.5, 1.3, 4.5));
 		checkBlock(h, PLACED, ModBlocks.SOLID_BLOCK);

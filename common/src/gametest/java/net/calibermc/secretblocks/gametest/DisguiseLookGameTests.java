@@ -98,7 +98,7 @@ public class DisguiseLookGameTests {
 		int checked = 0;
 		for (Block block : disguisedBlocks()) {
 			h.setBlock(SECRET, block);
-			if (!(h.getBlockEntity(SECRET) instanceof DisguisedBlockEntity secret)) {
+			if (!(blockEntityAt(h, SECRET) instanceof DisguisedBlockEntity secret)) {
 				continue;
 			}
 			checked++;

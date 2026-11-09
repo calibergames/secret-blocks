@@ -1,5 +1,13 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Holder;
 import com.mojang.math.Axis;
 import net.minecraft.core.registries.BuiltInRegistries;
 
@@ -22,10 +30,11 @@ import net.minecraft.world.level.block.RotatedPillarBlock;
 import static net.calibermc.secretblocks.gametest.TestSupport.*;
 
 /**
- * Block-entity NBT written by Secret Blocks 1.19.2 (1.2.0) loads unchanged
- * and saves back identically, so existing worlds keep their disguises. The
- * samples are copied from a 1.19.2 reference world (one item's custom name
- * is changed).
+ * Block-entity NBT written by Secret Blocks 1.19.2 (1.2.0) loads and saves
+ * back with every disguise key unchanged, so existing worlds keep their
+ * disguises; stored items and renamed blocks are upgraded to this version's
+ * format. The samples are copied from a 1.19.2 reference world (one item's
+ * custom name is changed).
  */
 public class NbtGameTests {
 
@@ -59,20 +68,27 @@ public class NbtGameTests {
 		}
 	}
 
-	/** Load {@code snbt} into a fresh block entity, check the API view, save, and require identical NBT. */
+	/**
+	 * Load {@code snbt} into a fresh block entity, check the API view, save, and
+	 * require identical NBT for every key but the stored items (upgraded to the
+	 * new item format, checked by the caller).
+	 */
 	private static SecretBlockEntity roundTrip(GameTestHelper h, Block block, String snbt) {
 		CompoundTag input = parse(h, snbt);
 		h.setBlock(A, block);
 		SecretBlockEntity be = plain(h, A);
-		be.load(input);
+		be.loadWithComponents(input, h.getLevel().registryAccess());
 		for (Direction dir : Direction.values()) {
 			String name = dir.getName();
 			check(h, be.getState(dir) == NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), input.getCompound(name + "State")), name + "State read back wrong: " + be.getState(dir));
 			check(h, be.getDir(dir).getName().equals(input.getString(name + "Direction")), name + "Direction read back wrong: " + be.getDir(dir));
 			check(h, be.getRotation(dir) == input.getInt(name + "Rotation"), name + "Rotation read back wrong: " + be.getRotation(dir));
 		}
-		CompoundTag saved = be.saveWithoutMetadata();
+		CompoundTag saved = be.saveWithoutMetadata(h.getLevel().registryAccess());
 		for (String key : input.getAllKeys()) {
+			if (key.equals("Items")) {
+				continue;
+			}
 			Tag before = input.get(key);
 			Tag after = saved.get(key);
 			check(h, before.equals(after), "key " + key + " changed on save: " + before + " -> " + after);
@@ -118,7 +134,28 @@ public class NbtGameTests {
 	public void chestWithItems(GameTestHelper h) {
 		roundTrip(h, ModBlocks.SECRET_CHEST, ROW_A_CHEST);
 		SecretChestBlockEntity be = chest(h, A);
-		check(h, be.getItem(1).getHoverName().getString().equals("Named ref"), "named sword should keep its name");
+		check(h, be.getItem(0).is(Items.DIAMOND) && be.getItem(0).getCount() == 5, "slot 0 should hold 5 diamonds, holds " + be.getItem(0));
+		ItemStack sword = be.getItem(1);
+		check(h, sword.is(Items.DIAMOND_SWORD) && sword.getHoverName().getString().equals("Named ref"), "the named sword should keep its name, got " + sword);
+		Holder<Enchantment> sharpness = h.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.SHARPNESS);
+		check(h, EnchantmentHelper.getItemEnchantmentLevel(sharpness, sword) == 5, "the sword should keep Sharpness V, got " + sword);
+		check(h, be.getItem(2).is(ModBlocks.SOLID_BLOCK.asItem()) && be.getItem(2).getCount() == 64, "slot 2 should hold 64 dummy blocks, holds " + be.getItem(2));
+		check(h, be.getItem(26).is(Items.OAK_LOG) && be.getItem(26).getCount() == 64, "slot 26 should hold 64 oak logs, holds " + be.getItem(26));
+		ListTag saved = be.saveWithoutMetadata(h.getLevel().registryAccess()).getList("Items", Tag.TAG_COMPOUND);
+		check(h, saved.size() == 4 && saved.stream().allMatch(item -> ((CompoundTag) item).contains("count") && !((CompoundTag) item).contains("Count")),
+				"the items should save in the new format, got " + saved);
+		h.succeed();
+	}
+
+	/** A disguise naming a block that was renamed since (grass, short grass from 1.20.3) loads under its new name. */
+	@GameTest(template = EMPTY_STRUCTURE)
+	public void aRenamedBlockLoadsUnderItsNewName(GameTestHelper h) {
+		CompoundTag input = parse(h, B0_SIX_FACES.replace("{Name:\"minecraft:gold_block\"}", "{Name:\"minecraft:grass\"}"));
+		h.setBlock(A, ModBlocks.SOLID_BLOCK);
+		SecretBlockEntity be = plain(h, A);
+		be.loadWithComponents(input, h.getLevel().registryAccess());
+		check(h, be.getState(Direction.UP).is(Blocks.SHORT_GRASS), "the up face should be short grass, is " + be.getState(Direction.UP));
+		check(h, be.getState(Direction.DOWN).is(Blocks.DIAMOND_BLOCK), "the other faces should be unchanged");
 		h.succeed();
 	}
 }

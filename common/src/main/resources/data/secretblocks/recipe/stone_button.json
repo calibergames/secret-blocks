@@ -1,0 +1,20 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"ingredients": [
+		{
+			"item": "secretblocks:solid_block"
+		},
+		[
+			{
+				"item": "minecraft:stone_button"
+			},
+			{
+				"item": "minecraft:polished_blackstone_button"
+			}
+		]
+	],
+	"result": {
+		"id": "secretblocks:stone_button",
+		"count": 1
+	}
+}

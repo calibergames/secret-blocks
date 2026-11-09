@@ -3,8 +3,11 @@ package net.calibermc.secretblocks.blocks.entity;
 import net.calibermc.secretblocks.blocks.SecretTrappedChest;
 import net.calibermc.secretblocks.screen.SecretChestScreenHandler;
 import net.calibermc.secretblocks.util.ImplementedInventory;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Containers;
@@ -84,7 +87,7 @@ public class SecretChestBlockEntity extends SecretBlockEntity implements Impleme
 		return customName;
 	}
 
-	/** The custom name, or the block's own; a named chest drops a named item through its loot table's {@code copy_name}. */
+	/** The custom name, or the block's own; a named chest drops a named item ({@link #collectImplicitComponents}). */
 	@Override
 	public Component getName() {
 		return customName != null ? customName : getBlockState().getBlock().getName();
@@ -101,19 +104,26 @@ public class SecretChestBlockEntity extends SecretBlockEntity implements Impleme
 
 	/** Name and lock use vanilla's keys, so they carry over when the Camouflage Wand converts a chest. */
 	@Override
-	public void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		if (customName != null) {
-			tag.putString("CustomName", Component.Serializer.toJson(customName));
+			tag.putString("CustomName", Component.Serializer.toJson(customName, registries));
 		}
 		lockKey.addToTag(tag);
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
-		customName = tag.contains("CustomName", 8) ? Component.Serializer.fromJson(tag.getString("CustomName")) : null;
+	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
+		customName = tag.contains("CustomName", 8) ? parseCustomNameSafe(tag.getString("CustomName"), registries) : null;
 		lockKey = LockCode.fromTag(tag);
+	}
+
+	/** The custom name, for the item a broken chest drops (its loot table copies {@code minecraft:custom_name}). */
+	@Override
+	protected void collectImplicitComponents(DataComponentMap.Builder components) {
+		super.collectImplicitComponents(components);
+		components.set(DataComponents.CUSTOM_NAME, customName);
 	}
 
 	/** Like a vanilla container: a changed slot is saved and comparators hear of it. */

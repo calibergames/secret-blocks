@@ -1,4 +1,4 @@
-// Shared by every subproject: Java 17 toolchain, repositories, encoding.
+// Shared by every subproject: Java 21 toolchain, repositories, encoding.
 plugins {
 	id 'java-library'
 }
@@ -7,8 +7,8 @@ version = "${minecraft_version}-${mod_version}"
 group = maven_group
 
 java {
-	// Gradle itself may run on a newer Java; the mod is compiled, tested and run on Java 17.
-	toolchain.languageVersion = JavaLanguageVersion.of(17)
+	// Gradle itself may run on a newer Java; the mod is compiled, tested and run on Java 21.
+	toolchain.languageVersion = JavaLanguageVersion.of(21)
 	withSourcesJar()
 }
 
@@ -36,7 +36,7 @@ repositories {
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
-	options.release = 17
+	options.release = 21
 }
 
 tasks.withType(Test).configureEach {

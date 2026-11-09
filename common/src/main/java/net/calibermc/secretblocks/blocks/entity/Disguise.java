@@ -104,6 +104,7 @@ public final class Disguise {
 
 	/** What clients need to draw the block: the disguise without the remembered original block. */
 	public CompoundTag saveForClients(CompoundTag tag) {
+		LegacyData.markCurrent(tag);
 		tag.putInt("age", age);
 		for (Direction face : FACES) {
 			tag.put(face.getName() + "State", NbtUtils.writeBlockState(states.get(face)));
@@ -117,8 +118,12 @@ public final class Disguise {
 		return tag;
 	}
 
-	/** Read the disguise from {@code tag}; keys that are missing leave that value unchanged. */
+	/**
+	 * Read the disguise from {@code tag}; keys that are missing leave that value
+	 * unchanged. Data saved by an older version is upgraded first ({@link LegacyData}).
+	 */
 	public void load(CompoundTag tag) {
+		tag = LegacyData.upgradeDisguise(tag, ORIGINAL);
 		if (tag.contains("age")) {
 			age = tag.getInt("age");
 		}
@@ -142,6 +147,7 @@ public final class Disguise {
 
 	/** Remove every disguise key (and the remembered original block) from {@code tag}: what a vanilla block entity is given. */
 	public static void stripFrom(CompoundTag tag) {
+		tag.remove(LegacyData.VERSION);
 		tag.remove("age");
 		tag.remove(ORIGINAL);
 		for (Direction face : FACES) {

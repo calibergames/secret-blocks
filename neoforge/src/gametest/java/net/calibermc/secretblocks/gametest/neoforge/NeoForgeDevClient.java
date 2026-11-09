@@ -1,11 +1,11 @@
 package net.calibermc.secretblocks.gametest.neoforge;
 
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.calibermc.secretblocks.gametest.driver.DevClientDriver;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
+import net.neoforged.neoforge.common.NeoForge;
 
-/** Starts the development client driver on NeoForge/Forge when asked for (client only). */
+/** Starts the development client driver on NeoForge when asked for (client only). */
 final class NeoForgeDevClient {
 
 	private NeoForgeDevClient() {
@@ -14,11 +14,7 @@ final class NeoForgeDevClient {
 	static void init() {
 		DevClientDriver driver = DevClientDriver.start();
 		if (driver != null) {
-			MinecraftForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent event) -> {
-				if (event.phase == TickEvent.Phase.END) {
-					driver.tick(Minecraft.getInstance());
-				}
-			});
+			NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> driver.tick(Minecraft.getInstance()));
 		}
 	}
 }

@@ -1,5 +1,12 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ClientInformation;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.ItemInteractionResult;
 import com.mojang.authlib.GameProfile;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
@@ -47,7 +54,9 @@ final class TestSupport {
 	/**
 	 * An 8 x 8 x 8 test area of air, from this test mod's data (the same size
 	 * as Fabric's own empty structure), so every loader runs the tests in the
-	 * same space.
+	 * same space. The test framework walls each test in with barriers and
+	 * roofs it over too, so a test that builds or shoots above the area sets
+	 * {@code skyAccess}.
 	 */
 	static final String EMPTY_STRUCTURE = "secretblocks_gametest:empty";
 
@@ -74,7 +83,7 @@ final class TestSupport {
 	/** A server player standing at {@code feetRel} whose eyes look exactly at {@code lookAtRel}. */
 	static ServerPlayer player(GameTestHelper h, Vec3 feetRel, Vec3 lookAtRel) {
 		ServerLevel level = h.getLevel();
-		ServerPlayer player = new ServerPlayer(level.getServer(), level, PROFILE);
+		ServerPlayer player = new ServerPlayer(level.getServer(), level, PROFILE, ClientInformation.createDefault());
 		Vec3 feet = abs(h, feetRel);
 		Vec3 eye = feet.add(0, player.getEyeHeight(), 0);
 		Vec3 d = abs(h, lookAtRel).subtract(eye);
@@ -103,8 +112,9 @@ final class TestSupport {
 	/** Use {@code stack} with no player at all, as automation (dispensers of other mods, deployers) may. */
 	static InteractionResult useOnWithoutPlayer(GameTestHelper h, ItemStack stack, BlockPos clickedRel, Direction face, Vec3 hitRel) {
 		BlockHitResult hit = new BlockHitResult(abs(h, hitRel), face, h.absolutePos(clickedRel), false);
-		// UseOnContext's full constructor is protected in vanilla; a subclass may call it.
-		return stack.useOn(new UseOnContext(h.getLevel(), null, InteractionHand.MAIN_HAND, stack, hit) {
+		// UseOnContext's full constructor is protected in vanilla; a subclass may call it. The item
+		// itself, as ItemStack.useOn calls it: Forge's ItemStack.useOn needs a player.
+		return stack.getItem().useOn(new UseOnContext(h.getLevel(), null, InteractionHand.MAIN_HAND, stack, hit) {
 		});
 	}
 
@@ -113,8 +123,47 @@ final class TestSupport {
 		return useOn(h, player(h, feetRel, hitRel), new ItemStack(item), clickedRel, face, hitRel);
 	}
 
+	/**
+	 * A player's click on a block as the game makes it: the block's
+	 * {@code useItemOn} with the held item first, then, for the main hand,
+	 * {@code useWithoutItem} when the item left it to the block.
+	 */
+	static InteractionResult use(BlockState state, Level level, Player player, InteractionHand hand, BlockHitResult hit) {
+		ItemInteractionResult withItem = state.useItemOn(player.getItemInHand(hand), level, player, hand, hit);
+		if (withItem.consumesAction()) {
+			return withItem.result();
+		}
+		if (withItem == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION && hand == InteractionHand.MAIN_HAND) {
+			return state.useWithoutItem(level, player, hit);
+		}
+		return InteractionResult.PASS;
+	}
+
+	/**
+	 * The block entity at {@code rel}, or {@code null} when there is none
+	 * (the helper's own lookup fails the test on a missing one).
+	 */
+	@SuppressWarnings("unchecked")
+	static <T extends BlockEntity> T blockEntityAt(GameTestHelper h, BlockPos rel) {
+		return (T) h.getLevel().getBlockEntity(h.absolutePos(rel));
+	}
+
+	/** {@code stack} with the custom name {@code name}, as an anvil gives it. */
+	static ItemStack named(ItemStack stack, Component name) {
+		stack.set(DataComponents.CUSTOM_NAME, name);
+		return stack;
+	}
+
+	/** Gives a container block entity a custom name (vanilla's {@code CustomName}), keeping everything else it holds. */
+	static void nameContainer(BlockEntity container, Component name) {
+		HolderLookup.Provider registries = container.getLevel().registryAccess();
+		CompoundTag data = container.saveCustomOnly(registries);
+		data.putString("CustomName", Component.Serializer.toJson(name, registries));
+		container.loadCustomOnly(data, registries);
+	}
+
 	static DisguisedBlockEntity secret(GameTestHelper h, BlockPos rel) {
-		BlockEntity entity = h.getBlockEntity(rel);
+		BlockEntity entity = blockEntityAt(h, rel);
 		if (entity instanceof DisguisedBlockEntity secret) {
 			return secret;
 		}
@@ -124,7 +173,7 @@ final class TestSupport {
 
 	/** The block entity at {@code rel} as a Secret Chest's container block entity. */
 	static SecretChestBlockEntity chest(GameTestHelper h, BlockPos rel) {
-		BlockEntity entity = h.getBlockEntity(rel);
+		BlockEntity entity = blockEntityAt(h, rel);
 		if (entity instanceof SecretChestBlockEntity chest) {
 			return chest;
 		}
@@ -134,7 +183,7 @@ final class TestSupport {
 
 	/** The block entity at {@code rel} as the plain {@link SecretBlockEntity} (disguise, full NBT). */
 	static SecretBlockEntity plain(GameTestHelper h, BlockPos rel) {
-		BlockEntity entity = h.getBlockEntity(rel);
+		BlockEntity entity = blockEntityAt(h, rel);
 		if (entity instanceof SecretBlockEntity secret) {
 			return secret;
 		}
@@ -159,8 +208,8 @@ final class TestSupport {
 		for (int i = 0; i < stacks.length; i++) {
 			grid.setItem(i, stacks[i]);
 		}
-		return h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, h.getLevel())
-				.map((CraftingRecipe recipe) -> recipe.assemble(grid, h.getLevel().registryAccess()));
+		return h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
+				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
 	}
 
 	/** {@link #craft(GameTestHelper, ItemStack...)} with one of each item. */

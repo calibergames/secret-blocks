@@ -11,6 +11,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedstoneLampBlock;
@@ -104,7 +105,7 @@ public class WeightedPlateGameTests {
 		h.setBlock(pigPlate, ModBlocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
 		h.setBlock(playerPlate, ModBlocks.HEAVY_WEIGHTED_PRESSURE_PLATE);
 		var pig = h.spawnWithNoFreeWill(EntityType.PIG, pigPlate.above());
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		Vec3 feet = abs(h, Vec3.atBottomCenterOf(playerPlate.above()).add(0, 0.5, 0));
 		player.moveTo(feet.x, feet.y, feet.z, 0, 0);
 		h.getLevel().addFreshEntity(player);
@@ -232,8 +233,8 @@ public class WeightedPlateGameTests {
 				BlockPos at = new BlockPos(1, 1, i * 2);
 				check(h, !h.getBlockState(at).is(plates[i]) && !h.getBlockState(at.east()).is(plates[i]), plates[i] + " should be broken");
 			}
-			h.getLevel().getEntitiesOfClass(ItemEntity.class, new net.minecraft.world.phys.AABB(h.absolutePos(BlockPos.ZERO),
-					h.absolutePos(new BlockPos(8, 4, 8))).inflate(2)).forEach(ItemEntity::discard);
+			h.getLevel().getEntitiesOfClass(ItemEntity.class, new net.minecraft.world.phys.AABB(Vec3.atLowerCornerOf(h.absolutePos(BlockPos.ZERO)),
+					Vec3.atLowerCornerOf(h.absolutePos(new BlockPos(8, 4, 8)))).inflate(2)).forEach(ItemEntity::discard);
 			h.succeed();
 		});
 	}

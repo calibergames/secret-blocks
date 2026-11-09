@@ -47,7 +47,7 @@ public class TorchLever extends TorchBlock {
 			Direction.NORTH, Block.box(6.0, 0.0, 3.0, 10.0, 10.0, 10.0));
 
 	public TorchLever(Properties settings) {
-		super(settings, ParticleTypes.FLAME);
+		super(ParticleTypes.FLAME, settings);
 		registerDefaultState(stateDefinition.any().setValue(TorchLevers.POWERED, false).setValue(FACING, Direction.EAST));
 	}
 
@@ -96,7 +96,7 @@ public class TorchLever extends TorchBlock {
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
 		return TorchLevers.use(state, level, pos, player, Direction.UP);
 	}
 

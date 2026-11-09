@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.calibermc.secretblocks.items.ItemData;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModItems;
@@ -44,8 +45,8 @@ public class ProbeGameTests {
 		// A fresh probe on a normal block stores the block and the clicked face.
 		Vec3 graniteNorth = new Vec3(5.5, 1.5, 3.0);
 		useOn(h, player(h, new Vec3(5.5, 1, 0.5), graniteNorth), probe, granite, Direction.NORTH, graniteNorth);
-		CompoundTag tag = probe.getTag();
-		check(h, tag != null && "minecraft:polished_granite".equals(tag.getCompound("setState").getString("Name")),
+		CompoundTag tag = ItemData.read(probe);
+		check(h, "minecraft:polished_granite".equals(tag.getCompound("setState").getString("Name")),
 				"probe should store polished granite, got " + tag);
 		check(h, "north".equals(tag.getString("setDirection")), "probe should store the north face, got " + tag);
 
@@ -53,7 +54,7 @@ public class ProbeGameTests {
 		useOn(h, player(h, FEET_NORTH_OF_DUMMY, DUMMY_NORTH), probe, DUMMY, Direction.NORTH, DUMMY_NORTH);
 		checkFaces(h, DUMMY, Blocks.AIR, only(Direction.NORTH, Blocks.POLISHED_GRANITE));
 		check(h, secret(h, DUMMY).getDir(Direction.NORTH) == Direction.NORTH, "north face should be drawn from the stored north side");
-		check(h, probe.hasTag(), "probe should stay loaded");
+		check(h, ItemData.has(probe), "probe should stay loaded");
 		h.succeed();
 	}
 
@@ -65,8 +66,8 @@ public class ProbeGameTests {
 		secret(h, DUMMY).setState(Direction.NORTH, Blocks.EMERALD_BLOCK.defaultBlockState());
 		ItemStack probe = new ItemStack(ModItems.SWITCH_PROBE);
 		useOn(h, player(h, FEET_NORTH_OF_DUMMY, DUMMY_NORTH), probe, DUMMY, Direction.NORTH, DUMMY_NORTH);
-		CompoundTag tag = probe.getTag();
-		check(h, tag != null && "minecraft:emerald_block".equals(tag.getCompound("setState").getString("Name")),
+		CompoundTag tag = ItemData.read(probe);
+		check(h, "minecraft:emerald_block".equals(tag.getCompound("setState").getString("Name")),
 				"probe should copy the emerald face, got " + tag);
 		h.succeed();
 	}
@@ -92,12 +93,12 @@ public class ProbeGameTests {
 		ServerPlayer player = player(h, new Vec3(3.5, 1, 3.5), new Vec3(3.5, 8, 3.6));
 		player.setShiftKeyDown(true);
 		ItemStack probe = new ItemStack(ModItems.SWITCH_PROBE);
-		probe.getOrCreateTag().putString("setDirection", "north");
+		ItemData.update(probe, tag -> tag.putString("setDirection", "north"));
 		player.setItemInHand(InteractionHand.MAIN_HAND, probe);
 		probe.getItem().use(h.getLevel(), player, InteractionHand.MAIN_HAND);
 		ItemStack swapped = player.getItemInHand(InteractionHand.MAIN_HAND);
 		check(h, swapped.is(ModItems.SWITCH_PROBE_ROTATION_MODE), "should switch to the Rotator Probe, got " + swapped);
-		check(h, !swapped.hasTag(), "the new probe should carry no stored block");
+		check(h, !ItemData.has(swapped), "the new probe should carry no stored block");
 		swapped.getItem().use(h.getLevel(), player, InteractionHand.MAIN_HAND);
 		check(h, player.getItemInHand(InteractionHand.MAIN_HAND).is(ModItems.SWITCH_PROBE), "should switch back to the Switch Probe");
 		h.succeed();
@@ -114,8 +115,8 @@ public class ProbeGameTests {
 		h.setBlock(DUMMY, ModBlocks.SOLID_BLOCK);
 		ServerPlayer player = player(h, FEET_NORTH_OF_DUMMY, DUMMY_NORTH);
 		ItemStack probe = new ItemStack(ModItems.SWITCH_PROBE);
-		probe.getOrCreateTag().put("setState", NbtUtils.writeBlockState(Blocks.POLISHED_GRANITE.defaultBlockState()));
-		probe.getOrCreateTag().putString("setDirection", "north");
+		ItemData.update(probe, tag -> tag.put("setState", NbtUtils.writeBlockState(Blocks.POLISHED_GRANITE.defaultBlockState())));
+		ItemData.update(probe, tag -> tag.putString("setDirection", "north"));
 		chunk(h, DUMMY).setUnsaved(false);
 		useOn(h, player, probe, DUMMY, Direction.NORTH, DUMMY_NORTH);
 		check(h, secret(h, DUMMY).getState(Direction.NORTH).is(Blocks.POLISHED_GRANITE), "the probe should have applied granite");
@@ -163,9 +164,9 @@ public class ProbeGameTests {
 		secret.setState(Direction.NORTH, Blocks.POLISHED_GRANITE.defaultBlockState());
 		secret.setDirection(Direction.NORTH, Direction.UP);
 		secret.setRotation(Direction.NORTH, 270);
-		var saved = plain(h, DUMMY).saveWithFullMetadata();
+		var saved = plain(h, DUMMY).saveWithFullMetadata(h.getLevel().registryAccess());
 		var loaded = (DisguisedBlockEntity)
-				BlockEntity.loadStatic(h.absolutePos(DUMMY), h.getBlockState(DUMMY), saved);
+				BlockEntity.loadStatic(h.absolutePos(DUMMY), h.getBlockState(DUMMY), saved, h.getLevel().registryAccess());
 		check(h, loaded.getState(Direction.NORTH).is(Blocks.POLISHED_GRANITE), "the face disguise should survive");
 		check(h, loaded.getDir(Direction.NORTH) == Direction.UP, "the drawn side should survive");
 		check(h, loaded.getRotation(Direction.NORTH) == 270, "the rotation should survive");

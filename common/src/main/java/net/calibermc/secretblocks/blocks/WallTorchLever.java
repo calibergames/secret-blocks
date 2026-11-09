@@ -36,7 +36,7 @@ public class WallTorchLever extends WallTorchBlock {
 			Direction.EAST, Block.box(0.0, 3.0, 5.5, 8.5, 13.0, 10.5));
 
 	public WallTorchLever(Properties settings) {
-		super(settings, ParticleTypes.FLAME);
+		super(ParticleTypes.FLAME, settings);
 		registerDefaultState(defaultBlockState().setValue(TorchLevers.POWERED, false));
 	}
 
@@ -71,7 +71,7 @@ public class WallTorchLever extends WallTorchBlock {
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
 		return TorchLevers.use(state, level, pos, player, state.getValue(FACING));
 	}
 

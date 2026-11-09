@@ -8,6 +8,10 @@ pluginManagement {
 			name = 'NeoForged'
 			url = 'https://maven.neoforged.net/releases'
 		}
+		maven {
+			name = 'MinecraftForge'
+			url = 'https://maven.minecraftforge.net/'
+		}
 		mavenCentral()
 		gradlePluginPortal()
 	}
@@ -17,3 +21,4 @@ rootProject.name = 'secret-blocks'
 include 'common'
 include 'fabric'
 include 'neoforge'
+include 'forge'

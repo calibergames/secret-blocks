@@ -2,6 +2,7 @@ package net.calibermc.secretblocks.blocks.entity;
 
 import net.calibermc.secretblocks.mixin.BlockEntityTypeAccessor;
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -27,20 +28,29 @@ public class SecretComparatorBlockEntity extends ComparatorBlockEntity implement
 		((BlockEntityTypeAccessor) (Object) this).secretblocks$setType(ModEntities.SECRET_COMPARATOR);
 	}
 
+	/**
+	 * Valid where a Secret Comparator is. Vanilla's constructor checks the state against
+	 * the type before this class sets its own, so this answers for that type.
+	 */
+	@Override
+	public boolean isValidBlockState(BlockState state) {
+		return ModEntities.SECRET_COMPARATOR.isValid(state);
+	}
+
 	@Override
 	public Disguise getDisguise() {
 		return disguise;
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		disguise.save(tag);
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
 		disguise.load(tag);
 		DisguisedBlockEntity.redrawAfterLoad(this);
 	}
@@ -55,7 +65,7 @@ public class SecretComparatorBlockEntity extends ComparatorBlockEntity implement
 
 	/** What clients receive: the disguise only, never the output signal. */
 	@Override
-	public CompoundTag getUpdateTag() {
+	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		return disguise.saveForClients(new CompoundTag());
 	}
 }

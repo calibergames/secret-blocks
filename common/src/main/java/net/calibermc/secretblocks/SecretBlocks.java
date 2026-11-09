@@ -23,12 +23,12 @@ public class SecretBlocks {
     public static final String MOD_ID = "secretblocks";
 
     public static ResourceLocation id(String id) {
-        return new ResourceLocation("secretblocks", id);
+        return ResourceLocation.fromNamespaceAndPath("secretblocks", id);
     }
 
     /** Whether {@link #gogglesLootPool} goes into this loot table: vanilla's End City treasure. */
     public static boolean getsGogglesLoot(ResourceLocation lootTable) {
-        return BuiltInLootTables.END_CITY_TREASURE.equals(lootTable);
+        return BuiltInLootTables.END_CITY_TREASURE.location().equals(lootTable);
     }
 
     /**

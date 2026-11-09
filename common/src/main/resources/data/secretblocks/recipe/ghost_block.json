@@ -1,0 +1,20 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"#C#",
+		"C#C",
+		"#C#"
+	],
+	"key": {
+		"#": {
+			"item": "minecraft:scaffolding"
+		},
+		"C": {
+			"item": "secretblocks:camouflage_paste"
+		}
+	},
+	"result": {
+		"id": "secretblocks:ghost_block",
+		"count": 4
+	}
+}

@@ -10,6 +10,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedStoneWireBlock;
@@ -94,17 +95,17 @@ public class RepeaterGameTests {
 		BlockPos pos = new BlockPos(2, 1, 2);
 		h.setBlock(pos, repeater(SECRET, 1));
 		secret(h, pos).setState(Blocks.BRICKS.defaultBlockState());
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(pos)), Direction.UP, h.absolutePos(pos), false);
 		for (int expected : new int[] {2, 3, 4, 1}) {
-			InteractionResult result = h.getBlockState(pos).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+			InteractionResult result = use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 			check(h, result.consumesAction(), "use should cycle the delay, got " + result);
 			check(h, h.getBlockState(pos).getValue(RepeaterBlock.DELAY) == expected, "delay should be " + expected + ", is " + h.getBlockState(pos).getValue(RepeaterBlock.DELAY));
 		}
 		checkBlock(h, pos, SECRET);
 		checkFaces(h, pos, Blocks.BRICKS);
 		player.getAbilities().mayBuild = false;
-		InteractionResult refused = h.getBlockState(pos).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+		InteractionResult refused = use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 		check(h, refused == InteractionResult.PASS && h.getBlockState(pos).getValue(RepeaterBlock.DELAY) == 1,
 				"a player who may not build must not change the delay, got " + refused);
 		h.succeed();

@@ -20,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * The jar declares exactly the Minecraft versions listed in
  * {@code minecraft_versions} (gradle.properties), each tested on a production
  * server, so the loader refuses it on any other; the list includes the
- * version it is built against. fabric.mod.json lists them itself (Loom reads
- * the source file as JSON); this keeps the two the same.
+ * version it is built against. The build fills them into fabric.mod.json;
+ * this checks the built file says exactly those.
  */
 class ModMetadataTest {
 

@@ -45,7 +45,7 @@ public class SwitchProbe extends Item {
 				}
 
 				if (itemStack.getItem() == ModItems.SWITCH_PROBE) {
-					if (itemStack.hasTag()) {
+					if (ItemData.has(itemStack)) {
 						secretBlockEntity.setState(dir, getState(itemStack));
 						secretBlockEntity.setDirection(dir, getDirection(itemStack));
 					} else {
@@ -79,17 +79,18 @@ public class SwitchProbe extends Item {
 	}
 
 	private static void putStateAndDirection(ItemStack itemStack, BlockState state, Direction dir) {
-		CompoundTag tag = itemStack.getOrCreateTag();
-		tag.put("setState", NbtUtils.writeBlockState(state));
-		tag.putString("setDirection", dir.name().toLowerCase());
+		ItemData.update(itemStack, tag -> {
+			tag.put("setState", NbtUtils.writeBlockState(state));
+			tag.putString("setDirection", dir.name().toLowerCase());
+		});
 	}
 
 	private static BlockState getState(ItemStack itemStack) {
-		return NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), itemStack.getOrCreateTagElement("setState"));
+		return NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), ItemData.read(itemStack).getCompound("setState"));
 	}
 
 	private static Direction getDirection(ItemStack itemStack) {
-		CompoundTag tag = itemStack.getOrCreateTag();
+		CompoundTag tag = ItemData.read(itemStack);
 		Direction tempDir = Direction.NORTH;
 
 		tempDir = Disguise.byName(tag.getString("setDirection"));

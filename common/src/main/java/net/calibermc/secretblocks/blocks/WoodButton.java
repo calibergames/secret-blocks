@@ -24,7 +24,7 @@ public class WoodButton extends net.minecraft.world.level.block.ButtonBlock impl
     public WoodButton(Properties settings) {
         // A piston breaks it, as it breaks a vanilla button. Pressed for as long as
         // a vanilla wooden button, with its sounds; arrows press it.
-        super(settings.pushReaction(PushReaction.DESTROY), BlockSetType.OAK, 30, true);
+        super(BlockSetType.OAK, 30, settings.pushReaction(PushReaction.DESTROY));
     }
 
 //    private static final VoxelShape SHAPE = VoxelShapes.cuboid(0.0d, 0.0d, 0.0d, 1.0d, 1.0d, 1.0d);
@@ -34,13 +34,6 @@ public class WoodButton extends net.minecraft.world.level.block.ButtonBlock impl
         return new SecretBlockEntity(pos, state);
     }
 
-    @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (world.getBlockEntity(pos) instanceof SecretBlockEntity) {
-            SecretBlockEntity blockEntity = (SecretBlockEntity) world.getBlockEntity(pos);
-        }
-        return super.use(state, world, pos, player, hand, hit);
-    }
 
     @Override
     public RenderShape getRenderShape(BlockState state) {

@@ -1,0 +1,18 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"ingredients": [
+		{
+			"item": "secretblocks:solid_block"
+		},
+		{
+			"item": "secretblocks:camouflage_paste"
+		},
+		{
+			"item": "minecraft:glass"
+		}
+	],
+	"result": {
+		"id": "secretblocks:one_way_glass",
+		"count": 1
+	}
+}

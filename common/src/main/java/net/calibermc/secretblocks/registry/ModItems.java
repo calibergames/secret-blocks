@@ -38,7 +38,7 @@ public class ModItems {
 
     // Registry
     private static Item registerItem(String name, Item item) {
-        return ModCreativeTab.add(Services.PLATFORM.register(BuiltInRegistries.ITEM, new ResourceLocation(SecretBlocks.MOD_ID, name), item));
+        return ModCreativeTab.add(Services.PLATFORM.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, name), item));
     }
 
     // Console Output

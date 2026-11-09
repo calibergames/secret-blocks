@@ -1,0 +1,139 @@
+// The Forge jar, built against Forge with ForgeGradle (Forge has its own API
+// and jar from 1.20.2). Forge runs on Mojang names from 1.20.6, so the released
+// jar is the plain jar, with no mixin refmap.
+plugins {
+	id 'multiloader-loader'
+	id 'net.minecraftforge.gradle'
+}
+
+// Game tests: the shared tests (common/src/gametest) and this loader's test
+// mod (secretblocks_gametest) in their own source set, never in the release jar.
+sourceSets {
+	gametest {
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+}
+
+configurations {
+	commonGametestJava {
+		canBeResolved = true
+	}
+	commonGametestResources {
+		canBeResolved = true
+	}
+	gametestImplementation.extendsFrom implementation
+	gametestCompileOnly.extendsFrom compileOnly
+	gametestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+repositories {
+	minecraft.mavenizer(it)
+	maven fg.forgeMaven
+	maven fg.minecraftLibsMaven
+}
+
+dependencies {
+	implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+	commonGametestJava project(path: ':common', configuration: 'commonGametestJava')
+	commonGametestResources project(path: ':common', configuration: 'commonGametestResources')
+	gametestCompileOnly project(':common')
+}
+
+tasks.named('compileGametestJava', JavaCompile) {
+	dependsOn(configurations.commonGametestJava)
+	source(configurations.commonGametestJava)
+}
+
+tasks.named('processGametestResources', ProcessResources) {
+	dependsOn(configurations.commonGametestResources)
+	from(configurations.commonGametestResources)
+}
+
+def rootBuild = rootProject.layout.buildDirectory.get().asFile.path
+def mixinConfigs = ['secretblocks.mixins.json', 'secretblocks.forge.mixins.json']
+def gametestMixinConfigs = ['secretblocks_gametest.mixins.json', 'secretblocks_gametest.driver.mixins.json']
+
+minecraft {
+	mappings channel: 'official', version: minecraft_version
+	runs {
+		configureEach {
+			// Development runs load the mixin configs from these arguments; the jars' manifests serve production.
+			mixinConfigs.each { args "-mixin.config=${it}" }
+		}
+		register('client') {
+			workingDir = rootProject.layout.projectDirectory.dir('run-forge')
+		}
+		register('server') {
+			workingDir = rootProject.layout.projectDirectory.dir('run-forge/server')
+		}
+		// A headless server that runs every shared game test and exits with the
+		// number of failures; `check` (and so `build`) depends on it.
+		register('gameTestServer') {
+			workingDir = rootProject.layout.buildDirectory.dir('gametest-forge')
+			gametestMixinConfigs.each { args "-mixin.config=${it}" }
+			// The tests sit on the flat world's ground, as on Fabric (Forge's default is y 60).
+			args '--spawnPos', '0,0,0'
+			systemProperty 'secretblocks.gametest.report', "${rootBuild}/gametest-forge/junit.xml"
+			mods {
+				secretblocks {
+					source sourceSets.main
+				}
+				secretblocks_gametest {
+					source sourceSets.gametest
+				}
+			}
+		}
+	}
+}
+
+jar {
+	manifest.attributes([
+		'MixinConfigs': mixinConfigs.join(',')
+	])
+}
+
+processResources {
+	def props = [version: project.version, minecraft_version: minecraft_version,
+			next_minecraft_version: next_minecraft_version, loader_version_range: forge_loader_version_range,
+			forge_version_range: forge_version_range]
+	inputs.properties props
+	filesMatching(['META-INF/mods.toml']) {
+		expand props
+	}
+}
+
+// ForgeGradle makes each run once per source set; the game tests run from the
+// gametest source set, whose classpath holds the test mod and the mod.
+def gameTestRun = 'runGametestGameTestServer'
+// Each run starts from a fresh test world, a flat one as Fabric's (and vanilla's)
+// test server makes: Forge's makes its world from server.properties, which
+// would otherwise give normal terrain over the tests.
+tasks.matching { it.name == gameTestRun }.configureEach {
+	doFirst {
+		delete "${rootBuild}/gametest-forge/world"
+		delete "${rootBuild}/gametest-forge/junit.xml"
+		def properties = file("${rootBuild}/gametest-forge/server.properties")
+		properties.parentFile.mkdirs()
+		// Vanilla's default flat world: bedrock, two dirt, grass, plains.
+		properties.text = 'level-type=minecraft\\:flat\n' +
+				'generator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:dirt","height":2},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\n'
+	}
+}
+
+tasks.named('check') {
+	dependsOn gameTestRun
+}
+
+// The game tests as a jar for production Forge servers (Mojang names, as Forge
+// 1.21.1 runs), to run them against released loader versions: start the server
+// with -Dforge.enableGameTest=true -Dforge.gameTestServer=true.
+// Never published; it is built outside build/libs.
+tasks.register('gametestJar', Jar) {
+	from sourceSets.gametest.output
+	archiveClassifier = 'gametest'
+	destinationDirectory = layout.buildDirectory.dir('gametestlibs')
+	manifest.attributes([
+		'MixinConfigs': gametestMixinConfigs.join(',')
+	])
+}

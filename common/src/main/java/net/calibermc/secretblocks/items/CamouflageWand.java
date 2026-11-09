@@ -83,7 +83,7 @@ public class CamouflageWand extends Item {
 		if (!isLoadable(state)) {
 			return refuse(player, "nothing_to_load");
 		}
-		stack.getOrCreateTag().put(DISGUISE, NbtUtils.writeBlockState(state));
+		ItemData.update(stack, tag -> tag.put(DISGUISE, NbtUtils.writeBlockState(state)));
 		player.displayClientMessage(Component.translatable(MESSAGES + "loaded", state.getBlock().getName()), true);
 		return InteractionResult.SUCCESS;
 	}
@@ -114,13 +114,13 @@ public class CamouflageWand extends Item {
 	}
 
 	/**
-	 * The disguise the wand carries, read again from its NBT and checked with
-	 * {@link #isLoadable}, since a stack's NBT can come from anywhere
+	 * The disguise the wand carries, read again from its data and checked with
+	 * {@link #isLoadable}, since a stack's data can come from anywhere
 	 * ({@code /give}, other mods, an old world).
 	 */
 	public static Optional<BlockState> loadedDisguise(ItemStack stack) {
-		CompoundTag tag = stack.getTag();
-		if (tag == null || !tag.contains(DISGUISE, Tag.TAG_COMPOUND)) {
+		CompoundTag tag = ItemData.read(stack);
+		if (!tag.contains(DISGUISE, Tag.TAG_COMPOUND)) {
 			return Optional.empty();
 		}
 		CompoundTag disguise = tag.getCompound(DISGUISE);
@@ -138,7 +138,7 @@ public class CamouflageWand extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
 		tooltip.add(loadedDisguise(stack)
 				.map(state -> Component.translatable(MESSAGES + "tooltip.loaded", state.getBlock().getName()))
 				.orElse(Component.translatable(MESSAGES + "tooltip.empty"))

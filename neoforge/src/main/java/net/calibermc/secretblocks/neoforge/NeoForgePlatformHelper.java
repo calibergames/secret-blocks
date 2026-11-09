@@ -6,8 +6,8 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.RegisterEvent;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * {@link PlatformHelper} on NeoForge and Forge 1.20.1. Entries are held until
+ * {@link PlatformHelper} on NeoForge. Entries are held until
  * their registry's {@link RegisterEvent}; the common start runs at the first
  * registry event, so every entry is waiting before its registry's turn.
  */

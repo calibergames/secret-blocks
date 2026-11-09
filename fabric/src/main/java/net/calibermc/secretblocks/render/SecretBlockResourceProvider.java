@@ -1,26 +1,20 @@
 package net.calibermc.secretblocks.render;
 
+import net.calibermc.secretblocks.SecretBlocks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.model.ModelProviderContext;
-import net.fabricmc.fabric.api.client.model.ModelProviderException;
-import net.fabricmc.fabric.api.client.model.ModelResourceProvider;
-import net.minecraft.client.resources.model.UnbakedModel;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.resources.ResourceLocation;
-import net.calibermc.secretblocks.SecretBlocks;
 
+/** Supplies the secret blocks' shared model ({@code block/camo_block}), which draws each block's disguise. */
 @Environment(EnvType.CLIENT)
-public class SecretBlockResourceProvider implements ModelResourceProvider {
+public final class SecretBlockResourceProvider implements ModelLoadingPlugin {
 
 	public static final SecretBlockUnbakedModel CAMO_MODEL = new SecretBlockUnbakedModel();
 	public static final ResourceLocation CAMO_BLOCK = SecretBlocks.id("block/camo_block");
 
 	@Override
-	public UnbakedModel loadModelResource(ResourceLocation identifier, ModelProviderContext modelProviderContext) throws ModelProviderException {
-		if (identifier.equals(CAMO_BLOCK)) {
-			return CAMO_MODEL;
-		} else {
-			return null;
-		}
+	public void onInitializeModelLoader(Context context) {
+		context.resolveModel().register(model -> model.id().equals(CAMO_BLOCK) ? CAMO_MODEL : null);
 	}
 }

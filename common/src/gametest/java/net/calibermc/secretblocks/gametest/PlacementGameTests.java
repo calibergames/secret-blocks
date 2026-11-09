@@ -104,7 +104,7 @@ public class PlacementGameTests {
 		h.getLevel().destroyBlock(h.absolutePos(upper ? PLACED.above() : PLACED), false);
 		for (BlockPos half : new BlockPos[] {PLACED, PLACED.above()}) {
 			checkBlock(h, half, Blocks.AIR);
-			check(h, h.getBlockEntity(half) == null, "a block entity was left behind at " + half);
+			check(h, blockEntityAt(h, half) == null, "a block entity was left behind at " + half);
 		}
 		h.succeed();
 	}

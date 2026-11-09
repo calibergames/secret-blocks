@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComparatorBlock;
@@ -85,7 +86,7 @@ public class TrappedChestGameTests {
 
 	/** Open the chest at {@code chest} for {@code player}, as its screen does: the menu starts the viewing. */
 	private static void open(GameTestHelper h, Player player, BlockPos chest) {
-		BlockEntity entity = h.getBlockEntity(chest);
+		BlockEntity entity = blockEntityAt(h, chest);
 		if (entity instanceof SecretChestBlockEntity secret) {
 			player.containerMenu = new SecretChestScreenHandler(1, player.getInventory(), secret);
 		} else {
@@ -210,7 +211,7 @@ public class TrappedChestGameTests {
 		BlockPos secret = new BlockPos(2, 1, 2);
 		h.setBlock(secret, SECRET);
 		h.setBlock(3, 1, 2, Blocks.REDSTONE_WIRE);
-		((Container) h.getBlockEntity(secret)).setItem(3, new ItemStack(Items.GOLD_INGOT, 5));
+		((Container) blockEntityAt(h, secret)).setItem(3, new ItemStack(Items.GOLD_INGOT, 5));
 		List<Player> viewers = new ArrayList<>();
 		Player a = viewer(h, viewers, new Vec3(1.5, 1, 2.5));
 		h.runAfterDelay(4, () -> open(h, a, secret));
@@ -298,15 +299,15 @@ public class TrappedChestGameTests {
 		h.setBlock(row[2], SECRET);
 		h.setBlock(2, 1, 3, Blocks.COMPARATOR.defaultBlockState().setValue(ComparatorBlock.FACING, Direction.NORTH));
 		for (BlockPos pos : row) {
-			check(h, h.getBlockEntity(pos) instanceof SecretChestBlockEntity chest && chest.getContainerSize() == 27, "each chest in the row should be a 27-slot secret chest");
+			check(h, blockEntityAt(h, pos) instanceof SecretChestBlockEntity chest && chest.getContainerSize() == 27, "each chest in the row should be a 27-slot secret chest");
 		}
-		Container first = (Container) h.getBlockEntity(row[0]);
+		Container first = (Container) blockEntityAt(h, row[0]);
 		for (int slot = 0; slot < 27; slot++) {
 			first.setItem(slot, new ItemStack(Items.BRICK, 64));
 		}
-		check(h, ((Container) h.getBlockEntity(row[1])).isEmpty() && ((Container) h.getBlockEntity(row[2])).isEmpty(), "filling one chest must not fill its neighbours");
+		check(h, ((Container) blockEntityAt(h, row[1])).isEmpty() && ((Container) blockEntityAt(h, row[2])).isEmpty(), "filling one chest must not fill its neighbours");
 		h.runAfterDelay(8, () -> {
-			int output = ((ComparatorBlockEntity) h.getBlockEntity(new BlockPos(2, 1, 3))).getOutputSignal();
+			int output = ((ComparatorBlockEntity) blockEntityAt(h, new BlockPos(2, 1, 3))).getOutputSignal();
 			check(h, output == 15, "a comparator behind the full Secret Trapped Chest should read 15, reads " + output);
 			first.clearContent();
 			h.succeed();
@@ -328,7 +329,7 @@ public class TrappedChestGameTests {
 		Player a = viewer(h, viewers, new Vec3(1.5, 1, 2.5));
 		h.runAfterDelay(4, () -> open(h, a, chest));
 		h.runAfterDelay(12, () -> {
-			SecretChestBlockEntity entity = (SecretChestBlockEntity) h.getBlockEntity(chest);
+			SecretChestBlockEntity entity = (SecretChestBlockEntity) blockEntityAt(h, chest);
 			check(h, entity.getOpenerCount() == 1, "the open Secret Chest should count 1 viewer, counts " + entity.getOpenerCount());
 			check(h, wire(h, 3, 1, 2) == 0 && !h.getBlockState(chest).isSignalSource(), "the plain Secret Chest must give no signal when open");
 			close(a);
@@ -348,8 +349,8 @@ public class TrappedChestGameTests {
 		for (Block block : new Block[] {ModBlocks.SECRET_CHEST, SECRET}) {
 			BlockPos pos = new BlockPos(2, 1, 2);
 			h.setBlock(pos, block);
-			SecretChestBlockEntity chest = (SecretChestBlockEntity) h.getBlockEntity(pos);
-			Player player = h.makeMockPlayer();
+			SecretChestBlockEntity chest = (SecretChestBlockEntity) blockEntityAt(h, pos);
+			Player player = h.makeMockPlayer(GameType.CREATIVE);
 			Vec3 near = abs(h, new Vec3(1.5, 1, 2.5));
 			player.moveTo(near.x, near.y, near.z, 0, 0);
 			check(h, chest.stillValid(player), block + ": the screen should stay open for a player beside the chest");
@@ -376,16 +377,16 @@ public class TrappedChestGameTests {
 		}
 		h.runAfterDelay(4, () -> {
 			for (int z : new int[] {1, 5}) {
-				((Container) h.getBlockEntity(new BlockPos(1, 1, z))).setItem(0, new ItemStack(Items.BRICK, 64));
+				((Container) blockEntityAt(h, new BlockPos(1, 1, z))).setItem(0, new ItemStack(Items.BRICK, 64));
 			}
 		});
 		h.runAfterDelay(12, () -> {
-			int vanilla = ((ComparatorBlockEntity) h.getBlockEntity(new BlockPos(2, 1, 5))).getOutputSignal();
-			int secret = ((ComparatorBlockEntity) h.getBlockEntity(new BlockPos(2, 1, 1))).getOutputSignal();
+			int vanilla = ((ComparatorBlockEntity) blockEntityAt(h, new BlockPos(2, 1, 5))).getOutputSignal();
+			int secret = ((ComparatorBlockEntity) blockEntityAt(h, new BlockPos(2, 1, 1))).getOutputSignal();
 			check(h, vanilla == 1, "control: one stack set into a vanilla chest should read 1, reads " + vanilla);
 			check(h, secret == 1, "one stack set into the Secret Chest should read 1 without a separate setChanged, reads " + secret);
 			for (int z : new int[] {1, 5}) {
-				((Container) h.getBlockEntity(new BlockPos(1, 1, z))).clearContent();
+				((Container) blockEntityAt(h, new BlockPos(1, 1, z))).clearContent();
 			}
 			h.succeed();
 		});
@@ -409,7 +410,7 @@ public class TrappedChestGameTests {
 			}
 		});
 		h.runAfterDelay(16, () -> {
-			SecretChestBlockEntity entity = (SecretChestBlockEntity) h.getBlockEntity(secret);
+			SecretChestBlockEntity entity = (SecretChestBlockEntity) blockEntityAt(h, secret);
 			check(h, entity.getOpenerCount() == 16, "the Secret Trapped Chest should count 16 viewers, counts " + entity.getOpenerCount());
 			both(h, "sixteen viewers", 15, wire(h, 3, 1, 1), wire(h, 3, 1, 5));
 			cleanUp(viewers);
@@ -433,14 +434,14 @@ public class TrappedChestGameTests {
 			var provider = h.getBlockState(pos).getMenuProvider(h.getLevel(), h.absolutePos(pos));
 			check(h, provider != null, block + ": the block should give a menu provider");
 			check(h, provider.getDisplayName().getString().equals(block.getName().getString()), block + ": the screen title should be the block's name, is " + provider.getDisplayName().getString());
-			Player player = h.makeMockPlayer();
+			Player player = h.makeMockPlayer(GameType.CREATIVE);
 			var menu = provider.createMenu(1, player.getInventory(), player);
-			check(h, menu instanceof SecretChestScreenHandler handler && handler.getContainer() == h.getBlockEntity(pos), block + ": the menu should show this chest");
+			check(h, menu instanceof SecretChestScreenHandler handler && handler.getContainer() == blockEntityAt(h, pos), block + ": the menu should show this chest");
 			check(h, menu.getType() == ModScreenHandlers.SECRET_CHEST_SCREEN_HANDLER && menu.getType().getClass() == net.minecraft.world.inventory.MenuType.class,
 					block + ": the menu should be the chest's plain menu type, is " + menu.getType().getClass().getName());
 			menu.removed(player);
 			BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(pos)), Direction.UP, h.absolutePos(pos), false);
-			var result = h.getBlockState(pos).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+			var result = use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 			check(h, result.consumesAction(), block + ": use should be consumed, got " + result);
 		}
 		h.succeed();

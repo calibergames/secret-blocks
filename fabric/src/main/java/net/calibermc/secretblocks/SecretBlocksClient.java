@@ -16,7 +16,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
@@ -31,7 +31,7 @@ public class SecretBlocksClient implements ClientModInitializer {
 
 
 		MenuScreens.register(ModScreenHandlers.SECRET_CHEST_SCREEN_HANDLER, SecretChestScreen::new);  //Screen handler
-		ModelLoadingRegistry.INSTANCE.registerResourceProvider(rm -> new SecretBlockResourceProvider());
+		ModelLoadingPlugin.register(new SecretBlockResourceProvider());
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), ModBlocks.secretBlocksList);
 		// The Torch Lever draws vanilla's torch models (tilted copies of them when on), which need the cutout layer as vanilla's torch does.
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), ModBlocks.TORCH_LEVER, ModBlocks.WALL_TORCH_LEVER);

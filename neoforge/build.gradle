@@ -1,9 +1,10 @@
-// The NeoForge jar for 1.20.1, built against NeoForge 1.20.1 (the 47.1 fork of
-// Forge 47, same API), which also loads on Forge 1.20.1: common plus the
-// NeoForge/Forge entry points, events and rendering.
+// The NeoForge jar, built against NeoForge (its own API from 1.20.2; Mojang
+// names at run time, so no reobfuscation and no mixin refmap): common plus the
+// NeoForge entry points, events and rendering. Forge has its own jar (the
+// forge subproject).
 plugins {
 	id 'multiloader-loader'
-	id 'net.neoforged.moddev.legacyforge'
+	id 'net.neoforged.moddev'
 }
 
 repositories {
@@ -23,16 +24,6 @@ sourceSets {
 		compileClasspath += sourceSets.main.output
 		runtimeClasspath += sourceSets.main.output
 	}
-	// The test mixins again, compiled only to write their refmap (SRG names)
-	// for the production test jar; the mixin annotation processor stays off
-	// the rest of the tests.
-	gametestMixins {
-		java {
-			srcDir rootProject.file('common/src/gametest/java')
-			include '**/mixin/**'
-		}
-		compileClasspath += sourceSets.main.output + sourceSets.gametest.output + sourceSets.gametest.compileClasspath
-	}
 }
 
 configurations {
@@ -41,15 +32,6 @@ configurations {
 	}
 	commonGametestResources {
 		canBeResolved = true
-	}
-	// Where reobfuscating the test jar publishes it (nothing consumes them).
-	gametestApiElements {
-		canBeConsumed = true
-		canBeResolved = false
-	}
-	gametestRuntimeElements {
-		canBeConsumed = true
-		canBeResolved = false
 	}
 	gametestImplementation.extendsFrom implementation
 	gametestCompileOnly.extendsFrom compileOnly
@@ -74,13 +56,13 @@ tasks.named('processGametestResources', ProcessResources) {
 
 def rootBuild = rootProject.layout.buildDirectory.get().asFile.path
 
-legacyForge {
+neoForge {
 	enable {
-		neoForgeVersion = neoforge_version
+		version = neoforge_version
 		enabledSourceSets = [sourceSets.main, sourceSets.gametest]
 	}
 	parchment {
-		minecraftVersion = minecraft_version
+		minecraftVersion = parchment_minecraft
 		mappingsVersion = parchment_mappings
 	}
 	runs {
@@ -106,7 +88,7 @@ legacyForge {
 			type = 'gameTestServer'
 			gameDirectory = file("${rootBuild}/gametest-neoforge")
 			sourceSet = sourceSets.gametest
-			// The tests sit on the flat world's ground, as on Fabric (Forge's default is y 60).
+			// The tests sit on the flat world's ground, as on Fabric (NeoForge's default is y 60).
 			programArguments.addAll '--spawnPos', '0,0,0'
 			systemProperty 'secretblocks.gametest.report', "${rootBuild}/gametest-neoforge/junit.xml"
 		}
@@ -121,12 +103,16 @@ legacyForge {
 	}
 }
 
+// The mixin configs are listed in neoforge.mods.toml ([[mixins]]), the test
+// mod's in its own.
+
 // Each run starts from a fresh test world, a flat one as Fabric's (and vanilla's)
-// test server makes: Forge's makes its world from server.properties, which
+// test server makes: NeoForge's makes its world from server.properties, which
 // would otherwise give normal terrain over the tests.
 tasks.matching { it.name == 'runGameTestServer' }.configureEach {
 	doFirst {
 		delete "${rootBuild}/gametest-neoforge/world"
+		delete "${rootBuild}/gametest-neoforge/junit.xml"
 		def properties = file("${rootBuild}/gametest-neoforge/server.properties")
 		properties.parentFile.mkdirs()
 		// Vanilla's default flat world: bedrock, two dirt, grass, plains.
@@ -139,89 +125,22 @@ tasks.named('check') {
 	dependsOn 'runGameTestServer'
 }
 
-// Renderer checks: `-Prenderers` adds Embeddium and Oculus to the development
-// runs (remapped to development names). Nothing else uses them.
-if (project.hasProperty('renderers')) {
-	dependencies {
-		modRuntimeOnly "maven.modrinth:embeddium:${embeddium_version}"
-		modRuntimeOnly "maven.modrinth:oculus:${oculus_version}"
-	}
-}
-
-// Connected textures: `-Pfusion` adds Fusion to the development runs.
-if (project.hasProperty('fusion')) {
-	dependencies {
-		modRuntimeOnly "maven.modrinth:fusion-connected-textures:${fusion_version}"
-	}
-}
-
-mixin {
-	add sourceSets.main, 'secretblocks.refmap.json'
-	config 'secretblocks.mixins.json'
-	config 'secretblocks.neoforge.mixins.json'
-	config 'secretblocks_gametest.mixins.json'
-	config 'secretblocks_gametest.driver.mixins.json'
-}
-
-dependencies {
-	annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-	gametestMixinsAnnotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-}
-
-jar {
-	manifest.attributes([
-		'MixinConfigs': 'secretblocks.mixins.json,secretblocks.neoforge.mixins.json'
-	])
-}
-
-// The game tests as a jar for production Forge and NeoForge servers (SRG names,
-// with the test mixins' refmap), to run them against released loader versions:
-// start the server with -Dforge.enableGameTest=true -Dforge.gameTestServer=true.
+// The game tests as a jar for production NeoForge servers (Mojang names, as
+// NeoForge runs), to run them against released loader versions: start the
+// server with -Dneoforge.enableGameTest=true -Dneoforge.gameTestServer=true.
 // Never published; it is built outside build/libs.
-def gametestRefmap = mixin.add(sourceSets.gametestMixins, 'secretblocks_gametest.refmap.json')
-
-def gametestDevJar = tasks.register('gametestDevJar', Jar) {
+tasks.register('gametestJar', Jar) {
 	from sourceSets.gametest.output
-	from gametestRefmap
-	dependsOn 'compileGametestMixinsJava'
-	archiveClassifier = 'gametest-dev'
-	destinationDirectory = layout.buildDirectory.dir('devlibs')
-	manifest.attributes([
-		'MixinConfigs': 'secretblocks_gametest.mixins.json'
-	])
-}
-
-def reobfGametest = obfuscation.reobfuscate(gametestDevJar, sourceSets.gametest) {
 	archiveClassifier = 'gametest'
 	destinationDirectory = layout.buildDirectory.dir('gametestlibs')
 }
 
-tasks.register('gametestJar') {
-	dependsOn reobfGametest
-}
-
-// Reobfuscation reads every mixin source set's mappings.
-tasks.matching { it.name.startsWith('reobf') }.configureEach {
-	dependsOn 'compileGametestMixinsJava'
-}
-
-processGametestResources {
-	// The test mixins on Forge 1.20.1 need their refmap (SRG names), as the mod's own.
-	inputs.property 'refmap', 'secretblocks_gametest.refmap.json'
-	filesMatching('secretblocks_gametest.mixins.json') {
-		filter { line -> line.contains('"package"') ? line + '\n\t"refmap": "secretblocks_gametest.refmap.json",' : line }
-	}
-}
-
 processResources {
-	def props = [version: project.version, minecraft_version: minecraft_version, neoforge_version: neoforge_version]
+	def props = [version: project.version, minecraft_version: minecraft_version,
+			next_minecraft_version: next_minecraft_version, neoforge_minecraft_min: neoforge_minecraft_min,
+			loader_version_range: neoforge_loader_version_range, neoforge_version_range: neoforge_version_range]
 	inputs.properties props
-	filesMatching('META-INF/mods.toml') {
+	filesMatching(['META-INF/neoforge.mods.toml']) {
 		expand props
-	}
-	// Forge 1.20.1 runs on SRG names: the shared mixin config points at the refmap
-	// built here (the Fabric jar needs none, so common's own copy names none).
-	filesMatching('secretblocks.mixins.json') {
-		filter { line -> line.contains('"package"') ? line + '\n\t"refmap": "secretblocks.refmap.json",' : line }
 	}
 }

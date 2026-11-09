@@ -15,10 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The built mods.toml claims exactly the Minecraft version the jar is built
- * against, and its Forge floor is the oldest Forge the release is tested on
- * (47.1.0) and admits the NeoForge 1.20.1 version it is built against
- * (NeoForge 1.20.1 keeps Forge's mod id and version numbers).
+ * The built neoforge.mods.toml claims the family's Minecraft versions, from
+ * the oldest the NeoForge jar claims up to the next family, and its NeoForge
+ * floor admits the NeoForge version it is built against.
  */
 class ModsTomlTest {
 
@@ -29,8 +28,8 @@ class ModsTomlTest {
 	}
 
 	private static String modsToml() throws IOException {
-		try (InputStream in = ModsTomlTest.class.getResourceAsStream("/META-INF/mods.toml")) {
-			assertNotNull(in, "the built mods.toml");
+		try (InputStream in = ModsTomlTest.class.getResourceAsStream("/META-INF/neoforge.mods.toml")) {
+			assertNotNull(in, "the built neoforge.mods.toml");
 			return new String(in.readAllBytes(), StandardCharsets.UTF_8);
 		}
 	}
@@ -55,20 +54,19 @@ class ModsTomlTest {
 	}
 
 	@Test
-	void claimsTheBuiltMinecraftVersion() throws IOException {
+	void claimsTheFamilysMinecraftVersions() throws IOException {
 		String properties = Files.readString(Path.of("../gradle.properties"));
-		String built = find(properties, "^minecraft_version\\s*=\\s*(\\S+)");
+		String oldest = find(properties, "^neoforge_minecraft_min\\s*=\\s*(\\S+)");
+		String next = find(properties, "^next_minecraft_version\\s*=\\s*(\\S+)");
 		String range = find(modsToml(), "modId = \"minecraft\".*?versionRange = \"([^\"]*)\"");
-		assertEquals("[" + built + "]", range, "mods.toml should claim exactly Minecraft " + built);
+		assertEquals("[" + oldest + "," + next + ")", range, "neoforge.mods.toml should claim Minecraft " + oldest + " up to " + next);
 	}
 
 	@Test
-	void forgeFloorAdmitsTheBuiltVersion() throws IOException {
+	void neoForgeFloorAdmitsTheBuiltVersion() throws IOException {
 		String properties = Files.readString(Path.of("../gradle.properties"));
-		String neoforge = find(properties, "^neoforge_version\\s*=\\s*\\S+-(\\S+)");
-		String range = find(modsToml(), "modId = \"forge\".*?versionRange = \"\\[([^,\\]]+),\\)\"");
-		assertEquals("47.1", range, "the Forge floor should stay the oldest tested Forge, 47.1.0");
-		assertTrue(atLeast(version(neoforge), version(range)),
-				"the Forge floor " + range + " should admit the NeoForge build version " + neoforge);
+		String built = find(properties, "^neoforge_version\\s*=\\s*(\\S+)");
+		String floor = find(modsToml(), "modId = \"neoforge\".*?versionRange = \"\\[([^,\\]]+),\\)\"");
+		assertTrue(atLeast(version(built), version(floor)), "the NeoForge floor " + floor + " should admit the NeoForge build " + built);
 	}
 }

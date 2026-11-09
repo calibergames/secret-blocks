@@ -1,7 +1,7 @@
 package net.calibermc.secretblocks.neoforge;
 
 import net.calibermc.secretblocks.util.MixinHooks;
-import net.minecraftforge.fml.loading.LoadingModList;
+import net.neoforged.fml.loading.LoadingModList;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -24,7 +24,7 @@ public class NeoForgeMixinPlugin implements IMixinConfigPlugin {
 	@Override
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
 		if (mixinClassName.equals(EMBEDDIUM_MIXIN)) {
-			return LoadingModList.get().getModFileById("embeddium") != null;
+			return LoadingModList.get().getModFileById("embeddium") != null || LoadingModList.get().getModFileById("sodium") != null;
 		}
 		return true;
 	}
@@ -54,7 +54,7 @@ public class NeoForgeMixinPlugin implements IMixinConfigPlugin {
 	@Override
 	public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
 		if (mixinClassName.equals(EMBEDDIUM_MIXIN)) {
-			MixinHooks.checkOcclusionHook("Embeddium", targetClass);
+			MixinHooks.checkOcclusionHook(targetClassName.startsWith("net.caffeinemc.") ? "Sodium" : "Embeddium", targetClass);
 		}
 	}
 }

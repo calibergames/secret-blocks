@@ -32,13 +32,6 @@ public class SecretLever extends net.minecraft.world.level.block.LeverBlock impl
         return new SecretBlockEntity(pos, state);
     }
 
-    @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (world.getBlockEntity(pos) instanceof SecretBlockEntity) {
-            SecretBlockEntity blockEntity = (SecretBlockEntity) world.getBlockEntity(pos);
-        }
-        return super.use(state, world, pos, player, hand, hit);
-    }
 
     @Override
     public RenderShape getRenderShape(BlockState state) {

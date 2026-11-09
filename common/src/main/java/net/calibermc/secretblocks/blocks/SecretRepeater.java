@@ -62,6 +62,12 @@ public class SecretRepeater extends RepeaterBlock implements EntityBlock, Secret
 		return true;
 	}
 
+	/** The same when the block under it changes (vanilla checks the floor on shape updates too). */
+	@Override
+	protected boolean canSurviveOn(LevelReader level, BlockPos pos, BlockState state) {
+		return true;
+	}
+
 	/** No redstone particles when powered: they would show where it is. */
 	@Override
 	public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {

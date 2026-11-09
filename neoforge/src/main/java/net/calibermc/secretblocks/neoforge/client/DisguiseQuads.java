@@ -25,8 +25,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.ChunkRenderTypeSet;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.ChunkRenderTypeSet;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ import java.util.Map;
 
 /**
  * A secret block's disguise as baked quads, sorted by render layer and cull
- * face, for the NeoForge/Forge model. The same faces as the Fabric renderer
+ * face, for the NeoForge model. The same faces as the Fabric renderer
  * draws: each face shows its look (the look's own quads where the face shows
  * it as it is, else the look's texture fitted to the face and turned by its
  * rotation), tinted and in the look's layer; the Secret Goggles' overlay; and

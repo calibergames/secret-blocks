@@ -8,7 +8,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
+import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 
 /** The Fabric entry point: the common start, then the Fabric events it needs. */
 public class SecretBlocksFabric implements ModInitializer {
@@ -19,8 +19,8 @@ public class SecretBlocksFabric implements ModInitializer {
 		// The wand acts before the clicked block's own use.
 		UseBlockCallback.EVENT.register(CamouflageWand::onUseBlock);
 		// Vanilla's End City treasure only, not a data pack's replacement.
-		LootTableEvents.MODIFY.register((resourceManager, lootManager, id, tableBuilder, source) -> {
-			if (source.isBuiltin() && SecretBlocks.getsGogglesLoot(id)) {
+		LootTableEvents.MODIFY.register((key, tableBuilder, source, registries) -> {
+			if (source.isBuiltin() && SecretBlocks.getsGogglesLoot(key.location())) {
 				tableBuilder.withPool(SecretBlocks.gogglesLootPool());
 			}
 		});

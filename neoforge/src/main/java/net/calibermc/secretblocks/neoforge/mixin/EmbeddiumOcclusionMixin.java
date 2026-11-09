@@ -12,16 +12,19 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Embeddium (Sodium 0.5's port) culls faces with its own code instead of
- * vanilla's {@code Block.shouldRenderFace}, so the culling mixin there does
- * not reach it: in the Builder's Goggles' view the faces between secret
- * blocks were culled and the faded blocks showed the world behind them. This
- * applies the same rule ({@link SecretCulling}) to its
- * {@code BlockOcclusionCache}. A pseudo mixin, applied only when Embeddium is
- * installed; no build dependency on Embeddium.
+ * Embeddium and Sodium cull faces with their own code instead of vanilla's
+ * {@code Block.shouldRenderFace}, so the culling mixin there does not reach
+ * them: in the Builder's Goggles' view the faces between secret blocks were
+ * culled and the faded blocks showed the world behind them. This applies the
+ * same rule ({@link SecretCulling}) to their {@code BlockOcclusionCache}
+ * (Embeddium's old and current packages, and Sodium's; the same method). A
+ * pseudo mixin, applied only when one of them is installed; no build
+ * dependency on either.
  */
 @Pseudo
-@Mixin(targets = "me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockOcclusionCache")
+@Mixin(targets = {"me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockOcclusionCache",
+		"org.embeddedt.embeddium.impl.render.chunk.compile.pipeline.BlockOcclusionCache",
+		"net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.BlockOcclusionCache"})
 public abstract class EmbeddiumOcclusionMixin {
 
 	@Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true, remap = false, require = 0)

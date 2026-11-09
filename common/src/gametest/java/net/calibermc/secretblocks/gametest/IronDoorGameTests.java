@@ -49,9 +49,9 @@ public class IronDoorGameTests {
 	}
 
 	private static net.minecraft.world.InteractionResult handUse(GameTestHelper h, BlockPos pos) {
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(pos)), Direction.NORTH, h.absolutePos(pos), false);
-		return h.getBlockState(pos).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+		return use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 	}
 
 	/** Using it by hand does nothing, as with a vanilla iron door and iron trapdoor. */

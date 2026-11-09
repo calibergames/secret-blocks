@@ -23,6 +23,7 @@ import net.minecraft.world.inventory.DispenserMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComparatorBlock;
@@ -73,7 +74,7 @@ public class DropperGameTests {
 	}
 
 	private static DispenserBlockEntity dropper(GameTestHelper h, BlockPos rel) {
-		BlockEntity entity = h.getBlockEntity(rel);
+		BlockEntity entity = blockEntityAt(h, rel);
 		if (entity instanceof DispenserBlockEntity dropper) {
 			return dropper;
 		}
@@ -82,10 +83,10 @@ public class DropperGameTests {
 	}
 
 	private static SecretDispenserBlockEntity secretDropper(GameTestHelper h) {
-		if (h.getBlockEntity(SECRET_POS) instanceof SecretDispenserBlockEntity dropper) {
+		if (blockEntityAt(h, SECRET_POS) instanceof SecretDispenserBlockEntity dropper) {
 			return dropper;
 		}
-		h.fail("expected a SecretDispenserBlockEntity, found " + h.getBlockEntity(SECRET_POS), SECRET_POS);
+		h.fail("expected a SecretDispenserBlockEntity, found " + blockEntityAt(h, SECRET_POS), SECRET_POS);
 		throw new AssertionError("unreachable");
 	}
 
@@ -95,7 +96,7 @@ public class DropperGameTests {
 
 	/** A named stack, so that items thrown by other tests are never counted. */
 	private static ItemStack probe(Item item, int count, String test) {
-		return new ItemStack(item, count).setHoverName(Component.literal("Test dropper " + test));
+		return named(new ItemStack(item, count), Component.literal("Test dropper " + test));
 	}
 
 	private static int count(Container container) {
@@ -199,7 +200,7 @@ public class DropperGameTests {
 		power(h, true);
 		h.runAfterDelay(20, () -> {
 			for (BlockPos pos : BOTH) {
-				int inChest = count((Container) h.getBlockEntity(pos.north()));
+				int inChest = count((Container) blockEntityAt(h, pos.north()));
 				check(h, inChest == 1, name(pos) + " should have put one diamond in the chest, the chest holds " + inChest);
 				check(h, count(dropper(h, pos)) == 2, name(pos) + " should hold 2 diamonds, holds " + count(dropper(h, pos)));
 			}
@@ -215,7 +216,7 @@ public class DropperGameTests {
 		placeBoth(h, Direction.NORTH);
 		for (BlockPos pos : BOTH) {
 			h.setBlock(pos.north(), Blocks.CHEST);
-			Container chest = (Container) h.getBlockEntity(pos.north());
+			Container chest = (Container) blockEntityAt(h, pos.north());
 			for (int slot = 0; slot < chest.getContainerSize(); slot++) {
 				chest.setItem(slot, new ItemStack(Items.COBBLESTONE, 64));
 			}
@@ -227,7 +228,7 @@ public class DropperGameTests {
 				check(h, h.getBlockState(pos).getValue(DispenserBlock.TRIGGERED), name(pos) + " should have been triggered");
 				check(h, count(dropper(h, pos)) == 3, name(pos) + " should still hold its 3 diamonds, holds " + count(dropper(h, pos)));
 				// Room for one stack now; the next pulse must move a diamond (so the first pulse did run, and kept it).
-				((Container) h.getBlockEntity(pos.north())).setItem(0, ItemStack.EMPTY);
+				((Container) blockEntityAt(h, pos.north())).setItem(0, ItemStack.EMPTY);
 			}
 			check(h, thrown(h, new BlockPos(3, 1, 2), 5, "full").isEmpty(), "no diamond should have been thrown out");
 			power(h, false);
@@ -235,7 +236,7 @@ public class DropperGameTests {
 		h.runAfterDelay(25, () -> power(h, true));
 		h.runAfterDelay(40, () -> {
 			for (BlockPos pos : BOTH) {
-				ItemStack moved = ((Container) h.getBlockEntity(pos.north())).getItem(0);
+				ItemStack moved = ((Container) blockEntityAt(h, pos.north())).getItem(0);
 				check(h, moved.is(Items.DIAMOND) && moved.getCount() == 1, name(pos) + " should put one diamond in the freed slot, the slot holds " + moved);
 				check(h, count(dropper(h, pos)) == 2, name(pos) + " should hold 2 diamonds after the second pulse, holds " + count(dropper(h, pos)));
 			}
@@ -297,7 +298,7 @@ public class DropperGameTests {
 			h.runAfterDelay(pulse * 6L + 3, () -> power(h, false));
 			h.runAfterDelay(pulse * 6L + 5, () -> {
 				for (BlockPos pos : BOTH) {
-					int inChest = count((Container) h.getBlockEntity(pos.north()));
+					int inChest = count((Container) blockEntityAt(h, pos.north()));
 					int left = count(dropper(h, pos));
 					check(h, inChest == moved && left == 64 - moved,
 							"after pulse " + moved + ", " + name(pos) + " should hold " + (64 - moved) + " and its chest " + moved + "; they hold " + left + " and " + inChest);
@@ -369,7 +370,7 @@ public class DropperGameTests {
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void opensTheVanillaScreenTitledSecretDropper(GameTestHelper h) {
 		placeBoth(h, Direction.NORTH);
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		AbstractContainerMenu menu = secretDropper(h).createMenu(0, player.getInventory(), player);
 		AbstractContainerMenu vanilla = dropper(h, VANILLA_POS).createMenu(0, player.getInventory(), player);
 		check(h, vanilla instanceof DispenserMenu, "control: a vanilla dropper opens a DispenserMenu, got " + vanilla);
@@ -414,9 +415,9 @@ public class DropperGameTests {
 				}
 			};
 			BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(pos)), Direction.NORTH, h.absolutePos(pos), false);
-			InteractionResult result = h.getBlockState(pos).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+			InteractionResult result = use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 			check(h, result == InteractionResult.CONSUME, "using " + name(pos) + " should be consumed on the server, got " + result);
-			check(h, opened.size() == 1 && opened.get(0) == h.getBlockEntity(pos), name(pos) + " should open its own block entity's screen, opened " + opened);
+			check(h, opened.size() == 1 && opened.get(0) == blockEntityAt(h, pos), name(pos) + " should open its own block entity's screen, opened " + opened);
 			check(h, stats.equals(List.of(Stats.INSPECT_DROPPER)), name(pos) + " should count as one dropper searched, counted " + stats);
 		}
 		h.succeed();
@@ -431,12 +432,12 @@ public class DropperGameTests {
 		secretDropper(h).setItem(8, new ItemStack(Items.ARROW, 64));
 		secretDropper(h).setDirection(Direction.NORTH, Direction.UP);
 		secretDropper(h).setRotation(Direction.EAST, 180);
-		CompoundTag saved = secretDropper(h).saveWithFullMetadata();
+		CompoundTag saved = secretDropper(h).saveWithFullMetadata(h.getLevel().registryAccess());
 		check(h, saved.getString("id").equals("secretblocks:secret_dispenser"), "it is saved as the shared type secretblocks:secret_dispenser, got " + saved.getString("id"));
 		// The shared type must list the dropper: the game checks it when it looks a block entity up by type.
 		check(h, secretDropper(h).getType().isValid(h.getBlockState(SECRET_POS)), "the block entity type " + saved.getString("id") + " should accept the Secret Dropper");
 		check(h, h.getLevel().getBlockEntity(h.absolutePos(SECRET_POS), secretDropper(h).getType()).isPresent(), "the Secret Dropper's block entity should be found by its type");
-		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(SECRET_POS), h.getBlockState(SECRET_POS), saved);
+		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(SECRET_POS), h.getBlockState(SECRET_POS), saved, h.getLevel().registryAccess());
 		check(h, loaded instanceof SecretDispenserBlockEntity, "loads back as a SecretDispenserBlockEntity, got " + loaded);
 		SecretDispenserBlockEntity copy = (SecretDispenserBlockEntity) loaded;
 		check(h, ItemStack.matches(copy.getItem(0), new ItemStack(Items.DIAMOND, 5)), "slot 0 should hold 5 diamonds");
@@ -457,7 +458,7 @@ public class DropperGameTests {
 		h.setBlock(SECRET_POS, facing(SECRET, Direction.NORTH));
 		secretDropper(h).setDisguise(all(Blocks.BRICKS));
 		secretDropper(h).setItem(0, new ItemStack(Items.DIAMOND, 5));
-		CompoundTag update = secretDropper(h).getUpdateTag();
+		CompoundTag update = secretDropper(h).getUpdateTag(h.getLevel().registryAccess());
 		check(h, update.contains("northState") && !update.contains("Items"), "the update tag should carry the disguise only: " + update);
 		CompoundTag packet = secretDropper(h).getUpdatePacket().getTag();
 		check(h, packet != null && packet.getCompound("northState").getString("Name").equals("minecraft:bricks") && !packet.contains("Items"),
@@ -473,7 +474,7 @@ public class DropperGameTests {
 		Item[] items = {SECRET.asItem(), Items.DROPPER};
 		for (BlockPos pos : BOTH) {
 			dropper(h, pos).setItem(4, probe(Items.DIAMOND, 3, "broken"));
-			dropper(h, pos).setCustomName(Component.literal("Trap"));
+			nameContainer(dropper(h, pos), Component.literal("Trap"));
 			h.getLevel().destroyBlock(h.absolutePos(pos), true);
 		}
 		for (int i = 0; i < BOTH.length; i++) {

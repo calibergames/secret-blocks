@@ -1,5 +1,9 @@
 package net.calibermc.secretblocks.blocks;
 
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.entity.player.Player;
 import net.calibermc.secretblocks.blocks.entity.SecretSculkSensorBlockEntity;
 import net.calibermc.secretblocks.registry.ModEntities;
 import net.minecraft.core.BlockPos;
@@ -96,7 +100,7 @@ public class SecretSculkSensor extends SculkSensorBlock implements SecretBlock {
 	}
 
 	@Override
-	public boolean canPlaceLiquid(BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
+	public boolean canPlaceLiquid(@Nullable Player player, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
 		return false;
 	}
 
@@ -108,6 +112,21 @@ public class SecretSculkSensor extends SculkSensorBlock implements SecretBlock {
 	/** Breaking it gives no experience (vanilla gives 5 without Silk Touch). It drops itself (loot table). */
 	@Override
 	public void spawnAfterBreak(BlockState state, ServerLevel level, BlockPos pos, ItemStack tool, boolean dropExperience) {
+	}
+
+	/**
+	 * The same where the loader gives a block's experience through a hook
+	 * instead: NeoForge's (this signature) and Forge's (the next) patched sculk
+	 * sensors give 5 there. Not in vanilla's API, so not marked as overrides;
+	 * on those loaders they override by their signatures.
+	 */
+	public int getExpDrop(BlockState state, LevelAccessor level, BlockPos pos, @Nullable BlockEntity blockEntity,
+			@Nullable Entity breaker, ItemStack tool) {
+		return 0;
+	}
+
+	public int getExpDrop(BlockState state, LevelReader level, RandomSource random, BlockPos pos, int fortuneLevel, int silkTouchLevel) {
+		return 0;
 	}
 
 	/** No particles from its sides while active: they would show where it hides. */

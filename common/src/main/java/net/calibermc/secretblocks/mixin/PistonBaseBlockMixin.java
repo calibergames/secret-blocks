@@ -108,7 +108,7 @@ public abstract class PistonBaseBlockMixin {
 		secretblocks$retracting.remove();
 		if ((type == PistonBaseBlock.TRIGGER_CONTRACT || type == PistonBaseBlock.TRIGGER_DROP)
 				&& level.getBlockEntity(pos) instanceof DisguisedBlockEntity secret) {
-			secretblocks$retracting.set(((BlockEntity) secret).saveWithoutMetadata());
+			secretblocks$retracting.set(((BlockEntity) secret).saveWithoutMetadata(level.registryAccess()));
 		}
 	}
 

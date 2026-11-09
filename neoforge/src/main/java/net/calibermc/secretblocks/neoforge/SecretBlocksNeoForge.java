@@ -6,36 +6,34 @@ import net.calibermc.secretblocks.items.CamouflageWand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.LootTableLoadEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.registries.RegisterEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.LootTableLoadEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 /**
- * The NeoForge/Forge entry point: the common start, run from the first
+ * The NeoForge entry point: the common start, run from the first
  * registry event (objects may only be made while the registries take them),
  * then the game events the mod needs.
  */
 @Mod(SecretBlocks.MOD_ID)
 public class SecretBlocksNeoForge {
 
-	public SecretBlocksNeoForge() {
-		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+	public SecretBlocksNeoForge(IEventBus modBus) {
 		modBus.addListener(SecretBlocksNeoForge::onRegister);
 		modBus.addListener((FMLLoadCompleteEvent event) -> NeoForgePlatformHelper.checkNothingLeft());
 		if (FMLEnvironment.dist.isClient()) {
 			SecretBlocksNeoForgeClient.init(modBus);
 		}
 
-		IEventBus bus = MinecraftForge.EVENT_BUS;
+		IEventBus bus = NeoForge.EVENT_BUS;
 		// The wand acts before the clicked block's own use.
 		bus.addListener(SecretBlocksNeoForge::onRightClickBlock);
 		// Fired for the game's own tables only, not a data pack's replacement.
@@ -52,8 +50,8 @@ public class SecretBlocksNeoForge {
 				Opacity.checkChunk(level, chunk);
 			}
 		});
-		bus.addListener((TickEvent.LevelTickEvent event) -> {
-			if (event.phase == TickEvent.Phase.END && event.level instanceof ServerLevel level) {
+		bus.addListener((LevelTickEvent.Post event) -> {
+			if (event.getLevel() instanceof ServerLevel level) {
 				Opacity.putRight(level);
 			}
 		});

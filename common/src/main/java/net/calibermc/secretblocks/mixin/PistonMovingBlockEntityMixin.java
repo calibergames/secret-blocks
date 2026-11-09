@@ -7,6 +7,7 @@ import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.PistonCarry;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -96,12 +97,12 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 		PistonMovingBlockEntity self = (PistonMovingBlockEntity) (Object) this;
 		BlockPos source = self.getBlockPos().relative(self.getMovementDirection().getOpposite());
 		if (level.getChunkAt(source).getBlockEntity(source, LevelChunk.EntityCreationType.CHECK) instanceof DisguisedBlockEntity secret) {
-			secretblocks$setCarried(((BlockEntity) secret).saveWithoutMetadata());
+			secretblocks$setCarried(((BlockEntity) secret).saveWithoutMetadata(level.registryAccess()));
 		}
 	}
 
 	@Inject(method = "saveAdditional", at = @At("TAIL"))
-	private void secretblocks$save(CompoundTag tag, CallbackInfo ci) {
+	private void secretblocks$save(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
 		if (secretblocks$carried != null) {
 			tag.put(SECRETBLOCKS_CARRIED, secretblocks$carried.copy());
 		}
@@ -121,8 +122,8 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 		}
 	}
 
-	@Inject(method = "load", at = @At("TAIL"))
-	private void secretblocks$load(CompoundTag tag, CallbackInfo ci) {
+	@Inject(method = "loadAdditional", at = @At("TAIL"))
+	private void secretblocks$load(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
 		secretblocks$setCarried(tag.contains(SECRETBLOCKS_CARRIED, CompoundTag.TAG_COMPOUND) ? tag.getCompound(SECRETBLOCKS_CARRIED) : null);
 	}
 
@@ -131,7 +132,7 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 	private static void secretblocks$restore(Level level, BlockPos pos, PistonMovingBlockEntity moving) {
 		CompoundTag carried = ((PistonCarry) moving).secretblocks$getCarried();
 		if (carried != null && level.getBlockEntity(pos) instanceof DisguisedBlockEntity secret) {
-			((BlockEntity) secret).load(carried);
+			((BlockEntity) secret).loadWithComponents(carried, level.registryAccess());
 			secret.markDisguiseChanged();
 		}
 	}

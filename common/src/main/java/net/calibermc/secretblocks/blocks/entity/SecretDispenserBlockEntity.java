@@ -1,6 +1,7 @@
 package net.calibermc.secretblocks.blocks.entity;
 
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -35,14 +36,15 @@ public class SecretDispenserBlockEntity extends DispenserBlockEntity implements 
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		disguise.save(tag);
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		LegacyData.upgradeItems(tag);
+		super.loadAdditional(tag, registries);
 		disguise.load(tag);
 		DisguisedBlockEntity.redrawAfterLoad(this);
 	}
@@ -58,7 +60,7 @@ public class SecretDispenserBlockEntity extends DispenserBlockEntity implements 
 
 	/** What clients receive: the disguise only, never the contents. */
 	@Override
-	public CompoundTag getUpdateTag() {
+	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		return disguise.saveForClients(new CompoundTag());
 	}
 }

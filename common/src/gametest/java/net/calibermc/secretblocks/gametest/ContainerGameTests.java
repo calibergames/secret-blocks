@@ -17,6 +17,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -55,7 +56,7 @@ public class ContainerGameTests {
 	private static void hopperAbove(GameTestHelper h, BlockPos target, int diamonds) {
 		BlockPos hopper = target.above();
 		h.setBlock(hopper, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.DOWN));
-		((HopperBlockEntity) h.getBlockEntity(hopper)).setItem(0, new ItemStack(Items.DIAMOND, diamonds));
+		((HopperBlockEntity) blockEntityAt(h, hopper)).setItem(0, new ItemStack(Items.DIAMOND, diamonds));
 	}
 
 	/** Every secret block with a block entity: a container only if its vanilla counterpart is one. */
@@ -120,10 +121,10 @@ public class ContainerGameTests {
 		h.runAfterDelay(60, () -> {
 			for (int i = 0; i < targets.length; i++) {
 				BlockPos target = new BlockPos(1 + i, 1, 2);
-				int kept = count((Container) h.getBlockEntity(target.above()));
+				int kept = count((Container) blockEntityAt(h, target.above()));
 				check(h, kept == 3, "the hopper over " + targets[i] + " should keep its 3 diamonds, has " + kept);
-				if (h.getBlockEntity(target) instanceof SecretBlockEntity secret) {
-					CompoundTag saved = secret.saveWithoutMetadata();
+				if (blockEntityAt(h, target) instanceof SecretBlockEntity secret) {
+					CompoundTag saved = secret.saveWithoutMetadata(h.getLevel().registryAccess());
 					check(h, saved.getList("Items", Tag.TAG_COMPOUND).isEmpty(), targets[i] + " must hold no items: " + saved.get("Items"));
 				}
 			}
@@ -145,23 +146,23 @@ public class ContainerGameTests {
 			BlockPos dropper = new BlockPos(1 + i * 2, 1, 2);
 			h.setBlock(dropper.south(), targets[i]);
 			h.setBlock(dropper, Blocks.DROPPER.defaultBlockState().setValue(DispenserBlock.FACING, Direction.SOUTH));
-			((Container) h.getBlockEntity(dropper)).setItem(0, droppedDiamond());
+			((Container) blockEntityAt(h, dropper)).setItem(0, droppedDiamond());
 			h.setBlock(dropper.north(), Blocks.REDSTONE_BLOCK);
 		}
 		h.runAfterDelay(20, () -> {
 			for (int i = 0; i < targets.length; i++) {
 				BlockPos dropper = new BlockPos(1 + i * 2, 1, 2);
-				int left = count((Container) h.getBlockEntity(dropper));
+				int left = count((Container) blockEntityAt(h, dropper));
 				check(h, left == 0, "the dropper facing " + targets[i] + " should have used its diamond, has " + left);
 			}
 			// Facing stone or a plain secret block, the diamond is thrown out into the
 			// world: the Dummy Block keeps nothing (the 1.2.0 bug put it inside), and
 			// both diamonds exist as items. A diamond thrown into a solid block is
 			// pushed out and can fly several blocks, so the count covers a wide area.
-			CompoundTag dummy = plain(h, new BlockPos(3, 1, 3)).saveWithoutMetadata();
+			CompoundTag dummy = plain(h, new BlockPos(3, 1, 3)).saveWithoutMetadata(h.getLevel().registryAccess());
 			check(h, dummy.getList("Items", Tag.TAG_COMPOUND).isEmpty(), "the Dummy Block must not take the dropper's diamond: " + dummy.get("Items"));
 			int thrown = h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(new BlockPos(2, 1, 3))).inflate(24),
-					e -> ItemStack.isSameItemSameTags(e.getItem(), droppedDiamond())).stream().mapToInt(e -> e.getItem().getCount()).sum();
+					e -> ItemStack.isSameItemSameComponents(e.getItem(), droppedDiamond())).stream().mapToInt(e -> e.getItem().getCount()).sum();
 			check(h, thrown == 2, "the droppers facing stone and the Dummy Block should each throw a diamond out, " + thrown + " found");
 			check(h, count(container(h, new BlockPos(5, 1, 3))) == 1, "control: the vanilla chest should receive the diamond");
 			check(h, count(container(h, new BlockPos(7, 1, 3))) == 1, "the Secret Chest should receive the diamond");
@@ -195,7 +196,7 @@ public class ContainerGameTests {
 	 * counts only these (neighbouring tests drop diamonds too).
 	 */
 	private static ItemStack droppedDiamond() {
-		return new ItemStack(Items.DIAMOND).setHoverName(Component.literal("Dropper probe"));
+		return named(new ItemStack(Items.DIAMOND), Component.literal("Dropper probe"));
 	}
 
 	private static int diamondsAround(GameTestHelper h, BlockPos rel, Item item) {
@@ -212,7 +213,7 @@ public class ContainerGameTests {
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void storedItemsDropWhenBroken(GameTestHelper h) throws Exception {
 		floor(h);
-		CompoundTag stuck = TagParser.parseTag("{Items:[{Slot:0b,id:\"minecraft:diamond\",Count:4b}]}");
+		CompoundTag stuck = TagParser.parseTag("{Items:[{Slot:0b,id:\"minecraft:diamond\",count:4}]}");
 		int checked = 0;
 		for (Block block : ModBlocks.secretBlocksList) {
 			if (!(block instanceof EntityBlock) || CONTAINERS.contains(block)) {
@@ -222,12 +223,12 @@ public class ContainerGameTests {
 			h.setBlock(rel, block.defaultBlockState());
 			// Only blocks with the shared SecretBlockEntity had the old hidden inventory. Blocks new
 			// in 2.0.0 with a block entity type of their own (the Secret Comparator) never held items.
-			if (!(h.getBlockEntity(rel) instanceof SecretBlockEntity)) {
+			if (!(blockEntityAt(h, rel) instanceof SecretBlockEntity)) {
 				h.setBlock(rel, Blocks.AIR);
 				continue;
 			}
 			SecretBlockEntity entity = plain(h, rel);
-			entity.load(stuck.copy());
+			entity.loadWithComponents(stuck.copy(), h.getLevel().registryAccess());
 			h.setBlock(rel, Blocks.AIR);
 			int dropped = diamondsAround(h, rel, Items.DIAMOND);
 			check(h, dropped == 4, BuiltInRegistries.BLOCK.getKey(block) + " should drop the 4 stuck diamonds when broken, dropped " + dropped);
@@ -283,7 +284,7 @@ public class ContainerGameTests {
 	/** The Secret Chest's screen lays out its slots exactly as vanilla's single chest does. */
 	@GameTest(template = EMPTY_STRUCTURE)
 	public void chestScreenLaysOutAsVanilla(GameTestHelper h) {
-		net.minecraft.world.entity.player.Player player = h.makeMockPlayer();
+		net.minecraft.world.entity.player.Player player = h.makeMockPlayer(GameType.CREATIVE);
 		net.minecraft.world.SimpleContainer box = new net.minecraft.world.SimpleContainer(27);
 		net.minecraft.world.inventory.AbstractContainerMenu secret = new net.calibermc.secretblocks.screen.SecretChestScreenHandler(1, player.getInventory(), box);
 		net.minecraft.world.inventory.AbstractContainerMenu vanilla = net.minecraft.world.inventory.ChestMenu.threeRows(2, player.getInventory(), box);

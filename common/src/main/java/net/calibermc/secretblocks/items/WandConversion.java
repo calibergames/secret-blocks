@@ -161,7 +161,7 @@ public final class WandConversion {
 			return Result.refused("piston_extended");
 		}
 		BlockEntity entity = level.getBlockEntity(pos);
-		if (entity != null && entity.saveWithoutMetadata().contains("LootTable")) {
+		if (entity != null && entity.saveWithoutMetadata(level.registryAccess()).contains("LootTable")) {
 			return Result.refused("loot_table");
 		}
 		return null;
@@ -187,7 +187,7 @@ public final class WandConversion {
 		// sensor's cooldown) only runs for the block it was scheduled for.
 		boolean pendingTick = level.getBlockTicks().hasScheduledTick(pos, from.getBlock());
 		BlockEntity old = level.getBlockEntity(pos);
-		CompoundTag data = old == null ? new CompoundTag() : old.saveWithoutMetadata();
+		CompoundTag data = old == null ? new CompoundTag() : old.saveWithoutMetadata(level.registryAccess());
 		if (toVanilla) {
 			Disguise.stripFrom(data);
 		}
@@ -203,9 +203,9 @@ public final class WandConversion {
 		level.setBlock(pos, to, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
 		BlockEntity fresh = level.getBlockEntity(pos);
 		if (fresh != null && !data.isEmpty()) {
-			CompoundTag merged = fresh.saveWithoutMetadata();
+			CompoundTag merged = fresh.saveWithoutMetadata(level.registryAccess());
 			merged.merge(data);
-			fresh.load(merged);
+			fresh.loadWithComponents(merged, level.registryAccess());
 			fresh.setChanged();
 		}
 	}

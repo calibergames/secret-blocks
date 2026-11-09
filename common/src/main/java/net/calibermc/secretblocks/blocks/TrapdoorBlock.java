@@ -19,7 +19,7 @@ public class TrapdoorBlock extends net.minecraft.world.level.block.TrapDoorBlock
 	private final BlockSetType type;
 
 	public TrapdoorBlock(Properties settings, BlockSetType type) {
-		super(settings, type);
+		super(type, settings);
 		this.type = type;
 	}
 
@@ -33,13 +33,6 @@ public class TrapdoorBlock extends net.minecraft.world.level.block.TrapDoorBlock
 		return new SecretBlockEntity(pos, state);
 	}
 
-	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		if (world.getBlockEntity(pos) instanceof SecretBlockEntity) {
-			SecretBlockEntity blockEntity = (SecretBlockEntity) world.getBlockEntity(pos);
-		}
-		return super.use(state, world, pos, player, hand, hit);
-	}
 
 	@Override
 	public RenderShape getRenderShape(BlockState state) {

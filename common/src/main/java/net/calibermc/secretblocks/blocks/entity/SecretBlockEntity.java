@@ -2,6 +2,7 @@ package net.calibermc.secretblocks.blocks.entity;
 
 import net.calibermc.secretblocks.blocks.SecretPiston;
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -71,17 +72,18 @@ public class SecretBlockEntity extends BlockEntity implements DisguisedBlockEnti
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		disguise.save(tag);
-		ContainerHelper.saveAllItems(tag, this.items);
+		ContainerHelper.saveAllItems(tag, this.items, registries);
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		LegacyData.upgradeItems(tag);
+		super.loadAdditional(tag, registries);
 		disguise.load(tag);
-		ContainerHelper.loadAllItems(tag, this.items);
+		ContainerHelper.loadAllItems(tag, this.items, registries);
 		DisguisedBlockEntity.redrawAfterLoad(this);
 	}
 
@@ -102,7 +104,7 @@ public class SecretBlockEntity extends BlockEntity implements DisguisedBlockEnti
 	 * not to every client in range.
 	 */
 	@Override
-	public CompoundTag getUpdateTag() {
+	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		return disguise.saveForClients(new CompoundTag());
 	}
 }

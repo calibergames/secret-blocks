@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.calibermc.secretblocks.items.ItemData;
 import net.calibermc.secretblocks.gametest.support.GameTestPlatform;
 import net.calibermc.secretblocks.items.CamouflageWand;
 import net.calibermc.secretblocks.registry.ModBlocks;
@@ -43,8 +44,8 @@ public class WandGameTests {
 	}
 
 	private static String loadedName(ItemStack wand) {
-		CompoundTag tag = wand.getTag();
-		return tag == null ? "" : tag.getCompound(CamouflageWand.DISGUISE).getString("Name");
+		CompoundTag tag = ItemData.read(wand);
+		return tag.getCompound(CamouflageWand.DISGUISE).getString("Name");
 	}
 
 	/** Sneak + use on a plain block loads it, state included. */
@@ -56,7 +57,7 @@ public class WandGameTests {
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		InteractionResult result = click(h, player, wand);
 		check(h, result.consumesAction(), "the load should consume the click, got " + result);
-		check(h, "minecraft:polished_granite".equals(loadedName(wand)), "the wand should carry polished granite, got " + wand.getTag());
+		check(h, "minecraft:polished_granite".equals(loadedName(wand)), "the wand should carry polished granite, got " + ItemData.read(wand));
 		check(h, CamouflageWand.loadedDisguise(wand).map(s -> s.is(Blocks.POLISHED_GRANITE)).orElse(false),
 				"the stored disguise should read back");
 		check(h, player.lastMessageKey().endsWith(".loaded"), "the player should be told what was loaded, got " + player.messages);
@@ -72,7 +73,7 @@ public class WandGameTests {
 		secret(h, TARGET).setState(Direction.NORTH, Blocks.EMERALD_BLOCK.defaultBlockState());
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		click(h, sneaking(h, true, 0), wand);
-		check(h, "minecraft:emerald_block".equals(loadedName(wand)), "the wand should carry the north face, got " + wand.getTag());
+		check(h, "minecraft:emerald_block".equals(loadedName(wand)), "the wand should carry the north face, got " + ItemData.read(wand));
 		h.succeed();
 	}
 
@@ -91,7 +92,7 @@ public class WandGameTests {
 		// The registered hook itself, as the loader calls it.
 		InteractionResult result = GameTestPlatform.INSTANCE.useBlockHooks(player, h.getLevel(), InteractionHand.MAIN_HAND, hit(h));
 		check(h, result == InteractionResult.SUCCESS, "the registered hook should take the click, got " + result);
-		check(h, "minecraft:lever".equals(loadedName(wand)), "the wand should carry the lever, got " + wand.getTag());
+		check(h, "minecraft:lever".equals(loadedName(wand)), "the wand should carry the lever, got " + ItemData.read(wand));
 		check(h, !h.getBlockState(TARGET).getValue(LeverBlock.POWERED), "the lever must not flip");
 		h.succeed();
 	}
@@ -105,7 +106,7 @@ public class WandGameTests {
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		InteractionResult result = click(h, player, wand);
 		check(h, result == InteractionResult.FAIL, "the click should fail, got " + result);
-		check(h, !wand.hasTag(), "the wand should stay empty, got " + wand.getTag());
+		check(h, !ItemData.has(wand), "the wand should stay empty, got " + ItemData.read(wand));
 		check(h, player.lastMessageKey().endsWith(".not_allowed"), "the player should be told why, got " + player.messages);
 		h.succeed();
 	}
@@ -117,7 +118,7 @@ public class WandGameTests {
 		h.setBlock(TARGET, Blocks.POLISHED_GRANITE);
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		click(h, sneaking(h, false, 2), wand);
-		check(h, "minecraft:polished_granite".equals(loadedName(wand)), "an operator should load, got " + wand.getTag());
+		check(h, "minecraft:polished_granite".equals(loadedName(wand)), "an operator should load, got " + ItemData.read(wand));
 		h.succeed();
 	}
 
@@ -129,10 +130,10 @@ public class WandGameTests {
 		secret(h, TARGET).setState(Direction.NORTH, Blocks.AIR.defaultBlockState());
 		WandTestPlayer player = sneaking(h, true, 0);
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
-		wand.getOrCreateTag().put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(Blocks.GOLD_BLOCK.defaultBlockState()));
+		ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(Blocks.GOLD_BLOCK.defaultBlockState())));
 		InteractionResult result = click(h, player, wand);
 		check(h, result == InteractionResult.FAIL, "the click should fail, got " + result);
-		check(h, "minecraft:gold_block".equals(loadedName(wand)), "the wand should keep what it carried, got " + wand.getTag());
+		check(h, "minecraft:gold_block".equals(loadedName(wand)), "the wand should keep what it carried, got " + ItemData.read(wand));
 		check(h, player.lastMessageKey().endsWith(".nothing_to_load"), "the player should be told why, got " + player.messages);
 		h.succeed();
 	}
@@ -161,23 +162,23 @@ public class WandGameTests {
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a new wand is empty");
 		CompoundTag unknown = new CompoundTag();
 		unknown.putString("Name", "nosuchmod:nosuchblock");
-		wand.getOrCreateTag().put(CamouflageWand.DISGUISE, unknown);
+		ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, unknown));
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "an unknown block should read as empty");
-		wand.getOrCreateTag().put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(Blocks.AIR.defaultBlockState()));
+		ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(Blocks.AIR.defaultBlockState())));
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "air should read as empty");
-		wand.getOrCreateTag().put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(ModBlocks.SOLID_BLOCK.defaultBlockState()));
+		ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(ModBlocks.SOLID_BLOCK.defaultBlockState())));
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a secret block should read as empty");
-		wand.getOrCreateTag().putString(CamouflageWand.DISGUISE, "minecraft:stone");
+		ItemData.update(wand, tag -> tag.putString(CamouflageWand.DISGUISE, "minecraft:stone"));
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a value of the wrong type should read as empty");
 		for (String bad : new String[] {"Bad Name", "Foo:Bar", "minecraft:stone:x"}) {
 			CompoundTag malformed = new CompoundTag();
 			malformed.putString("Name", bad);
-			wand.getOrCreateTag().put(CamouflageWand.DISGUISE, malformed);
+			ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, malformed));
 			check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a malformed id should read as empty: " + bad);
 		}
 		CompoundTag numeric = new CompoundTag();
 		numeric.putInt("Name", 3);
-		wand.getOrCreateTag().put(CamouflageWand.DISGUISE, numeric);
+		ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, numeric));
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a numeric id should read as empty");
 		h.succeed();
 	}

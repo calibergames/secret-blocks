@@ -35,9 +35,9 @@
 		"indium": "*"
 	},
 	"depends": {
-		"fabricloader": ">=0.16.10",
-		"fabric-api": ">=0.83.0",
-		"minecraft": ["1.20", "1.20.1"],
-		"java": ">=17"
+		"fabricloader": ">=${fabric_loader_min}",
+		"fabric-api": ">=${fabric_api_min}",
+		"minecraft": [${minecraft_versions}],
+		"java": ">=21"
 	}
 }

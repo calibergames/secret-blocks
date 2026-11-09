@@ -1,0 +1,22 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+license = "LGPL-3.0"
+
+[[mods]]
+modId = "secretblocks_gametest"
+version = "1.0.0"
+displayName = "Secret Blocks Game Tests"
+description = '''Game tests for Secret Blocks. Development only; never shipped.'''
+
+[[mixins]]
+config = "secretblocks_gametest.mixins.json"
+
+[[mixins]]
+config = "secretblocks_gametest.driver.mixins.json"
+
+[[dependencies.secretblocks_gametest]]
+modId = "secretblocks"
+type = "required"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"

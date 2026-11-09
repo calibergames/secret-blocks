@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
+import net.minecraft.world.level.LevelReader;
 import net.calibermc.secretblocks.blocks.entity.SecretGateSegmentBlockEntity;
 import net.calibermc.secretblocks.registry.ModEntities;
 import net.minecraft.core.BlockPos;
@@ -86,7 +87,7 @@ public class SecretGateSegment extends Block implements EntityBlock, SecretBlock
 
 	/** No pick-block: there is no item to pick (vanilla's would be empty too; this says so). */
 	@Override
-	public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
 		return ItemStack.EMPTY;
 	}
 

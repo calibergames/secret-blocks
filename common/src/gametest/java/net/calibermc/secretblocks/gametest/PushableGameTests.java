@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayList;
@@ -53,9 +54,14 @@ public class PushableGameTests {
 		return faces;
 	}
 
-	/** The i-th of up to 16 slots: a piston facing east at x = 0 or 4, the block in front at x + 1. */
+	/**
+	 * The i-th of up to 14 slots: a piston facing east at x = 0 or 4, the block
+	 * in front at x + 1. The rows start at z = 1: the redstone block put under
+	 * a piston at the corner would power the test's own structure block below
+	 * the floor there, which places the test area again.
+	 */
 	private static BlockPos slot(int i) {
-		return new BlockPos((i % 2) * 4, 1, i / 2);
+		return new BlockPos((i % 2) * 4, 1, 1 + i / 2);
 	}
 
 	private static void pistonAt(GameTestHelper h, BlockPos pos, Block piston, Direction facing) {
@@ -95,7 +101,7 @@ public class PushableGameTests {
 					problems.add(PUSHABLE[i] + " not moved (at the target: " + h.getBlockState(to).getBlock() + ")");
 					continue;
 				}
-				if (!(h.getBlockEntity(to) instanceof DisguisedBlockEntity moved) || !moved.getState(Direction.NORTH).is(Blocks.BRICKS)) {
+				if (!(blockEntityAt(h, to) instanceof DisguisedBlockEntity moved) || !moved.getState(Direction.NORTH).is(Blocks.BRICKS)) {
 					problems.add(PUSHABLE[i] + " lost its disguise");
 				}
 				if (!noBlockEntity(h, from)) {
@@ -142,7 +148,7 @@ public class PushableGameTests {
 				BlockPos far = home.east();
 				if (!h.getBlockState(home).is(PUSHABLE[i])) {
 					problems.add(PUSHABLE[i] + " not pulled back");
-				} else if (!(h.getBlockEntity(home) instanceof DisguisedBlockEntity back) || !back.getState(Direction.NORTH).is(Blocks.BRICKS)) {
+				} else if (!(blockEntityAt(h, home) instanceof DisguisedBlockEntity back) || !back.getState(Direction.NORTH).is(Blocks.BRICKS)) {
 					problems.add(PUSHABLE[i] + " lost its disguise");
 				}
 				if (!noBlockEntity(h, far)) {
@@ -181,16 +187,20 @@ public class PushableGameTests {
 			h.setBlock(slot(4).east(k + 1), ModBlocks.SOLID_BLOCK);
 			secret(h, slot(4).east(k + 1)).setDisguise(all(line[k]));
 		}
-		// Slot 6: the piston pushes a slime block; a Dummy Block on top of the slime is dragged along.
-		pistonAt(h, slot(6), Blocks.PISTON, Direction.EAST);
-		h.setBlock(slot(6).east(), Blocks.SLIME_BLOCK);
-		h.setBlock(slot(6).east().above(), ModBlocks.SOLID_BLOCK);
-		secret(h, slot(6).east().above()).setDisguise(all(Blocks.SAND));
-		int[] used = {0, 1, 2, 4, 6};
+		// Above slot 7: the piston pushes a slime block; a Dummy Block on top of the slime is dragged
+		// along. One block up, with air under the slime and no neighbour in use: slime sticks to
+		// whatever it touches, and would take the floor or the line along too.
+		BlockPos slimePiston = slot(7).above();
+		pistonAt(h, slimePiston, Blocks.PISTON, Direction.EAST);
+		h.setBlock(slimePiston.east(), Blocks.SLIME_BLOCK);
+		h.setBlock(slimePiston.east().above(), ModBlocks.SOLID_BLOCK);
+		secret(h, slimePiston.east().above()).setDisguise(all(Blocks.SAND));
+		int[] used = {0, 1, 2, 4};
 		h.runAfterDelay(2, () -> {
 			for (int i : used) {
 				h.setBlock(slot(i).below(), Blocks.REDSTONE_BLOCK);
 			}
+			h.setBlock(slimePiston.below(), Blocks.REDSTONE_BLOCK);
 		});
 		h.runAfterDelay(8, () -> {
 			for (int i = 0; i < states.length; i++) {
@@ -203,12 +213,13 @@ public class PushableGameTests {
 				checkBlock(h, to, ModBlocks.SOLID_BLOCK);
 				checkFaces(h, to, line[k]);
 			}
-			checkBlock(h, slot(6).east(2), Blocks.SLIME_BLOCK);
-			checkBlock(h, slot(6).east(2).above(), ModBlocks.SOLID_BLOCK);
-			checkFaces(h, slot(6).east(2).above(), Blocks.SAND);
+			checkBlock(h, slimePiston.east(2), Blocks.SLIME_BLOCK);
+			checkBlock(h, slimePiston.east(2).above(), ModBlocks.SOLID_BLOCK);
+			checkFaces(h, slimePiston.east(2).above(), Blocks.SAND);
 			for (int i : used) {
 				h.setBlock(slot(i).below(), Blocks.STONE);
 			}
+			h.setBlock(slimePiston.below(), Blocks.AIR);
 			h.succeed();
 		});
 	}
@@ -265,13 +276,13 @@ public class PushableGameTests {
 		BlockPos block = piston.east();
 		pistonAt(h, piston, Blocks.PISTON, Direction.EAST);
 		h.setBlock(block, ModBlocks.SOLID_BLOCK);
-		plain(h, block).load(TagParser.parseTag("{Items:[{Slot:0b,id:\"minecraft:diamond\",Count:4b}]}"));
+		plain(h, block).loadWithComponents(TagParser.parseTag("{Items:[{Slot:0b,id:\"minecraft:diamond\",count:4}]}"), h.getLevel().registryAccess());
 		boolean[] seen = {false};
 		h.onEachTick(() -> {
-			if (!seen[0] && h.getBlockEntity(block.east()) instanceof net.minecraft.world.level.block.piston.PistonMovingBlockEntity moving) {
+			if (!seen[0] && blockEntityAt(h, block.east()) instanceof net.minecraft.world.level.block.piston.PistonMovingBlockEntity moving) {
 				seen[0] = true;
-				CompoundTag saved = moving.saveWithoutMetadata().getCompound("SecretBlocksDisguise");
-				CompoundTag sent = moving.getUpdateTag().getCompound("SecretBlocksDisguise");
+				CompoundTag saved = moving.saveWithoutMetadata(h.getLevel().registryAccess()).getCompound("SecretBlocksDisguise");
+				CompoundTag sent = moving.getUpdateTag(h.getLevel().registryAccess()).getCompound("SecretBlocksDisguise");
 				check(h, saved.contains("Items"), "the move should carry the stuck items: " + saved);
 				check(h, sent.contains("northState") && !sent.contains("Items"), "clients should get the disguise only, never the items: " + sent);
 			}
@@ -280,8 +291,8 @@ public class PushableGameTests {
 		h.runAfterDelay(7, () -> {
 			check(h, seen[0], "control: the move was caught");
 			checkBlock(h, block.east(), ModBlocks.SOLID_BLOCK);
-			check(h, h.getBlockEntity(block.east()) instanceof SecretBlockEntity moved
-					&& moved.saveWithoutMetadata().getList("Items", 10).size() == 1, "the stuck diamonds should have moved with the block");
+			check(h, blockEntityAt(h, block.east()) instanceof SecretBlockEntity moved
+					&& moved.saveWithoutMetadata(h.getLevel().registryAccess()).getList("Items", 10).size() == 1, "the stuck diamonds should have moved with the block");
 			h.setBlock(block.east(), Blocks.AIR);
 			int dropped = h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(block.east())).inflate(2), e -> e.getItem().is(Items.DIAMOND))
 					.stream().mapToInt(e -> e.getItem().getCount()).sum();
@@ -369,7 +380,7 @@ public class PushableGameTests {
 				String vanilla = outcome(h, slot(p * 2 + 1).east(), pairs[p][1]);
 				check(h, secret.equals(vanilla), pairs[p][0] + " was " + secret + ", its vanilla twin " + pairs[p][1] + " was " + vanilla);
 			}
-			h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(BlockPos.ZERO), h.absolutePos(new BlockPos(8, 4, 8))).inflate(2)).forEach(ItemEntity::discard);
+			h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(Vec3.atLowerCornerOf(h.absolutePos(BlockPos.ZERO)), Vec3.atLowerCornerOf(h.absolutePos(new BlockPos(8, 4, 8)))).inflate(2)).forEach(ItemEntity::discard);
 			for (int i = 0; i < pairs.length * 2; i++) {
 				h.setBlock(slot(i).below(), Blocks.STONE);
 			}
@@ -388,7 +399,7 @@ public class PushableGameTests {
 		Block[][] pairs = {
 				{ModBlocks.SECRET_REDSTONE, Blocks.REDSTONE_WIRE}, {ModBlocks.SECRET_REDSTONE_WIRE, Blocks.REDSTONE_WIRE},
 				{ModBlocks.SECRET_REPEATER, Blocks.REPEATER}, {ModBlocks.SECRET_COMPARATOR, Blocks.COMPARATOR}};
-		h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(BlockPos.ZERO), h.absolutePos(new BlockPos(8, 4, 8))).inflate(2)).forEach(ItemEntity::discard);
+		h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(Vec3.atLowerCornerOf(h.absolutePos(BlockPos.ZERO)), Vec3.atLowerCornerOf(h.absolutePos(new BlockPos(8, 4, 8)))).inflate(2)).forEach(ItemEntity::discard);
 		for (int p = 0; p < pairs.length; p++) {
 			for (int side = 0; side < 2; side++) {
 				int i = p * 2 + side;
@@ -416,7 +427,7 @@ public class PushableGameTests {
 				}
 			}
 			check(h, problems.isEmpty(), "pushed redstone: " + problems);
-			h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(BlockPos.ZERO), h.absolutePos(new BlockPos(8, 4, 8))).inflate(2)).forEach(ItemEntity::discard);
+			h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(Vec3.atLowerCornerOf(h.absolutePos(BlockPos.ZERO)), Vec3.atLowerCornerOf(h.absolutePos(new BlockPos(8, 4, 8)))).inflate(2)).forEach(ItemEntity::discard);
 			for (int i = 0; i < pairs.length * 2; i++) {
 				h.setBlock(slot(i).below(), Blocks.STONE);
 			}

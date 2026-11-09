@@ -15,6 +15,7 @@ import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComparatorBlock;
@@ -51,7 +52,7 @@ public class ComparatorGameTests {
 
 	/** The output stored in the comparator's block entity (what vanilla's own code reads). */
 	private static int output(GameTestHelper h, int x, int y, int z) {
-		BlockEntity entity = h.getBlockEntity(new BlockPos(x, y, z));
+		BlockEntity entity = blockEntityAt(h, new BlockPos(x, y, z));
 		if (entity instanceof ComparatorBlockEntity comparator) {
 			return comparator.getOutputSignal();
 		}
@@ -65,7 +66,7 @@ public class ComparatorGameTests {
 	 * test's item counts see what a cleared chest drops.
 	 */
 	private static void fill(GameTestHelper h, BlockPos chest, int stacks) {
-		Container container = (Container) h.getBlockEntity(chest);
+		Container container = (Container) blockEntityAt(h, chest);
 		container.clearContent();
 		for (int slot = 0; slot < stacks; slot++) {
 			container.setItem(slot, new ItemStack(Items.BRICK, 64));
@@ -162,17 +163,17 @@ public class ComparatorGameTests {
 		BlockPos pos = new BlockPos(2, 1, 2);
 		h.setBlock(pos, comparator(SECRET, ComparatorMode.COMPARE));
 		secret(h, pos).setState(Blocks.BRICKS.defaultBlockState());
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(pos)), Direction.UP, h.absolutePos(pos), false);
 		for (ComparatorMode expected : new ComparatorMode[] {ComparatorMode.SUBTRACT, ComparatorMode.COMPARE}) {
-			InteractionResult result = h.getBlockState(pos).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+			InteractionResult result = use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 			check(h, result.consumesAction(), "use should toggle the mode, got " + result);
 			check(h, h.getBlockState(pos).getValue(ComparatorBlock.MODE) == expected, "mode should be " + expected + ", is " + h.getBlockState(pos).getValue(ComparatorBlock.MODE));
 		}
 		checkBlock(h, pos, SECRET);
 		checkFaces(h, pos, Blocks.BRICKS);
 		player.getAbilities().mayBuild = false;
-		InteractionResult refused = h.getBlockState(pos).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+		InteractionResult refused = use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 		check(h, refused == InteractionResult.PASS && h.getBlockState(pos).getValue(ComparatorBlock.MODE) == ComparatorMode.COMPARE,
 				"a player who may not build must not change the mode, got " + refused);
 		h.succeed();
@@ -392,7 +393,7 @@ public class ComparatorGameTests {
 				"the Secret Comparator faces " + secret.getValue(ComparatorBlock.FACING) + ", the vanilla one " + vanilla.getValue(ComparatorBlock.FACING));
 		check(h, vanilla.getValue(ComparatorBlock.FACING) == Direction.SOUTH, "control: a player looking north places a comparator facing south, got " + vanilla.getValue(ComparatorBlock.FACING));
 		check(h, secret.getValue(ComparatorBlock.MODE) == ComparatorMode.COMPARE, "a new Secret Comparator should be in compare mode");
-		check(h, h.getBlockEntity(new BlockPos(1, 1, 3)) instanceof SecretComparatorBlockEntity, "the placed block should have the Secret Comparator's block entity");
+		check(h, blockEntityAt(h, new BlockPos(1, 1, 3)) instanceof SecretComparatorBlockEntity, "the placed block should have the Secret Comparator's block entity");
 		check(h, secret.isCollisionShapeFullBlock(h.getLevel(), h.absolutePos(new BlockPos(1, 1, 3))), "the Secret Comparator should be a full block");
 		check(h, !vanilla.isCollisionShapeFullBlock(h.getLevel(), h.absolutePos(new BlockPos(5, 1, 3))), "control: a vanilla comparator is not a full block");
 		h.succeed();
@@ -426,19 +427,19 @@ public class ComparatorGameTests {
 		h.setBlock(1, 1, 2, Blocks.REDSTONE_BLOCK);
 		h.runAfterDelay(6, () -> {
 			check(h, output(h, 2, 1, 2) == 15, "the Secret Comparator behind a redstone block should read 15, reads " + output(h, 2, 1, 2));
-			BlockEntity entity = h.getBlockEntity(pos);
-			CompoundTag saved = entity.saveWithFullMetadata();
+			BlockEntity entity = blockEntityAt(h, pos);
+			CompoundTag saved = entity.saveWithFullMetadata(h.getLevel().registryAccess());
 			check(h, "secretblocks:secret_comparator".equals(saved.getString("id")), "saved id should be secretblocks:secret_comparator, is " + saved.getString("id"));
 			check(h, BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(entity.getType()).toString().equals("secretblocks:secret_comparator"), "its type should be ours, is " + BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(entity.getType()));
 			check(h, saved.getInt("OutputSignal") == 15, "the saved data should hold OutputSignal 15: " + saved);
 			check(h, saved.contains("northState"), "the saved data should hold the disguise: " + saved);
-			BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(pos), h.getBlockState(pos), saved);
+			BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(pos), h.getBlockState(pos), saved, h.getLevel().registryAccess());
 			check(h, loaded instanceof SecretComparatorBlockEntity, "the saved data should load as a Secret Comparator block entity, got " + loaded);
 			SecretComparatorBlockEntity again = (SecretComparatorBlockEntity) loaded;
 			check(h, again.getOutputSignal() == 15, "the loaded output should be 15, is " + again.getOutputSignal());
 			check(h, again.getDisguise().save(new CompoundTag()).equals(((SecretComparatorBlockEntity) entity).getDisguise().save(new CompoundTag())),
 					"the loaded disguise should equal the saved one");
-			check(h, !entity.getUpdateTag().contains("OutputSignal"), "clients must not receive the output signal: " + entity.getUpdateTag());
+			check(h, !entity.getUpdateTag(h.getLevel().registryAccess()).contains("OutputSignal"), "clients must not receive the output signal: " + entity.getUpdateTag(h.getLevel().registryAccess()));
 			h.succeed();
 		});
 	}

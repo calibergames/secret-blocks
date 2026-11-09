@@ -31,6 +31,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
@@ -68,9 +69,9 @@ public class TorchLeverGameTests {
 	}
 
 	private static InteractionResult use(GameTestHelper h, BlockPos pos) {
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(pos)), Direction.UP, h.absolutePos(pos), false);
-		return h.getBlockState(pos).use(h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+		return TestSupport.use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 	}
 
 	private static boolean powered(GameTestHelper h, BlockPos pos) {

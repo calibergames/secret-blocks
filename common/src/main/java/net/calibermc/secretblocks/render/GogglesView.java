@@ -11,7 +11,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.util.HashSet;
@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public final class GogglesView {
 
-	public static final ResourceLocation OVERLAY_SPRITE = new ResourceLocation(SecretBlocks.MOD_ID, "block/goggles_overlay");
+	public static final ResourceLocation OVERLAY_SPRITE = ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, "block/goggles_overlay");
 
 	// Written on the client thread each tick; read on chunk-builder threads,
 	// which must not touch the texture manager or the renderer themselves.

@@ -2,6 +2,7 @@ package net.calibermc.secretblocks.blocks.entity;
 
 import net.calibermc.secretblocks.mixin.BlockEntityTypeAccessor;
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -29,6 +30,15 @@ public class SecretHopperBlockEntity extends HopperBlockEntity implements Disgui
 		((BlockEntityTypeAccessor) (Object) this).secretblocks$setType(ModEntities.SECRET_HOPPER);
 	}
 
+	/**
+	 * Valid where a Secret Hopper is. Vanilla's constructor checks the state against
+	 * the type before this class sets its own, so this answers for that type.
+	 */
+	@Override
+	public boolean isValidBlockState(BlockState state) {
+		return ModEntities.SECRET_HOPPER.isValid(state);
+	}
+
 	@Override
 	public Disguise getDisguise() {
 		return disguise;
@@ -41,14 +51,15 @@ public class SecretHopperBlockEntity extends HopperBlockEntity implements Disgui
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		disguise.save(tag);
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		LegacyData.upgradeItems(tag);
+		super.loadAdditional(tag, registries);
 		disguise.load(tag);
 		DisguisedBlockEntity.redrawAfterLoad(this);
 	}
@@ -64,7 +75,7 @@ public class SecretHopperBlockEntity extends HopperBlockEntity implements Disgui
 
 	/** What clients receive: the disguise only, never the contents. */
 	@Override
-	public CompoundTag getUpdateTag() {
+	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		return disguise.saveForClients(new CompoundTag());
 	}
 }

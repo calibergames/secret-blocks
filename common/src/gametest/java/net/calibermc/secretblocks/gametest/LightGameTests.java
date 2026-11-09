@@ -213,10 +213,10 @@ public class LightGameTests {
 		h.setBlock(hopper, ModBlocks.SECRET_HOPPER);
 		secret(h, hopper).setDisguise(all(Blocks.GLASS));
 		h.setBlock(hopper.above(), Blocks.CHEST);
-		net.minecraft.world.Container top = (net.minecraft.world.Container) h.getBlockEntity(hopper.above());
+		net.minecraft.world.Container top = (net.minecraft.world.Container) blockEntityAt(h, hopper.above());
 		top.setItem(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.COBBLESTONE, 5));
 		h.succeedWhen(() -> {
-			net.minecraft.world.Container bottom = (net.minecraft.world.Container) h.getBlockEntity(hopper.below());
+			net.minecraft.world.Container bottom = (net.minecraft.world.Container) blockEntityAt(h, hopper.below());
 			check(h, bottom.countItem(net.minecraft.world.item.Items.COBBLESTONE) == 5, "all five should reach the chest below, " + bottom.countItem(net.minecraft.world.item.Items.COBBLESTONE) + " so far");
 			check(h, seeThrough(h, hopper), "the hopper should stay see-through: " + h.getBlockState(hopper));
 		});

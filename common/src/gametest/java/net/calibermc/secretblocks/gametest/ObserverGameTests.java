@@ -151,7 +151,7 @@ public class ObserverGameTests {
 		h.setBlock(OBSERVER, observerFacingNorth());
 		h.getLevel().destroyBlock(h.absolutePos(OBSERVER), true);
 		checkBlock(h, OBSERVER, Blocks.AIR);
-		check(h, h.getBlockEntity(OBSERVER) == null, "a block entity was left behind: " + h.getBlockEntity(OBSERVER));
+		check(h, blockEntityAt(h, OBSERVER) == null, "a block entity was left behind: " + blockEntityAt(h, OBSERVER));
 		boolean dropped = !h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(OBSERVER)).inflate(1.5),
 				e -> e.getItem().is(ModBlocks.SECRET_OBSERVER.asItem())).isEmpty();
 		check(h, dropped, "the observer should drop itself");
@@ -201,8 +201,8 @@ public class ObserverGameTests {
 		CraftingContainer grid = new net.minecraft.world.inventory.TransientCraftingContainer(menu, 3, 3);
 		grid.setItem(0, new ItemStack(ModBlocks.SOLID_BLOCK));
 		grid.setItem(1, new ItemStack(Items.OBSERVER));
-		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, h.getLevel())
-				.map((CraftingRecipe recipe) -> recipe.assemble(grid, h.getLevel().registryAccess()));
+		Optional<ItemStack> result = h.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
+				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
 		Item expected = ModBlocks.SECRET_OBSERVER.asItem();
 		check(h, result.isPresent() && result.get().is(expected), "Dummy Block + observer should craft a Secret Observer, got " + result);
 		h.succeed();

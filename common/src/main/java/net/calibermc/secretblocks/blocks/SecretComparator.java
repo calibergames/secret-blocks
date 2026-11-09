@@ -64,6 +64,12 @@ public class SecretComparator extends ComparatorBlock implements SecretBlock {
 		return true;
 	}
 
+	/** The same when the block under it changes (vanilla checks the floor on shape updates too). */
+	@Override
+	protected boolean canSurviveOn(LevelReader level, BlockPos pos, BlockState state) {
+		return true;
+	}
+
 	/**
 	 * Forge and NeoForge ask this of the block one solid block past a container
 	 * whose contents changed, where vanilla's code asks "is this a comparator?"

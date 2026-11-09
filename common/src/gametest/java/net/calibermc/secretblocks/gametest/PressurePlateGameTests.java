@@ -13,6 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedstoneLampBlock;
@@ -142,7 +143,7 @@ public class PressurePlateGameTests {
 
 	private static void playerSteps(GameTestHelper h, Block block, boolean sneaking) {
 		plate(h, block);
-		Player player = h.makeMockPlayer();
+		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		player.setShiftKeyDown(sneaking);
 		Vec3 feet = abs(h, new Vec3(3.5, 2.5, 3.5));
 		player.moveTo(feet.x, feet.y, feet.z, 0, 0);

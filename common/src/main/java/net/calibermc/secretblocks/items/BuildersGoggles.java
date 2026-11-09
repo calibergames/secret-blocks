@@ -1,14 +1,9 @@
 package net.calibermc.secretblocks.items;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
 
 /**
@@ -20,59 +15,20 @@ import net.minecraft.world.item.crafting.Ingredient;
  */
 public class BuildersGoggles extends ArmorItem {
 
+	/**
+	 * Their armour material: no protection, not enchantable, nothing repairs
+	 * them; worn, they use the Secret Goggles' texture. They have no
+	 * durability (no maximum damage on the item), so they never wear out.
+	 */
+	public static final Holder<ArmorMaterial> MATERIAL = SecretGoggles.material(() -> Ingredient.EMPTY);
+
 	public BuildersGoggles(Properties properties) {
-		super(Material.INSTANCE, ArmorItem.Type.HELMET, properties);
+		super(MATERIAL, ArmorItem.Type.HELMET, properties);
 	}
 
 	/** No armour or toughness modifiers at all (not even "+0 Armor"). */
 	@Override
-	public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
-		return ImmutableMultimap.of();
-	}
-
-	/** Their armour material: no durability (they never wear out), no protection, not enchantable. */
-	public enum Material implements ArmorMaterial {
-		INSTANCE;
-
-		@Override
-		public int getDurabilityForType(ArmorItem.Type type) {
-			return 0;
-		}
-
-		@Override
-		public int getDefenseForType(ArmorItem.Type type) {
-			return 0;
-		}
-
-		@Override
-		public int getEnchantmentValue() {
-			return 0;
-		}
-
-		@Override
-		public SoundEvent getEquipSound() {
-			return SoundEvents.ARMOR_EQUIP_GENERIC;
-		}
-
-		@Override
-		public Ingredient getRepairIngredient() {
-			return Ingredient.EMPTY;
-		}
-
-		/** Worn, they use the Secret Goggles' texture ({@code secretblocks_goggles_layer_1.png}). */
-		@Override
-		public String getName() {
-			return "secretblocks_goggles";
-		}
-
-		@Override
-		public float getToughness() {
-			return 0;
-		}
-
-		@Override
-		public float getKnockbackResistance() {
-			return 0;
-		}
+	public ItemAttributeModifiers getDefaultAttributeModifiers() {
+		return ItemAttributeModifiers.EMPTY;
 	}
 }

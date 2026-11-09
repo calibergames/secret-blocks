@@ -63,7 +63,7 @@ public class SyncGameTests {
 		h.setBlock(A, ModBlocks.SOLID_BLOCK);
 		SecretBlockEntity be = plain(h, A);
 		be.setDisguise(sixFaces());
-		checkCarriesDisguise(h, be.getUpdateTag(), sixFaces(), "initial chunk data");
+		checkCarriesDisguise(h, be.getUpdateTag(h.getLevel().registryAccess()), sixFaces(), "initial chunk data");
 		h.succeed();
 	}
 
@@ -89,7 +89,7 @@ public class SyncGameTests {
 		SecretChestBlockEntity chest = chest(h, A);
 		chest.setDisguise(sixFaces());
 		chest.setItem(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND, 5));
-		CompoundTag update = chest.getUpdateTag();
+		CompoundTag update = chest.getUpdateTag(h.getLevel().registryAccess());
 		checkCarriesDisguise(h, update, sixFaces(), "initial chunk data");
 		check(h, !update.contains("Items"), "the update tag must not carry the chest contents: " + update.get("Items"));
 		h.succeed();

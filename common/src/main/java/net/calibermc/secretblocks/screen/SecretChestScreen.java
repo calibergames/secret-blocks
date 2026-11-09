@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.Inventory;
  */
 public class SecretChestScreen extends AbstractContainerScreen<SecretChestScreenHandler> {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation("minecraft", "textures/gui/container/generic_54.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("minecraft", "textures/gui/container/generic_54.png");
     private static final int ROWS = 3;
 
     public SecretChestScreen(SecretChestScreenHandler handler, Inventory inventory, Component title) {
@@ -33,7 +33,6 @@ public class SecretChestScreen extends AbstractContainerScreen<SecretChestScreen
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, delta);
         renderTooltip(graphics, mouseX, mouseY);
     }

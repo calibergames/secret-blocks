@@ -1,6 +1,8 @@
 package net.calibermc.secretblocks.blocks.entity;
 
+import net.minecraft.core.Holder;
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -42,14 +44,14 @@ public class SecretSculkSensorBlockEntity extends SculkSensorBlockEntity impleme
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		disguise.save(tag);
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
 		disguise.load(tag);
 		DisguisedBlockEntity.redrawAfterLoad(this);
 	}
@@ -64,7 +66,7 @@ public class SecretSculkSensorBlockEntity extends SculkSensorBlockEntity impleme
 
 	/** What clients receive: the disguise only, never the vibration listener. */
 	@Override
-	public CompoundTag getUpdateTag() {
+	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		return disguise.saveForClients(new CompoundTag());
 	}
 
@@ -83,7 +85,7 @@ public class SecretSculkSensorBlockEntity extends SculkSensorBlockEntity impleme
 		}
 
 		@Override
-		public void onReceiveVibration(ServerLevel level, BlockPos pos, GameEvent gameEvent, @Nullable Entity entity,
+		public void onReceiveVibration(ServerLevel level, BlockPos pos, Holder<GameEvent> gameEvent, @Nullable Entity entity,
 				@Nullable Entity playerEntity, float distance) {
 			boolean standingOn = entity != null && pos.equals(blockPos.above()) && entity.getOnPos().equals(blockPos);
 			super.onReceiveVibration(level, pos, gameEvent, entity, playerEntity, standingOn ? 0.0F : distance);

@@ -182,7 +182,7 @@ public class DevClientDriver {
 				report("connecting to " + host);
 				net.minecraft.client.gui.screens.ConnectScreen.startConnecting(mc.screen, mc,
 						net.minecraft.client.multiplayer.resolver.ServerAddress.parseString(host),
-						new net.minecraft.client.multiplayer.ServerData("Dedicated", host, false), false);
+						new net.minecraft.client.multiplayer.ServerData("Dedicated", host, net.minecraft.client.multiplayer.ServerData.Type.OTHER), false, null);
 			} catch (RuntimeException e) {
 				report("error in '" + next + "': " + e);
 			}
@@ -190,7 +190,7 @@ public class DevClientDriver {
 		}
 		String folder = next.substring("open ".length()).trim();
 		report("opening " + folder);
-		mc.createWorldOpenFlows().loadLevel(mc.screen, folder);
+		mc.createWorldOpenFlows().openWorld(folder, () -> report("open " + folder + " failed"));
 	}
 
 	private void readCommands() {
@@ -251,9 +251,9 @@ public class DevClientDriver {
 			}
 			case "held" -> {
 				var stack = mc.player.getMainHandItem();
-				var tooltip = stack.getTooltipLines(mc.player, net.minecraft.world.item.TooltipFlag.Default.NORMAL)
+				var tooltip = stack.getTooltipLines(net.minecraft.world.item.Item.TooltipContext.of(mc.level), mc.player, net.minecraft.world.item.TooltipFlag.Default.NORMAL)
 						.stream().map(net.minecraft.network.chat.Component::getString).toList();
-				report("held client " + BuiltInRegistries.ITEM.getKey(stack.getItem()) + " " + stack.getTag() + " tooltip=" + tooltip
+				report("held client " + BuiltInRegistries.ITEM.getKey(stack.getItem()) + " " + stack.getComponentsPatch() + " tooltip=" + tooltip
 						+ " screen=" + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName() + " title=" + mc.screen.getTitle().getString()));
 				var server = mc.getSingleplayerServer();
 				var uuid = mc.player.getUUID();
@@ -262,7 +262,7 @@ public class DevClientDriver {
 				} else {
 					server.execute(() -> {
 						var player = server.getPlayerList().getPlayer(uuid);
-						report("held server " + (player == null ? "no player" : player.getMainHandItem().getTag()));
+						report("held server " + (player == null ? "no player" : player.getMainHandItem().getComponentsPatch()));
 					});
 				}
 			}
@@ -279,7 +279,7 @@ public class DevClientDriver {
 					var level = server.getLevel(mc.level.dimension());
 					server.execute(() -> {
 						BlockEntity entity = level.getBlockEntity(pos);
-						report("sdata " + pos.toShortString() + " " + (entity == null ? "none" : entity.saveWithoutMetadata()));
+						report("sdata " + pos.toShortString() + " " + (entity == null ? "none" : entity.saveWithoutMetadata(level.registryAccess())));
 					});
 				}
 			}
@@ -358,10 +358,10 @@ public class DevClientDriver {
 				boolean local = mc.isLocalServer();
 				mc.level.disconnect();
 				if (local) {
-					mc.clearLevel(new net.minecraft.client.gui.screens.GenericDirtMessageScreen(
+					mc.disconnect(new net.minecraft.client.gui.screens.GenericMessageScreen(
 							net.minecraft.network.chat.Component.translatable("menu.savingLevel")));
 				} else {
-					mc.clearLevel();
+					mc.disconnect();
 				}
 				mc.setScreen(new net.minecraft.client.gui.screens.TitleScreen());
 				report("quit to title");
@@ -437,8 +437,8 @@ public class DevClientDriver {
 	 * with premultiplied colour (one pass over a transparent background).
 	 */
 	private void renderIcon(Minecraft mc, String itemId, int size, String name) {
-		var id = new net.minecraft.resources.ResourceLocation(itemId);
-		if (!BuiltInRegistries.ITEM.containsKey(id)) {
+		var id = net.minecraft.resources.ResourceLocation.tryParse(itemId);
+		if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
 			report("render " + itemId + " failed: no such item");
 			return;
 		}
@@ -460,12 +460,12 @@ public class DevClientDriver {
 			target.bindWrite(true);
 			com.mojang.blaze3d.systems.RenderSystem.backupProjectionMatrix();
 			var modelView = com.mojang.blaze3d.systems.RenderSystem.getModelViewStack();
-			modelView.pushPose();
+			modelView.pushMatrix();
 			try {
 				com.mojang.blaze3d.systems.RenderSystem.setProjectionMatrix(
 						new org.joml.Matrix4f().setOrtho(0, 16, 16, 0, 1000, 3000),
 						com.mojang.blaze3d.vertex.VertexSorting.ORTHOGRAPHIC_Z);
-				modelView.setIdentity();
+				modelView.identity();
 				modelView.translate(0, 0, -2000);
 				com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
 				var graphics = new net.minecraft.client.gui.GuiGraphics(mc, mc.renderBuffers().bufferSource());
@@ -481,7 +481,7 @@ public class DevClientDriver {
 				report("render " + itemId + " " + size + " -> " + out);
 			} finally {
 				// Undone only once they were set up, so a failure above cannot be masked here.
-				modelView.popPose();
+				modelView.popMatrix();
 				com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
 				com.mojang.blaze3d.systems.RenderSystem.restoreProjectionMatrix();
 			}

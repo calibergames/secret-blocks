@@ -20,6 +20,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BlockBehaviour.class)
 public abstract class OpacityBehaviourMixin {
 
+	@Inject(method = "propagatesSkylightDown", at = @At("HEAD"), cancellable = true)
+	private void secretblocks$skyLight(BlockState state, BlockGetter level, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
+		// As glass, unless it holds water (a waterlogged secret stair or slab), as vanilla does.
+		if (Opacity.seeThrough(state) && state.getFluidState().isEmpty()) {
+			cir.setReturnValue(true);
+		}
+	}
+
 	@Inject(method = "getLightBlock", at = @At("HEAD"), cancellable = true)
 	private void secretblocks$lightBlock(BlockState state, BlockGetter level, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
 		if (Opacity.seeThrough(state)) {
