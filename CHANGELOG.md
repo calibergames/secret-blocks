@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1 (Minecraft 1.19.2, Fabric)
+
+- **One Way Glass walls read as one clean window.** The faces between
+  neighbouring One Way Glass blocks are no longer drawn, so looking through
+  a wall of them shows no strips where the blocks meet. This works with any
+  disguise, grass included, with or without a connected-textures mod.
+- **Fixed:** with Carpet's `movableBlockEntities` rule on, a secret block
+  pushed by a piston lost its disguise.
+- Worlds from 2.0.0 load unchanged.
+
 ## 2.0.0 (Minecraft 1.19.2, Fabric) — beta
 
 The biggest update yet: a full set of secret redstone, containers, pistons and
