@@ -37,7 +37,7 @@
 	"item.secretblocks.camouflage_paste": "Camouflage Paste",
 	"item.secretblocks.secret_goggles": "Secret Goggles",
 	"item.secretblocks.builders_goggles": "Builder's Goggles",
-	"key.categories.secretblocks": "Secret Blocks",
+	"key.category.secretblocks.main": "Secret Blocks",
 	"key.secretblocks.builder_view": "Builder's Goggles view on/off",
 	"message.secretblocks.builder_view.on": "Builder's view on",
 	"message.secretblocks.builder_view.off": "Builder's view off",

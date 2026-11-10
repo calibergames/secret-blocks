@@ -1,5 +1,19 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.calibermc.secretblocks.blocks.entity.SavedData;
+import io.netty.channel.embedded.EmbeddedChannel;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.Connection;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.enchantment.Repairable;
 import java.util.List;
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
@@ -97,7 +111,7 @@ final class TestSupport {
 	/** A server player standing at {@code feetRel} whose eyes look exactly at {@code lookAtRel}. */
 	static ServerPlayer player(GameTestHelper h, Vec3 feetRel, Vec3 lookAtRel) {
 		ServerLevel level = h.getLevel();
-		ServerPlayer player = new ServerPlayer(level.getServer(), level, PROFILE, ClientInformation.createDefault());
+		ServerPlayer player = connect(new ServerPlayer(level.getServer(), level, PROFILE, ClientInformation.createDefault()));
 		Vec3 feet = abs(h, feetRel);
 		Vec3 eye = feet.add(0, player.getEyeHeight(), 0);
 		Vec3 d = abs(h, lookAtRel).subtract(eye);
@@ -173,7 +187,7 @@ final class TestSupport {
 		HolderLookup.Provider registries = container.getLevel().registryAccess();
 		CompoundTag data = container.saveCustomOnly(registries);
 		data.put("CustomName", ComponentSerialization.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), name).getOrThrow());
-		container.loadCustomOnly(data, registries);
+		container.loadCustomOnly(SavedData.input(data, registries));
 	}
 
 	static DisguisedBlockEntity secret(GameTestHelper h, BlockPos rel) {
@@ -268,5 +282,38 @@ final class TestSupport {
 		Map<Direction, Block> map = new EnumMap<>(Direction.class);
 		map.put(dir, block);
 		return map;
+	}
+
+	/** Every loot table the server has, by id. */
+	static java.util.List<Identifier> lootTableIds(MinecraftServer server) {
+		return server.reloadableRegistries().lookup().lookupOrThrow(Registries.LOOT_TABLE).listElementIds()
+				.map(ResourceKey::identifier).toList();
+	}
+
+	/** An entity's saved data, as a tag. */
+	static CompoundTag saved(Entity entity) {
+		TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, entity.level().registryAccess());
+		entity.saveWithoutId(output);
+		return output.buildResult();
+	}
+
+	/** What {@code write} writes through a value output, as a tag. */
+	static CompoundTag written(HolderLookup.Provider registries, java.util.function.Consumer<ValueOutput> write) {
+		TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
+		write.accept(output);
+		return output.buildResult();
+	}
+
+	/**
+	 * {@code player}, given an in-memory connection, as the game's own test
+	 * players have: the server sends packets about a player (a game mode change
+	 * tells every client) through it. The player is not added to the server's list.
+	 */
+	static <P extends ServerPlayer> P connect(P player) {
+		Connection connection = new Connection(PacketFlow.SERVERBOUND);
+		new EmbeddedChannel(connection);
+		new ServerGamePacketListenerImpl(player.level().getServer(), connection, player,
+				CommonListenerCookie.createInitial(player.getGameProfile(), false));
+		return player;
 	}
 }

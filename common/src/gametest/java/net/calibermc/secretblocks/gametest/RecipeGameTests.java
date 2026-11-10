@@ -11,7 +11,7 @@ import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
@@ -102,7 +102,7 @@ public class RecipeGameTests {
 	public void everyRecipeLoads(GameTestHelper h) {
 		MinecraftServer server = h.getLevel().getServer();
 		checkLoads(h, "recipe", dataFiles(server, "recipe"), PARKED::contains,
-				name -> server.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, name))).isPresent());
+				name -> server.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(SecretBlocks.MOD_ID, name))).isPresent());
 		h.succeed();
 	}
 
@@ -111,7 +111,7 @@ public class RecipeGameTests {
 	public void everyLootTableLoads(GameTestHelper h) {
 		MinecraftServer server = h.getLevel().getServer();
 		checkLoads(h, "loot table", dataFiles(server, "loot_table"), name -> PARKED.stream().anyMatch(p -> name.equals("blocks/" + p)),
-				name -> server.reloadableRegistries().getKeys(Registries.LOOT_TABLE).contains(ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, name)));
+				name -> TestSupport.lootTableIds(server).contains(Identifier.fromNamespaceAndPath(SecretBlocks.MOD_ID, name)));
 		h.succeed();
 	}
 
@@ -140,7 +140,7 @@ public class RecipeGameTests {
 	public void everyRecipeCraftsFromItsIngredients(GameTestHelper h) {
 		int crafted = 0;
 		for (RecipeHolder<?> holder : craftingRecipes(h)) {
-			if (!holder.id().location().getNamespace().equals(SecretBlocks.MOD_ID)) {
+			if (!holder.id().identifier().getNamespace().equals(SecretBlocks.MOD_ID)) {
 				continue;
 			}
 			CraftingRecipe recipe = (CraftingRecipe) holder.value();

@@ -20,7 +20,7 @@ public class SecretBlocksFabric implements ModInitializer {
 		UseBlockCallback.EVENT.register(CamouflageWand::onUseBlock);
 		// Vanilla's End City treasure only, not a data pack's replacement.
 		LootTableEvents.MODIFY.register((key, tableBuilder, source, registries) -> {
-			if (source.isBuiltin() && SecretBlocks.getsGogglesLoot(key.location())) {
+			if (source.isBuiltin() && SecretBlocks.getsGogglesLoot(key.identifier())) {
 				tableBuilder.withPool(SecretBlocks.gogglesLootPool());
 			}
 		});

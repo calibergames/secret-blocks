@@ -5,7 +5,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.calibermc.secretblocks.blocks.DoorBlock;
 import net.calibermc.secretblocks.blocks.TrapdoorBlock;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
@@ -79,7 +78,7 @@ public final class DisguiseRenderer {
 			if (!DisguiseLook.showsItself(tempState, blockView, pos, tempDirection)) {
 				tempState = Blocks.STONE.defaultBlockState();
 			}
-			RenderMaterial layer = builder ? null : DisguiseMaterials.forDisguise(tempState);
+			FabricMaterials.Material layer = builder ? null : DisguiseMaterials.forDisguise(tempState);
 
 			BlockStateModel fullModel = minecraft.getBlockRenderer().getBlockModel(tempState);
 			random.setSeed(tempState.getSeed(pos));
@@ -96,7 +95,7 @@ public final class DisguiseRenderer {
 				emitter.spriteBake(BuilderView.ghostSprite(), MutableQuadView.BAKE_LOCK_UV);
 				emitter.tintIndex(-1);
 				emitter.color(0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
-				emitter.material(FabricMaterials.fade());
+				FabricMaterials.FADE.applyTo(emitter);
 				emitter.emit();
 			}
 
@@ -123,10 +122,10 @@ public final class DisguiseRenderer {
 				if (builder) {
 					// Faded, so the real block drawn below shows through.
 					faceColor = (faceColor & 0x00FF_FFFF) | (BuilderView.DISGUISE_ALPHA << 24);
-					emitter.material(FabricMaterials.fade());
+					FabricMaterials.FADE.applyTo(emitter);
 				} else if (layer != null) {
 					// In the disguise's own pass: stained glass translucent, leaves as the graphics setting has them.
-					emitter.material(layer);
+					layer.applyTo(emitter);
 				}
 				emitter.tintIndex(quad.isTinted() ? 0 : -1);
 				emitter.color(faceColor, faceColor, faceColor, faceColor);
@@ -134,7 +133,7 @@ public final class DisguiseRenderer {
 			}
 
 			if (GogglesView.isWearing() && !abqList.isEmpty()
-					&& GogglesView.overlaySprite() != null && FabricMaterials.overlay() != null) {
+					&& GogglesView.overlaySprite() != null) {
 				emitGogglesOverlay(emitter, state, direction);
 			}
 			if (builder && BuilderView.outlineSprite() != null) {
@@ -165,11 +164,13 @@ public final class DisguiseRenderer {
 			BlockStateModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(vanilla);
 			random.setSeed(vanilla.getSeed(pos));
 			for (BlockModelPart part : model.collectParts(random)) {
-				RenderMaterial material = FabricMaterials.real(part.useAmbientOcclusion());
+				FabricMaterials.Material material = FabricMaterials.real(part.useAmbientOcclusion());
 				for (int index = 0; index <= Direction.values().length; index++) {
 					Direction face = index < Direction.values().length ? Direction.values()[index] : null;
 					for (BakedQuad quad : part.getQuads(face)) {
-						emitter.fromVanilla(quad, material, face);
+						emitter.fromBakedQuad(quad);
+						emitter.cullFace(face);
+						material.applyTo(emitter);
 						for (int i = 0; i < 4; i++) {
 							emitter.pos(i, shrink(emitter.x(i)), shrink(emitter.y(i)), shrink(emitter.z(i)));
 						}
@@ -201,7 +202,7 @@ public final class DisguiseRenderer {
 	 */
 	private static void emitWhole(QuadEmitter emitter, Predicate<Direction> cullTest, BlockStateModel model, BlockState look,
 			BlockAndTintGetter blockView, BlockPos pos, RandomSource random, Direction direction,
-			@org.jetbrains.annotations.Nullable RenderMaterial layer, boolean builder) {
+			@org.jetbrains.annotations.Nullable FabricMaterials.Material layer, boolean builder) {
 		emitter.pushTransform(quad -> {
 			Direction side = quad.cullFace() != null ? quad.cullFace() : quad.lightFace();
 			if (side != direction) {
@@ -228,7 +229,7 @@ public final class DisguiseRenderer {
 	}
 
 	private static void finishWhole(MutableQuadView quad, BlockState look, BlockAndTintGetter blockView, BlockPos pos,
-			@org.jetbrains.annotations.Nullable RenderMaterial layer, boolean builder) {
+			@org.jetbrains.annotations.Nullable FabricMaterials.Material layer, boolean builder) {
 		int tint = 0xFFFF_FFFF;
 		if (quad.tintIndex() != -1) {
 			tint = 0xFF00_0000 | Minecraft.getInstance().getBlockColors().getColor(look, blockView, pos, quad.tintIndex());
@@ -243,9 +244,9 @@ public final class DisguiseRenderer {
 			quad.color(i, color);
 		}
 		if (builder) {
-			quad.material(FabricMaterials.fade());
+			FabricMaterials.FADE.applyTo(quad);
 		} else if (layer != null) {
-			quad.material(layer);
+			layer.applyTo(quad);
 		}
 	}
 
@@ -294,7 +295,7 @@ public final class DisguiseRenderer {
 		emitter.spriteBake(GogglesView.overlaySprite(), 4);
 		emitter.tintIndex(-1);
 		emitter.color(0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
-		emitter.material(FabricMaterials.overlay());
+		FabricMaterials.OVERLAY.applyTo(emitter);
 		emitter.emit();
 	}
 
@@ -338,7 +339,7 @@ public final class DisguiseRenderer {
 		emitter.spriteBake(BuilderView.outlineSprite(), MutableQuadView.BAKE_LOCK_UV);
 		emitter.tintIndex(-1);
 		emitter.color(OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR);
-		emitter.material(FabricMaterials.outline());
+		FabricMaterials.OUTLINE.applyTo(emitter);
 		emitter.emit();
 	}
 

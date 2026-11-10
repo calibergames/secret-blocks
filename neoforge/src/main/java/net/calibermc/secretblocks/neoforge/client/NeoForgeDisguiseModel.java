@@ -7,7 +7,7 @@ import net.calibermc.secretblocks.render.BuilderView;
 import net.calibermc.secretblocks.render.GogglesView;
 import net.calibermc.secretblocks.render.MovingDisguise;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -51,7 +51,7 @@ final class NeoForgeDisguiseModel implements DynamicBlockStateModel {
 		DisguiseQuads quads = level.getBlockEntity(pos) instanceof DisguisedBlockEntity disguised
 				? DisguiseQuads.build(disguised.getDisguise(), level, state, pos, RandomSource.create())
 				: withoutDisguiseData(state);
-		for (RenderType layer : quads.layers()) {
+		for (ChunkSectionLayer layer : quads.layers()) {
 			parts.add(new Layer(quads, layer));
 		}
 	}
@@ -66,7 +66,7 @@ final class NeoForgeDisguiseModel implements DynamicBlockStateModel {
 	}
 
 	/** One layer of a disguise's quads. */
-	private record Layer(DisguiseQuads quads, RenderType layer) implements BlockModelPart {
+	private record Layer(DisguiseQuads quads, ChunkSectionLayer layer) implements BlockModelPart {
 
 		@Override
 		public List<BakedQuad> getQuads(@Nullable Direction side) {
@@ -84,7 +84,7 @@ final class NeoForgeDisguiseModel implements DynamicBlockStateModel {
 		}
 
 		@Override
-		public RenderType getRenderType(BlockState state) {
+		public ChunkSectionLayer getRenderType(BlockState state) {
 			return layer;
 		}
 	}

@@ -2,13 +2,12 @@ package net.calibermc.secretblocks.gametest.forge;
 
 import net.calibermc.secretblocks.gametest.support.SharedGameTests;
 import net.calibermc.secretblocks.gametest.support.TestBlocks;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestTicker;
 import net.minecraft.gametest.framework.GlobalTestReporter;
 import net.minecraft.gametest.framework.JUnitLikeTestReporter;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
@@ -28,7 +27,7 @@ public class ForgeTestMod {
 	/** Where to write a JUnit report of the run, as Fabric's {@code fabric-api.gametest.report-file}. */
 	private static final String REPORT_PROPERTY = "secretblocks.gametest.report";
 
-	public ForgeTestMod() {
+	public ForgeTestMod(FMLJavaModLoadingContext context) {
 		String report = System.getProperty(REPORT_PROPERTY);
 		if (report != null) {
 			try {
@@ -37,10 +36,10 @@ public class ForgeTestMod {
 				throw new IllegalStateException("Cannot write the game test report " + report, e);
 			}
 		}
-		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
-		modBus.addListener((RegisterEvent event) -> event.register(Registries.BLOCK,
+		BusGroup modBus = context.getModBusGroup();
+		RegisterEvent.getBus(modBus).addListener(event -> event.register(Registries.BLOCK,
 				helper -> helper.register(TestBlocks.TEST_GATE_OWNER_ID, TestBlocks.createTestGateOwner())));
-		modBus.addListener((RegisterEvent event) -> {
+		RegisterEvent.getBus(modBus).addListener(event -> {
 			event.register(Registries.TEST_FUNCTION, helper -> SharedGameTests.registerFunctions(helper::register));
 			event.register(Registries.TEST_ENVIRONMENT_DEFINITION_TYPE,
 					helper -> helper.register(SharedGameTests.ENVIRONMENT_TYPE, SharedGameTests.ENVIRONMENT_CODEC));
@@ -49,11 +48,7 @@ public class ForgeTestMod {
 		// server started as a game test server still runs them (they come with the
 		// data-pack registries), so there they are ticked once per server tick.
 		if (FMLLoader.isProduction() && Boolean.getBoolean("forge.gameTestServer")) {
-			MinecraftForge.EVENT_BUS.addListener((TickEvent.ServerTickEvent event) -> {
-				if (event.phase == TickEvent.Phase.END) {
-					GameTestTicker.SINGLETON.tick();
-				}
-			});
+			TickEvent.ServerTickEvent.Post.BUS.addListener(event -> GameTestTicker.SINGLETON.tick());
 		}
 		if (FMLEnvironment.dist.isClient()) {
 			ForgeDevClient.init();

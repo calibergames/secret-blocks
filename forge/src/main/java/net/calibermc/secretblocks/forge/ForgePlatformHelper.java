@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.platform.PlatformHelper;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.RegisterEvent;
@@ -23,7 +23,7 @@ import java.util.Set;
  */
 public class ForgePlatformHelper implements PlatformHelper {
 
-	private record Entry(ResourceLocation id, Object value) {
+	private record Entry(Identifier id, Object value) {
 	}
 
 	private static final Map<ResourceKey<?>, List<Entry>> PENDING = new HashMap<>();
@@ -36,9 +36,9 @@ public class ForgePlatformHelper implements PlatformHelper {
 	}
 
 	@Override
-	public <V, T extends V> T register(Registry<V> registry, ResourceLocation id, T value) {
+	public <V, T extends V> T register(Registry<V> registry, Identifier id, T value) {
 		if (DONE.contains(registry.key())) {
-			throw new IllegalStateException("Too late to register " + id + ": " + registry.key().location() + " has already taken its entries");
+			throw new IllegalStateException("Too late to register " + id + ": " + registry.key().identifier() + " has already taken its entries");
 		}
 		PENDING.computeIfAbsent(registry.key(), key -> new ArrayList<>()).add(new Entry(id, value));
 		return value;

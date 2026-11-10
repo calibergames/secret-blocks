@@ -3,13 +3,13 @@ package net.calibermc.secretblocks.render;
 import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.registry.ModItems;
 import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 
 import java.util.function.BooleanSupplier;
@@ -40,8 +40,10 @@ public final class BuilderView {
 	 * Switches the view off and on while the goggles are worn (Controls,
 	 * "Secret Blocks"; B by default). Each loader registers it.
 	 */
+	/** The Secret Blocks group in the controls screen ({@code key.category.secretblocks.main}). */
+	public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(SecretBlocks.id("main"));
 	public static final KeyMapping TOGGLE_KEY = new KeyMapping("key.secretblocks.builder_view",
-			InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, "key.categories.secretblocks");
+			InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, KEY_CATEGORY);
 	/** Whether the loader's renderer can draw the view (Fabric needs a Fabric Renderer API implementation). */
 	private static volatile BooleanSupplier rendererCheck = () -> true;
 	private static volatile boolean rendererReady;
@@ -50,9 +52,9 @@ public final class BuilderView {
 	private static volatile boolean shaderPack;
 
 	/** Plain white, tinted for the outline drawn around every secret block. */
-	public static final ResourceLocation OUTLINE_SPRITE = ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, "block/builder_outline");
+	public static final Identifier OUTLINE_SPRITE = Identifier.fromNamespaceAndPath(SecretBlocks.MOD_ID, "block/builder_outline");
 	/** Translucent in the texture itself: the faded block under a shader pack (and on Fabric with Sodium). */
-	public static final ResourceLocation GHOST_SPRITE = ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, "block/builder_ghost");
+	public static final Identifier GHOST_SPRITE = Identifier.fromNamespaceAndPath(SecretBlocks.MOD_ID, "block/builder_ghost");
 
 	private BuilderView() {
 	}
@@ -82,8 +84,8 @@ public final class BuilderView {
 			return;
 		}
 		// Refreshed every tick so a resource reload (new atlas) is picked up.
-		outlineSprite = mc.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(OUTLINE_SPRITE);
-		ghostSprite = mc.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(GHOST_SPRITE);
+		outlineSprite = mc.getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(OUTLINE_SPRITE);
+		ghostSprite = mc.getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(GHOST_SPRITE);
 		boolean packNow = ShaderPacks.inUse();
 		if (packNow != shaderPack) {
 			shaderPack = packNow;

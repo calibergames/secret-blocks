@@ -2,6 +2,8 @@ package net.calibermc.secretblocks.blocks.entity;
 
 import net.calibermc.secretblocks.blocks.GateSegmentOwner;
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -99,17 +101,19 @@ public class SecretGateSegmentBlockEntity extends BlockEntity implements Disguis
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
-		disguise.save(tag);
+	protected void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		CompoundTag tag = disguise.save(new CompoundTag());
 		if (owner != null) {
 			tag.put(OWNER, writePos(owner));
 		}
+		SavedData.write(output, tag);
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
+	protected void loadAdditional(ValueInput input) {
+		super.loadAdditional(input);
+		CompoundTag tag = SavedData.read(input);
 		disguise.load(tag);
 		owner = tag.get(OWNER) instanceof CompoundTag ? readPos(tag.getCompoundOrEmpty(OWNER)) : null;
 		DisguisedBlockEntity.redrawAfterLoad(this);

@@ -2,6 +2,7 @@ package net.calibermc.secretblocks.blocks;
 
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -68,7 +69,7 @@ public class SecretDaylightDetector extends Block implements EntityBlock, Secret
 	/** As vanilla: once a second, on the server, and only where there is a sky. */
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-		if (level.isClientSide || !level.dimensionType().hasSkyLight() || type != ModEntities.SECRET_BLOCK_ENTITY) {
+		if (level.isClientSide() || !level.dimensionType().hasSkyLight() || type != ModEntities.SECRET_BLOCK_ENTITY) {
 			return null;
 		}
 		return (tickLevel, pos, tickState, entity) -> {
@@ -105,7 +106,7 @@ public class SecretDaylightDetector extends Block implements EntityBlock, Secret
 	}
 
 	private static void updateSignalStrength(BlockState state, Level level, BlockPos pos) {
-		int strength = signalStrength(skyLightAround(level, pos), level.getSkyDarken(), level.getSunAngle(1.0F), state.getValue(INVERTED));
+		int strength = signalStrength(skyLightAround(level, pos), level.getSkyDarken(), level.environmentAttributes().getValue(EnvironmentAttributes.SUN_ANGLE, pos) * (float) (Math.PI / 180.0), state.getValue(INVERTED));
 		if (state.getValue(POWER) != strength) {
 			level.setBlock(pos, state.setValue(POWER, strength), 3);
 		}
@@ -117,7 +118,7 @@ public class SecretDaylightDetector extends Block implements EntityBlock, Secret
 		if (!player.mayBuild()) {
 			return super.useWithoutItem(state, level, pos, player, hit);
 		}
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return InteractionResult.SUCCESS;
 		}
 		BlockState toggled = state.cycle(INVERTED);

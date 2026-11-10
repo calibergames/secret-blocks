@@ -6,7 +6,6 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModEntities;
 import net.calibermc.secretblocks.render.BuilderChestRenderer;
 import net.calibermc.secretblocks.render.BuilderView;
-import net.calibermc.secretblocks.render.DisguiseMaterials;
 import net.calibermc.secretblocks.render.FabricMaterials;
 import net.calibermc.secretblocks.render.GogglesView;
 import net.calibermc.secretblocks.render.SecretBlockResourceProvider;
@@ -15,11 +14,11 @@ import net.calibermc.secretblocks.screen.SecretChestScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 
 
 
@@ -32,19 +31,13 @@ public class SecretBlocksClient implements ClientModInitializer {
 
 		MenuScreens.register(ModScreenHandlers.SECRET_CHEST_SCREEN_HANDLER, SecretChestScreen::new);  //Screen handler
 		ModelLoadingPlugin.register(new SecretBlockResourceProvider());
-		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), ModBlocks.secretBlocksList);
+		BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT, ModBlocks.secretBlocksList);
 		// The Torch Lever draws vanilla's torch models (tilted copies of them when on), which need the cutout layer as vanilla's torch does.
-		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(), ModBlocks.TORCH_LEVER, ModBlocks.WALL_TORCH_LEVER);
+		BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT, ModBlocks.TORCH_LEVER, ModBlocks.WALL_TORCH_LEVER);
 		KeyBindingHelper.registerKeyBinding(BuilderView.TOGGLE_KEY);
 		BuilderView.setRendererCheck(FabricMaterials::ensureBuilderView);
-		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
-			if (mc.level != null) {
-				FabricMaterials.ensureOverlay();
-			}
-			GogglesView.tick(mc);
-		});
+		ClientTickEvents.END_CLIENT_TICK.register(GogglesView::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(BuilderView::tick);
-		DisguiseMaterials.register();
 		BlockEntityRendererRegistry.register(ModEntities.SECRET_BLOCK_ENTITY, BuilderChestRenderer::new);
 //		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getTranslucent(), SecretBlocks.glassBlocksList);
 	}

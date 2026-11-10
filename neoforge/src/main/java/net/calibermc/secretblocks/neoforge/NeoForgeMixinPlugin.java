@@ -11,26 +11,30 @@ import java.util.Set;
 
 /**
  * Applies the mixins that target another mod only when that mod is
- * installed: {@code EmbeddiumOcclusionMixin} needs Embeddium. Without this,
- * Mixin looks for Embeddium's class and logs a warning on every launch
- * without it. Reports an Embeddium version it could not hook
+ * installed: {@code SodiumOcclusionMixin} needs Sodium. Without this,
+ * Mixin looks for Sodium's class and logs a warning on every launch
+ * without it. Reports a Sodium version it could not hook
  * ({@link MixinHooks}). Lives outside the mixin package, which Mixin
  * reserves for mixin classes.
  */
 public class NeoForgeMixinPlugin implements IMixinConfigPlugin {
 
-	private static final String EMBEDDIUM_MIXIN = "net.calibermc.secretblocks.neoforge.mixin.EmbeddiumOcclusionMixin";
+	private static final String SODIUM_MIXIN = "net.calibermc.secretblocks.neoforge.mixin.SodiumOcclusionMixin";
 
 	@Override
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-		if (mixinClassName.equals(EMBEDDIUM_MIXIN)) {
-			return LoadingModList.get().getModFileById("embeddium") != null || LoadingModList.get().getModFileById("sodium") != null;
+		if (mixinClassName.equals(SODIUM_MIXIN)) {
+			return LoadingModList.get().getModFileById("sodium") != null;
 		}
 		return true;
 	}
 
 	@Override
 	public void onLoad(String mixinPackage) {
+		var sodium = LoadingModList.get().getModFileById("sodium");
+		if (sodium != null) {
+			MixinHooks.checkHookClass("Sodium", sodium.getFile().getContents().containsFile(MixinHooks.SODIUM_HOOK_CLASS));
+		}
 	}
 
 	@Override
@@ -53,8 +57,8 @@ public class NeoForgeMixinPlugin implements IMixinConfigPlugin {
 
 	@Override
 	public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-		if (mixinClassName.equals(EMBEDDIUM_MIXIN)) {
-			MixinHooks.checkOcclusionHook(targetClassName.startsWith("net.caffeinemc.") ? "Sodium" : "Embeddium", targetClass);
+		if (mixinClassName.equals(SODIUM_MIXIN)) {
+			MixinHooks.checkOcclusionHook("Sodium", targetClass);
 		}
 	}
 }

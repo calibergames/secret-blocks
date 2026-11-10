@@ -9,7 +9,7 @@ import net.calibermc.secretblocks.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 
@@ -43,7 +43,7 @@ public class ModItems {
     // Registry
     // Items are built with their registry key already in their properties (see ModBlocks).
     private static Item registerItem(String name, Function<Item.Properties, Item> factory, Item.Properties properties) {
-        ResourceLocation id = SecretBlocks.id(name);
+        Identifier id = SecretBlocks.id(name);
         Item item = factory.apply(properties.setId(ResourceKey.create(Registries.ITEM, id)));
         return ModCreativeTab.add(Services.PLATFORM.register(BuiltInRegistries.ITEM, id, item));
     }

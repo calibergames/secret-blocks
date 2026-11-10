@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.platform.Services;
 import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.screen.SecretChestScreenHandler;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 
@@ -21,7 +21,7 @@ public class ModScreenHandlers {
             new MenuType<>(SecretChestScreenHandler::new, FeatureFlags.VANILLA_SET);
 
     public static void registerAllScreenHandlers() {
-        Services.PLATFORM.register(BuiltInRegistries.MENU, ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, "secret_chest"),
+        Services.PLATFORM.register(BuiltInRegistries.MENU, Identifier.fromNamespaceAndPath(SecretBlocks.MOD_ID, "secret_chest"),
                 SECRET_CHEST_SCREEN_HANDLER);
     }
 }

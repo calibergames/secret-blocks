@@ -2,6 +2,8 @@ package net.calibermc.secretblocks.blocks.entity;
 
 import net.calibermc.secretblocks.blocks.SecretPiston;
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -83,19 +85,24 @@ public class SecretBlockEntity extends BlockEntity implements DisguisedBlockEnti
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
-		disguise.save(tag);
-		ContainerHelper.saveAllItems(tag, this.items, registries);
+	protected void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		SavedData.write(output, disguise.save(new CompoundTag()));
+		ContainerHelper.saveAllItems(output, this.items);
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		LegacyData.upgradeContainer(tag, "minecraft:chest");
-		super.loadAdditional(tag, registries);
-		disguise.load(tag);
-		ContainerHelper.loadAllItems(tag, this.items, registries);
+	protected final void loadAdditional(ValueInput input) {
+		ValueInput upgraded = SavedData.upgradedContainer(input, "minecraft:chest");
+		super.loadAdditional(upgraded);
+		loadUpgraded(upgraded);
 		DisguisedBlockEntity.redrawAfterLoad(this);
+	}
+
+	/** Reads this block entity's own data, brought up to date first ({@link SavedData#upgradedContainer}). */
+	protected void loadUpgraded(ValueInput input) {
+		disguise.load(SavedData.read(input));
+		ContainerHelper.loadAllItems(input, this.items);
 	}
 
 	@Override

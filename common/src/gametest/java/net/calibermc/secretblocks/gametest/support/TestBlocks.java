@@ -2,7 +2,7 @@ package net.calibermc.secretblocks.gametest.support;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 /** Blocks the game tests need that the mod does not have; each loader's test mod registers them. */
 public final class TestBlocks {
 
-	public static final ResourceLocation TEST_GATE_OWNER_ID = ResourceLocation.fromNamespaceAndPath("secretblocks_gametest", "test_gate_owner");
+	public static final Identifier TEST_GATE_OWNER_ID = Identifier.fromNamespaceAndPath("secretblocks_gametest", "test_gate_owner");
 
 	public static Block TEST_GATE_OWNER;
 

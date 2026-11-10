@@ -5,6 +5,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.event.ModelEvent;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 
 /** Puts the disguise model on every secret block and tells it of every model bake (the model types stay in this package). */
 public final class ForgeClientRendering {
@@ -23,6 +24,15 @@ public final class ForgeClientRendering {
 				for (BlockState state : block.getStateDefinition().getPossibleStates()) {
 					event.getResults().blockStateModels().put(state, ForgeDisguiseModel.INSTANCE);
 				}
+			}
+		}
+	}
+
+	/** The secret blocks' disguise quads carry their colours in their tint indices ({@link QuadTints}). */
+	public static void registerColors(RegisterColorHandlersEvent.Block event) {
+		for (Block block : BuiltInRegistries.BLOCK) {
+			if (block instanceof SecretBlock) {
+				event.register((state, level, pos, tintIndex) -> QuadTints.color(tintIndex), block);
 			}
 		}
 	}

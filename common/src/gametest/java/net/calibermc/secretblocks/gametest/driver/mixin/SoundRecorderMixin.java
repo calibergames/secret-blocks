@@ -16,7 +16,7 @@ public abstract class SoundRecorderMixin {
 	private void secretblocksTest$record(SoundInstance sound, CallbackInfo ci) {
 		if (Recorder.isOn()) {
 			// Only what is known before the manager resolves the sound (volume and pitch are not).
-			Recorder.sound(String.format("%s at %.1f %.1f %.1f", sound.getLocation(), sound.getX(), sound.getY(), sound.getZ()));
+			Recorder.sound(String.format("%s at %.1f %.1f %.1f", sound.getIdentifier(), sound.getX(), sound.getY(), sound.getZ()));
 		}
 	}
 }

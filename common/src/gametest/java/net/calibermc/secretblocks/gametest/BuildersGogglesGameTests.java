@@ -13,7 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -96,7 +96,7 @@ public class BuildersGogglesGameTests {
 		check(h, EnchantmentHelper.selectEnchantment(RandomSource.create(1), goggles(), 30, enchantments.listElements().map(e -> (Holder<Enchantment>) e)).isEmpty(),
 				"the enchanting table should offer nothing");
 		enchantments.listElements().forEach(enchantment ->
-				check(h, !enchantment.value().canEnchant(goggles()), enchantment.key().location() + " must not apply to them"));
+				check(h, !enchantment.value().canEnchant(goggles()), enchantment.key().identifier() + " must not apply to them"));
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		AnvilMenu anvil = new AnvilMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
 		anvil.getSlot(0).set(goggles());
@@ -116,7 +116,7 @@ public class BuildersGogglesGameTests {
 		check(h, server.getRecipeManager().getRecipes().stream().noneMatch(r -> makes(r.value(), h.getLevel(), ModItems.BUILDERS_GOGGLES)),
 				"no recipe may make them");
 		int tables = 0;
-		for (ResourceLocation id : server.reloadableRegistries().getKeys(Registries.LOOT_TABLE)) {
+		for (Identifier id : TestSupport.lootTableIds(server)) {
 			LootTable table = server.reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, id));
 			if (table.getParamSet() != LootContextParamSets.CHEST) {
 				continue;

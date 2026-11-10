@@ -3,6 +3,7 @@ package net.calibermc.secretblocks.gametest;
 import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import net.calibermc.secretblocks.blocks.entity.SavedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -228,7 +229,7 @@ public class ContainerGameTests {
 				continue;
 			}
 			SecretBlockEntity entity = plain(h, rel);
-			entity.loadWithComponents(stuck.copy(), h.getLevel().registryAccess());
+			entity.loadWithComponents(SavedData.input(stuck.copy(), h.getLevel().registryAccess()));
 			h.setBlock(rel, Blocks.AIR);
 			int dropped = diamondsAround(h, rel, Items.DIAMOND);
 			check(h, dropped == 4, BuiltInRegistries.BLOCK.getKey(block) + " should drop the 4 stuck diamonds when broken, dropped " + dropped);

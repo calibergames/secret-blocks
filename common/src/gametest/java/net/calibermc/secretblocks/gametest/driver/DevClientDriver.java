@@ -81,7 +81,11 @@ import java.util.List;
  *   wearing the goggles, or stop forcing it;</li>
  *   <li>{@code shot <name>}: save the game's own screenshot of the last
  *   frame as {@code run/screenshots/<name>.png} (read from the framebuffer,
- *   so it works when the desktop cannot be captured).</li>
+ *   so it works when the desktop cannot be captured);</li>
+ *   <li>{@code fps}: the debug screen's frame rate line;</li>
+ *   <li>{@code press <key>} (e.g. {@code key.keyboard.b}): one press of that
+ *   key for the key mappings bound to it;</li>
+ *   <li>{@code saveoptions}: write options.txt now.</li>
  * </ul>
  */
 public class DevClientDriver {
@@ -299,7 +303,8 @@ public class DevClientDriver {
 			case "look" -> report("look " + describe(mc, pos(a, 1)));
 			case "cmd" -> {
 				String command = String.join(" ", java.util.Arrays.copyOfRange(a, 1, a.length));
-				report("cmd " + command + " -> sent=" + mc.player.connection.sendUnsignedCommand(command));
+				mc.player.connection.sendCommand(command);
+				report("cmd " + command + " -> sent");
 			}
 			case "slook" -> {
 				BlockPos pos = pos(a, 1);
@@ -329,8 +334,7 @@ public class DevClientDriver {
 					report("builder " + a[1] + " -> active=" + active);
 				}
 			}
-			case "bench" -> bench(mc, Integer.parseInt(a[1]), Integer.parseInt(a[2]), a.length < 4 || !a[3].equals("noflush"));
-			case "fps" -> report("fps " + mc.fpsString);
+			case "fps" -> report("fps " + mc.getFps());
 			case "saveoptions" -> {
 				// Writes options.txt, which lists every key mapping the Controls screen shows.
 				mc.options.save();
@@ -347,19 +351,11 @@ public class DevClientDriver {
 				mc.options.hideGui = a[1].equals("off");
 				report("hud " + a[1]);
 			}
-			case "shot" -> Screenshot.grab(mc.gameDirectory, a[1] + ".png", mc.getMainRenderTarget(),
+			case "shot" -> Screenshot.grab(mc.gameDirectory, a[1] + ".png", mc.getMainRenderTarget(), 1,
 					message -> report("shot " + a[1] + " -> " + message.getString()));
 			case "quit" -> {
-				// The pause screen's "Save and Quit to Title" (PauseScreen.onDisconnect).
-				boolean local = mc.isLocalServer();
-				mc.level.disconnect();
-				if (local) {
-					mc.disconnect(new net.minecraft.client.gui.screens.GenericMessageScreen(
-							net.minecraft.network.chat.Component.translatable("menu.savingLevel")));
-				} else {
-					mc.disconnect();
-				}
-				mc.setScreen(new net.minecraft.client.gui.screens.TitleScreen());
+				// The pause screen's "Save and Quit to Title".
+				mc.disconnectFromWorld(net.minecraft.client.multiplayer.ClientLevel.DEFAULT_QUIT_MESSAGE);
 				report("quit to title");
 			}
 			case "walk" -> {
@@ -373,54 +369,6 @@ public class DevClientDriver {
 		}
 	}
 
-	/**
-	 * {@code bench radius rounds}: the per-frame cost of the block-entity
-	 * renderer registered on the shared secret block-entity type
-	 * ({@code BuilderChestRenderer}). Every secret block entity within
-	 * {@code radius} of the player is sent through vanilla's dispatcher
-	 * {@code rounds} times, as the level renderer does once per visible block
-	 * entity per frame (distance check, light lookup, then the renderer),
-	 * ending the batches after each round as a frame does ({@code noflush}
-	 * as a third word leaves them, to time the renderer alone). Reports the
-	 * count and nanoseconds per call. {@code fps}: the debug screen's frame
-	 * rate line. {@code press <key>} (e.g. {@code key.keyboard.b}): one press
-	 * of that key for the key mappings bound to it. {@code saveoptions}: write
-	 * options.txt now.
-	 */
-	private void bench(Minecraft mc, int radius, int rounds, boolean flush) {
-		List<BlockEntity> entities = new java.util.ArrayList<>();
-		BlockPos centre = mc.player.blockPosition();
-		for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-radius, -radius, -radius), centre.offset(radius, radius, radius))) {
-			BlockEntity entity = mc.level.getBlockEntity(pos);
-			if (entity != null && entity.getType() == net.calibermc.secretblocks.registry.ModEntities.SECRET_BLOCK_ENTITY) {
-				entities.add(entity);
-			}
-		}
-		var dispatcher = mc.getBlockEntityRenderDispatcher();
-		var poseStack = new com.mojang.blaze3d.vertex.PoseStack();
-		var buffers = mc.renderBuffers().bufferSource();
-		for (int warm = 0; warm < 20; warm++) {
-			entities.forEach(entity -> dispatcher.render(entity, 0, poseStack, buffers));
-			buffers.endBatch();
-		}
-		long start = System.nanoTime();
-		for (int round = 0; round < rounds; round++) {
-			for (BlockEntity entity : entities) {
-				poseStack.pushPose();
-				dispatcher.render(entity, 0, poseStack, buffers);
-				poseStack.popPose();
-			}
-			// One frame's worth: the level renderer ends its batches every frame.
-			if (flush) {
-				buffers.endBatch();
-			}
-		}
-		long elapsed = System.nanoTime() - start;
-		double perCall = entities.isEmpty() ? 0 : (double) elapsed / ((long) rounds * entities.size());
-		report(String.format(java.util.Locale.ROOT, "bench at %s entities=%d rounds=%d flush=%s ns_per_call=%.1f ms_per_frame=%.3f builder=%s",
-				centre.toShortString(), entities.size(), rounds, flush, perCall, perCall * entities.size() / 1e6, net.calibermc.secretblocks.render.BuilderView.isActive()));
-	}
-
 	private void continueBreaking(Minecraft mc) {
 		breakTicks++;
 		if (mc.level.getBlockState(breaking).isAir() || breakTicks > 200) {
@@ -431,7 +379,7 @@ public class DevClientDriver {
 		}
 		// As the attack key does: chips fly off the face being mined.
 		if (mc.gameMode.continueDestroyBlock(breaking, breakFace)) {
-			mc.particleEngine.crack(breaking, breakFace);
+			mc.level.addBreakingBlockEffect(breaking, breakFace);
 		}
 		mc.player.swing(InteractionHand.MAIN_HAND);
 	}

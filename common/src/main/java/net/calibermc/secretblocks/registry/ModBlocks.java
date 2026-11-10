@@ -8,7 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.StandingAndWallBlockItem;
@@ -41,7 +41,7 @@ public class ModBlocks {
             BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK));
 
     public static final Block GHOST_BLOCK = registerBlock("ghost_block", GhostBlock::new,
-            BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).noCollission());
+            BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).noCollision());
 
     public static final Block ONE_WAY_GLASS = registerBlock("one_way_glass", OneWayGlassBlock::new,
             BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).noOcclusion());
@@ -80,7 +80,7 @@ public class ModBlocks {
     // block tag (data/minecraft/tags/block/climbable.json), like the original
     // Secret Rooms Mod's Secret Clamber.
     public static final Block SECRET_CLAMBER = registerBlock("secret_clamber", GhostBlock::new,
-            BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).noCollission());
+            BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).noCollision());
 
 //    public static final Block SECRET_LADDER = registerBlock("secret_ladder",
 //            new SecretLadder(SOLID_BLOCK.getDefaultState(), BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK)));
@@ -202,7 +202,7 @@ public class ModBlocks {
     // game reads it for the description id, the loot table and the item model.
     private static Block registerBlockWithoutBlockItem(String name, Function<BlockBehaviour.Properties, Block> factory,
             BlockBehaviour.Properties properties) {
-        ResourceLocation id = SecretBlocks.id(name);
+        Identifier id = SecretBlocks.id(name);
         Block block = factory.apply(properties.setId(ResourceKey.create(Registries.BLOCK, id)));
         return Services.PLATFORM.register(BuiltInRegistries.BLOCK, id, block);
     }

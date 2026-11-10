@@ -1,5 +1,8 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.server.permissions.LevelBasedPermissionSet;
+import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.server.level.ClientInformation;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
@@ -50,7 +53,7 @@ final class WandTestPlayer extends ServerPlayer {
 
 	/** A player standing at {@code feetRel}, sneaking or not. */
 	static WandTestPlayer at(GameTestHelper h, Vec3 feetRel, boolean creative, int permission, boolean sneaking) {
-		WandTestPlayer player = new WandTestPlayer(h.getLevel(), creative, permission);
+		WandTestPlayer player = TestSupport.connect(new WandTestPlayer(h.getLevel(), creative, permission));
 		Vec3 feet = TestSupport.abs(h, feetRel);
 		player.snapTo(feet.x, feet.y, feet.z, 0, 0);
 		player.setShiftKeyDown(sneaking);
@@ -68,8 +71,8 @@ final class WandTestPlayer extends ServerPlayer {
 	}
 
 	@Override
-	public int getPermissionLevel() {
-		return permission;
+	public PermissionSet permissions() {
+		return LevelBasedPermissionSet.forLevel(PermissionLevel.byId(permission));
 	}
 
 	/** Spawn protection and the world border, as the server reports them. */
@@ -83,11 +86,6 @@ final class WandTestPlayer extends ServerPlayer {
 		messages.add(message);
 	}
 
-	/** Sounds for this player alone (a locked chest's) go out on the connection it does not have. */
-	@Override
-	public void playNotifySound(net.minecraft.sounds.SoundEvent sound, net.minecraft.sounds.SoundSource source, float volume, float pitch) {
-	}
-
 	String lastMessageKey() {
 		if (messages.isEmpty()) {
 			return "";
@@ -97,7 +95,7 @@ final class WandTestPlayer extends ServerPlayer {
 
 	/** Run {@code action} with this player listed as connected. */
 	<T> T listed(Supplier<T> action) {
-		List<ServerPlayer> players = ((net.calibermc.secretblocks.gametest.support.mixin.PlayerListAccessor) getServer().getPlayerList()).secretblocksTest$getPlayers();
+		List<ServerPlayer> players = ((net.calibermc.secretblocks.gametest.support.mixin.PlayerListAccessor) level().getServer().getPlayerList()).secretblocksTest$getPlayers();
 		players.add(this);
 		try {
 			return action.get();

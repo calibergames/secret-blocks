@@ -4,6 +4,7 @@ import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import net.calibermc.secretblocks.blocks.entity.SavedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.calibermc.secretblocks.gametest.support.GameTest;
@@ -132,7 +133,7 @@ public class BehaviourGameTests {
 		chest.setItem(26, new ItemStack(Items.OAK_LOG, 64));
 		CompoundTag saved = chest.saveWithoutMetadata(h.getLevel().registryAccess());
 		SecretChestBlockEntity copy = new SecretChestBlockEntity(h.absolutePos(A), h.getBlockState(A));
-		copy.loadWithComponents(saved, h.getLevel().registryAccess());
+		copy.loadWithComponents(SavedData.input(saved, h.getLevel().registryAccess()));
 		check(h, ItemStack.matches(copy.getItem(0), new ItemStack(Items.DIAMOND, 5)), "slot 0 should hold 5 diamonds");
 		check(h, ItemStack.matches(copy.getItem(26), new ItemStack(Items.OAK_LOG, 64)), "slot 26 should hold 64 oak logs");
 		check(h, copy.getItem(1).isEmpty(), "slot 1 should be empty");

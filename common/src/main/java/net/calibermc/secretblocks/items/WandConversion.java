@@ -5,6 +5,7 @@ import net.calibermc.secretblocks.blocks.entity.Disguise;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.registry.Counterparts;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import net.calibermc.secretblocks.blocks.entity.SavedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -75,7 +76,7 @@ public final class WandConversion {
 			return Result.refused("not_allowed");
 		}
 		// A player the server lists as connected: not a machine acting as a player.
-		if (player.getServer() == null || !player.getServer().getPlayerList().getPlayers().contains(player)) {
+		if (player.level().getServer() == null || !player.level().getServer().getPlayerList().getPlayers().contains(player)) {
 			return Result.refused("not_allowed");
 		}
 		if (!level.isLoaded(pos)) {
@@ -206,7 +207,7 @@ public final class WandConversion {
 		if (fresh != null && !data.isEmpty()) {
 			CompoundTag merged = fresh.saveWithoutMetadata(level.registryAccess());
 			merged.merge(data);
-			fresh.loadWithComponents(merged, level.registryAccess());
+			fresh.loadWithComponents(SavedData.input(merged, level.registryAccess()));
 			fresh.setChanged();
 		}
 	}

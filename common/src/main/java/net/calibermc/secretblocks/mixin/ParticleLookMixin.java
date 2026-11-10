@@ -2,13 +2,13 @@ package net.calibermc.secretblocks.mixin;
 
 import net.calibermc.secretblocks.blocks.DisguiseLook;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Group;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 /**
@@ -16,19 +16,26 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
  * fly off the face being hit, and the burst when it breaks (its top, where
  * the break names the secret block itself and it is still there to read).
  */
-@Mixin(ParticleEngine.class)
+@Mixin(ClientLevel.class)
 public abstract class ParticleLookMixin {
 
-	@Shadow
-	protected ClientLevel level;
-
-	@ModifyVariable(method = "crack", at = @At("STORE"))
+	/** The chips, where the level reads the block being hit (NeoForge reads it in its overload with the hit). */
+	@Group(name = "secretblocks$crackLook", min = 1, max = 1)
+	@ModifyVariable(method = "addBreakingBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)V", require = 0,
+			at = @At("STORE"))
 	private BlockState secretblocks$crackLook(BlockState state, BlockPos pos, Direction side) {
-		return DisguiseLook.looks(level, pos, state, side);
+		return DisguiseLook.looks((ClientLevel) (Object) this, pos, state, side);
 	}
 
-	@ModifyVariable(method = "destroy", at = @At("HEAD"), argsOnly = true)
+	@Group(name = "secretblocks$crackLook", min = 1, max = 1)
+	@ModifyVariable(method = "addBreakingBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/world/phys/HitResult;)V",
+			require = 0, at = @At("STORE"))
+	private BlockState secretblocks$crackLookWithHit(BlockState state, BlockPos pos, Direction side, HitResult hit) {
+		return DisguiseLook.looks((ClientLevel) (Object) this, pos, state, side);
+	}
+
+	@ModifyVariable(method = "addDestroyBlockEffect", at = @At("HEAD"), argsOnly = true)
 	private BlockState secretblocks$destroyLook(BlockState state, BlockPos pos) {
-		return DisguiseLook.looks(level, pos, state, Direction.UP);
+		return DisguiseLook.looks((ClientLevel) (Object) this, pos, state, Direction.UP);
 	}
 }

@@ -29,6 +29,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
 	@Override
 	public void onLoad(String mixinPackage) {
+		FabricLoader.getInstance().getModContainer("sodium").ifPresent(sodium ->
+				MixinHooks.checkHookClass("Sodium", sodium.findPath(MixinHooks.SODIUM_HOOK_CLASS).isPresent()));
 	}
 
 	@Override

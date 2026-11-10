@@ -34,7 +34,7 @@ final class TorchLevers {
 	}
 
 	static InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, Direction away) {
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			// No redstone particles, unlike a lever: only the tilt gives it away.
 			return InteractionResult.SUCCESS;
 		}

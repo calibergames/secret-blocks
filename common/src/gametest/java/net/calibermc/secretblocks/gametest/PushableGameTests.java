@@ -4,6 +4,7 @@ import net.calibermc.secretblocks.blocks.SecretPushing;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import net.calibermc.secretblocks.blocks.entity.SavedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -276,7 +277,7 @@ public class PushableGameTests {
 		BlockPos block = piston.east();
 		pistonAt(h, piston, Blocks.PISTON, Direction.EAST);
 		h.setBlock(block, ModBlocks.SOLID_BLOCK);
-		plain(h, block).loadWithComponents(TagParser.parseCompoundFully("{Items:[{Slot:0b,id:\"minecraft:diamond\",count:4}]}"), h.getLevel().registryAccess());
+		plain(h, block).loadWithComponents(SavedData.input(TagParser.parseCompoundFully("{Items:[{Slot:0b,id:\"minecraft:diamond\",count:4}]}"), h.getLevel().registryAccess()));
 		boolean[] seen = {false};
 		h.onEachTick(() -> {
 			if (!seen[0] && blockEntityAt(h, block.east()) instanceof net.minecraft.world.level.block.piston.PistonMovingBlockEntity moving) {

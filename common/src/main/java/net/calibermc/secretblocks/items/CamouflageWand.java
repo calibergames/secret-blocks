@@ -4,6 +4,7 @@ import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.registry.ModItems;
 import java.util.function.Consumer;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -12,7 +13,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -92,7 +93,7 @@ public class CamouflageWand extends Item {
 
 	/** Creative mode or operator (permission level 2). */
 	public static boolean mayUse(Player player) {
-		return player.isCreative() || player.hasPermissions(2);
+		return player.isCreative() || player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
 	}
 
 	/**
@@ -127,7 +128,7 @@ public class CamouflageWand extends Item {
 		}
 		CompoundTag disguise = tag.getCompoundOrEmpty(DISGUISE);
 		// readBlockState throws on a malformed id; an unknown but well-formed one reads as air.
-		if (!(disguise.get("Name") instanceof StringTag) || ResourceLocation.tryParse(disguise.getStringOr("Name", "")) == null) {
+		if (!(disguise.get("Name") instanceof StringTag) || Identifier.tryParse(disguise.getStringOr("Name", "")) == null) {
 			return Optional.empty();
 		}
 		BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, disguise);

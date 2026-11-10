@@ -1,10 +1,11 @@
 package net.calibermc.secretblocks.gametest;
 
 import net.calibermc.secretblocks.blocks.entity.LegacyData;
+import net.calibermc.secretblocks.blocks.entity.SavedData;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.component.DataComponentExactPredicate;
-import net.minecraft.advancements.critereon.DataComponentMatchers;
-import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.criterion.DataComponentMatchers;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.RandomizableContainer;
 import net.calibermc.secretblocks.items.ItemData;
@@ -342,15 +343,15 @@ public class WandConversionGameTests {
 	/** Locks {@code container} so that only an item named "key" opens it. */
 	private static void lockWithKey(GameTestHelper h, BlockEntity container) {
 		CompoundTag data = container.saveWithoutMetadata(h.getLevel().registryAccess());
-		new LockCode(ItemPredicate.Builder.item().withComponents(DataComponentMatchers.Builder.components()
-				.exact(DataComponentExactPredicate.expect(DataComponents.CUSTOM_NAME, Component.literal("key"))).build()).build())
-				.addToTag(data, h.getLevel().registryAccess());
-		container.loadWithComponents(data, h.getLevel().registryAccess());
+		LockCode lock = new LockCode(ItemPredicate.Builder.item().withComponents(DataComponentMatchers.Builder.components()
+				.exact(DataComponentExactPredicate.expect(DataComponents.CUSTOM_NAME, Component.literal("key"))).build()).build());
+		data.merge(TestSupport.written(h.getLevel().registryAccess(), lock::addToTag));
+		container.loadWithComponents(SavedData.input(data, h.getLevel().registryAccess()));
 	}
 
 	/** Whether saved container data holds a lock that an item named "key" opens and another item does not. */
 	private static boolean lockedWithKey(GameTestHelper h, CompoundTag data) {
-		LockCode lock = LockCode.fromTag(data, h.getLevel().registryAccess());
+		LockCode lock = LockCode.fromTag(SavedData.input(data, h.getLevel().registryAccess()));
 		return lock.unlocksWith(named(new ItemStack(Items.TRIPWIRE_HOOK), Component.literal("key")))
 				&& !lock.unlocksWith(named(new ItemStack(Items.TRIPWIRE_HOOK), Component.literal("other")));
 	}
@@ -370,7 +371,7 @@ public class WandConversionGameTests {
 			old.remove(LockCode.TAG_LOCK);
 			old.putString("Lock", "key");
 			old.putInt(LegacyData.VERSION, MINECRAFT_1_21_1);
-			container.loadWithComponents(old, h.getLevel().registryAccess());
+			container.loadWithComponents(SavedData.input(old, h.getLevel().registryAccess()));
 			CompoundTag saved = container.saveWithoutMetadata(h.getLevel().registryAccess());
 			if (!lockedWithKey(h, saved) || saved.contains("Lock")) {
 				problems.append(name(block)).append(": ").append(saved).append("; ");
@@ -403,7 +404,7 @@ public class WandConversionGameTests {
 		check(h, "container.isLocked".equals(player.lastMessageKey()), "a locked chest should refuse, got " + player.messages);
 		check(h, player.containerMenu == player.inventoryMenu, "the locked chest must not open");
 		player.setItemInHand(InteractionHand.MAIN_HAND, named(new ItemStack(Items.TRIPWIRE_HOOK), Component.literal("key")));
-		check(h, BaseContainerBlockEntity.canUnlock(player, chest.getLockKey(), Component.empty()), "the key should open it");
+		check(h, chest.getLockKey().canUnlock(player), "the key should open it");
 		check(h, chest.getUpdateTag(h.getLevel().registryAccess()).keySet().stream().noneMatch(k -> k.equals(LockCode.TAG_LOCK) || k.equals("CustomName")),
 				"clients must not get the lock or the name");
 		// Mined, it drops a chest item with the name, as vanilla's does.
@@ -483,12 +484,13 @@ public class WandConversionGameTests {
 		h.setBlock(TARGET, ModBlocks.SECRET_LEVER.defaultBlockState().setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR));
 		BlockEntity entity = blockEntityAt(h, TARGET);
 		CompoundTag stuck = entity.saveWithoutMetadata(h.getLevel().registryAccess());
-		CompoundTag diamonds = (CompoundTag) new ItemStack(Items.DIAMOND, 3).save(h.getLevel().registryAccess(), new CompoundTag());
+		CompoundTag diamonds = (CompoundTag) ItemStack.CODEC.encodeStart(h.getLevel().registryAccess().createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE),
+				new ItemStack(Items.DIAMOND, 3)).getOrThrow();
 		diamonds.putByte("Slot", (byte) 0);
 		net.minecraft.nbt.ListTag list = new net.minecraft.nbt.ListTag();
 		list.add(diamonds);
 		stuck.put("Items", list);
-		entity.loadWithComponents(stuck, h.getLevel().registryAccess());
+		entity.loadWithComponents(SavedData.input(stuck, h.getLevel().registryAccess()));
 		convert(h, op(h), wand(GRANITE));
 		check(h, h.getBlockState(TARGET).is(Blocks.LEVER), "the lever should turn vanilla: " + h.getBlockState(TARGET));
 		int dropped = h.getEntities(EntityType.ITEM, TARGET, 3).stream().mapToInt(e -> e.getItem().is(Items.DIAMOND) ? e.getItem().getCount() : 0).sum();

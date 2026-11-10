@@ -29,7 +29,7 @@ public class SecretBlocksNeoForge {
 	public SecretBlocksNeoForge(IEventBus modBus) {
 		modBus.addListener(SecretBlocksNeoForge::onRegister);
 		modBus.addListener((FMLLoadCompleteEvent event) -> NeoForgePlatformHelper.checkNothingLeft());
-		if (FMLEnvironment.dist.isClient()) {
+		if (FMLEnvironment.getDist().isClient()) {
 			SecretBlocksNeoForgeClient.init(modBus);
 		}
 

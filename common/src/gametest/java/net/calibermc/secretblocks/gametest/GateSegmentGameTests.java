@@ -12,7 +12,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -94,7 +94,7 @@ public class GateSegmentGameTests {
 		floor(h);
 		owner(h, true);
 		check(h, SEGMENT.asItem() == Items.AIR, "the segment should have no item, has " + SEGMENT.asItem());
-		check(h, !BuiltInRegistries.ITEM.containsKey(ResourceLocation.fromNamespaceAndPath("secretblocks", "secret_gate_segment")), "no item should be registered for the segment");
+		check(h, !BuiltInRegistries.ITEM.containsKey(Identifier.fromNamespaceAndPath("secretblocks", "secret_gate_segment")), "no item should be registered for the segment");
 		BlockPos first = OWNER.east();
 		segment(h, first, h.absolutePos(OWNER));
 		check(h, h.getBlockState(first).getCloneItemStack(h.getLevel(), h.absolutePos(first), false).isEmpty(),

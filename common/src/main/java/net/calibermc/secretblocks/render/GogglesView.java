@@ -3,11 +3,11 @@ package net.calibermc.secretblocks.render;
 import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.registry.ModItems;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.SectionPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public final class GogglesView {
 
-	public static final ResourceLocation OVERLAY_SPRITE = ResourceLocation.fromNamespaceAndPath(SecretBlocks.MOD_ID, "block/goggles_overlay");
+	public static final Identifier OVERLAY_SPRITE = Identifier.fromNamespaceAndPath(SecretBlocks.MOD_ID, "block/goggles_overlay");
 
 	// Written on the client thread each tick; read on chunk-builder threads,
 	// which must not touch the texture manager or the renderer themselves.
@@ -55,7 +55,7 @@ public final class GogglesView {
 			return;
 		}
 		// Refreshed every tick so a resource reload (new atlas) is picked up.
-		overlaySprite = mc.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(OVERLAY_SPRITE);
+		overlaySprite = mc.getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(OVERLAY_SPRITE);
 		boolean now = mc.player != null && mc.player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.SECRET_GOGGLES);
 		if (now != wearing) {
 			wearing = now;

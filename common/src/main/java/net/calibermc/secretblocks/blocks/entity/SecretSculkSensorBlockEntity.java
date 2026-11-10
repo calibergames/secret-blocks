@@ -1,5 +1,7 @@
 package net.calibermc.secretblocks.blocks.entity;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.Holder;
 import net.calibermc.secretblocks.registry.ModEntities;
 import net.minecraft.core.HolderLookup;
@@ -44,15 +46,15 @@ public class SecretSculkSensorBlockEntity extends SculkSensorBlockEntity impleme
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
-		disguise.save(tag);
+	protected void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		SavedData.write(output, disguise.save(new CompoundTag()));
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
-		disguise.load(tag);
+	protected void loadAdditional(ValueInput input) {
+		super.loadAdditional(input);
+		disguise.load(SavedData.read(input));
 		DisguisedBlockEntity.redrawAfterLoad(this);
 	}
 

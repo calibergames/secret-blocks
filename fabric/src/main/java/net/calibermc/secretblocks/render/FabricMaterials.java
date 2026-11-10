@@ -3,51 +3,56 @@ package net.calibermc.secretblocks.render;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.Renderer;
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * The Fabric Renderer API materials of the Builder's Goggles' view and the
- * Secret Goggles' overlay, found on the client thread once a renderer is up
- * and read on chunk-builder threads.
+ * How the Builder's Goggles' view and the Secret Goggles' overlay draw their
+ * quads through the Fabric Renderer API: each sets a quad's layer, light,
+ * shading and ambient occlusion.
  */
 @Environment(EnvType.CLIENT)
 public final class FabricMaterials {
 
-	private static volatile RenderMaterial fade;
-	private static volatile RenderMaterial real;
-	private static volatile RenderMaterial realFlat;
-	private static volatile RenderMaterial outline;
-	private static volatile RenderMaterial overlay;
+	/** A way of drawing a quad. */
+	@FunctionalInterface
+	public interface Material {
+		void applyTo(MutableQuadView quad);
+	}
+
+	/** Translucent (no emissive light), for the faded disguise. */
+	static final Material FADE = layer(ChunkSectionLayer.TRANSLUCENT);
+	/** Solid and full-bright (no shading or ambient occlusion), for the outline. */
+	static final Material OUTLINE = quad -> quad.renderLayer(ChunkSectionLayer.SOLID).emissive(true).diffuseShade(false)
+			.ambientOcclusion(TriState.FALSE);
+	/** Translucent and full-bright (emissive, no shading or ambient occlusion), for the overlay. */
+	static final Material OVERLAY = quad -> quad.renderLayer(ChunkSectionLayer.TRANSLUCENT).emissive(true).diffuseShade(false)
+			.ambientOcclusion(TriState.FALSE);
+	private static final Material REAL = layer(null);
+	private static final Material REAL_FLAT = quad -> quad.renderLayer(null).emissive(false).diffuseShade(true)
+			.ambientOcclusion(TriState.FALSE);
 
 	private FabricMaterials() {
 	}
 
-	/** The Builder's Goggles' materials; whether the view can be drawn (it cannot without a renderer). */
-	public static boolean ensureBuilderView() {
-		Renderer renderer;
-		if (fade == null && (renderer = renderer()) != null) {
-			real = renderer.materialFinder().find();
-			realFlat = renderer.materialFinder().ambientOcclusion(TriState.FALSE).find();
-			outline = renderer.materialFinder().blendMode(BlendMode.SOLID)
-					.emissive(true).disableDiffuse(true).ambientOcclusion(TriState.FALSE).find();
-			fade = renderer.materialFinder().blendMode(BlendMode.TRANSLUCENT).find();
-		}
-		return fade != null;
+	/** In {@code layer} (the block's own for {@code null}), lit and shaded as usual. */
+	static Material layer(@Nullable ChunkSectionLayer layer) {
+		return quad -> quad.renderLayer(layer).emissive(false).diffuseShade(true).ambientOcclusion(TriState.DEFAULT);
 	}
 
-	/** The Secret Goggles' overlay material, tried each client tick until a renderer is up. */
-	public static void ensureOverlay() {
-		Renderer renderer;
-		if (overlay == null && (renderer = renderer()) != null) {
-			overlay = renderer.materialFinder()
-					.blendMode(BlendMode.TRANSLUCENT)
-					.emissive(true)
-					.disableDiffuse(true)
-					.ambientOcclusion(TriState.FALSE)
-					.find();
-		}
+	/** The Builder's Goggles' view can be drawn only with a Renderer API implementation. */
+	public static boolean ensureBuilderView() {
+		return renderer() != null;
+	}
+
+	/**
+	 * For the real block drawn inside: the block's own pass, without ambient
+	 * occlusion for a model that has none, as vanilla draws it.
+	 */
+	static Material real(boolean ambientOcclusion) {
+		return ambientOcclusion ? REAL : REAL_FLAT;
 	}
 
 	/** The active Renderer API implementation, or null before one is registered. */
@@ -57,28 +62,5 @@ public final class FabricMaterials {
 		} catch (UnsupportedOperationException noneYet) {
 			return null;
 		}
-	}
-
-	/** Solid and full-bright (no shading or ambient occlusion), for the outline. */
-	static RenderMaterial outline() {
-		return outline;
-	}
-
-	/** Translucent (no emissive light), for the faded disguise. */
-	static RenderMaterial fade() {
-		return fade;
-	}
-
-	/**
-	 * For the real block drawn inside: the renderer's standard material, or one
-	 * without ambient occlusion for a model that has none, as vanilla draws it.
-	 */
-	static RenderMaterial real(boolean ambientOcclusion) {
-		return ambientOcclusion ? real : realFlat;
-	}
-
-	/** Translucent, full-bright (emissive, no shading or ambient occlusion); null before a renderer is up. */
-	static RenderMaterial overlay() {
-		return overlay;
 	}
 }

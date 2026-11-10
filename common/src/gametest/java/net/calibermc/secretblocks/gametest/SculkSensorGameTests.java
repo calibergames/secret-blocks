@@ -17,11 +17,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -119,7 +119,7 @@ public class SculkSensorGameTests {
 
 	/** All the experience an orb holds: equal orbs that land together merge into one that counts several times. */
 	private static int experienceIn(ExperienceOrb orb) {
-		CompoundTag saved = orb.saveWithoutId(new CompoundTag());
+		CompoundTag saved = TestSupport.saved(orb);
 		return saved.getShortOr("Value", (short) 0) * Math.max(1, saved.getIntOr("Count", 0));
 	}
 

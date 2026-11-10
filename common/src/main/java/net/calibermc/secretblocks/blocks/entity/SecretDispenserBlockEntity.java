@@ -1,6 +1,8 @@
 package net.calibermc.secretblocks.blocks.entity;
 
 import net.calibermc.secretblocks.registry.ModEntities;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -36,16 +38,16 @@ public class SecretDispenserBlockEntity extends DispenserBlockEntity implements 
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
-		disguise.save(tag);
+	protected void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		SavedData.write(output, disguise.save(new CompoundTag()));
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		LegacyData.upgradeContainer(tag, "minecraft:dispenser");
-		super.loadAdditional(tag, registries);
-		disguise.load(tag);
+	protected void loadAdditional(ValueInput input) {
+		input = SavedData.upgradedContainer(input, "minecraft:dispenser");
+		super.loadAdditional(input);
+		disguise.load(SavedData.read(input));
 		DisguisedBlockEntity.redrawAfterLoad(this);
 	}
 

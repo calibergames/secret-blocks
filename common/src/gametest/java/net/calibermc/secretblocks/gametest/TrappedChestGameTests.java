@@ -55,7 +55,7 @@ public class TrappedChestGameTests {
 	 * a server player's does ({@code ServerPlayer.doCloseContainer}).
 	 */
 	private static Player viewer(GameTestHelper h, List<Player> viewers, Vec3 rel) {
-		Player player = new Player(h.getLevel(), BlockPos.ZERO, 0.0F, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "test-viewer")) {
+		Player player = new Player(h.getLevel(), new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "test-viewer")) {
 			@Override
 			public net.minecraft.world.level.GameType gameMode() {
 				return net.minecraft.world.level.GameType.SURVIVAL;
@@ -80,6 +80,15 @@ public class TrappedChestGameTests {
 			protected void doCloseContainer() {
 				containerMenu.removed(this);
 				containerMenu = inventoryMenu;
+			}
+
+			/** A screen that is no longer valid closes, as a server player's does each tick. */
+			@Override
+			public void tick() {
+				super.tick();
+				if (!containerMenu.stillValid(this)) {
+					doCloseContainer();
+				}
 			}
 		};
 		Vec3 at = abs(h, rel);

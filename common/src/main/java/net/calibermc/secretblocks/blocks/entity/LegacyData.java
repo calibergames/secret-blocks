@@ -47,7 +47,7 @@ public final class LegacyData {
 	}
 
 	private static int current() {
-		return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
+		return SharedConstants.getCurrentVersion().dataVersion().version();
 	}
 
 	/** Marks {@code tag} as saved by this version. */

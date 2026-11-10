@@ -1,13 +1,16 @@
 package net.calibermc.secretblocks.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.state.ChestRenderState;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.ChestRenderer;
@@ -23,14 +26,19 @@ import net.minecraft.world.phys.Vec3;
  * Builder's view for the Secret Chest: vanilla draws chests with a block
  * entity renderer, not a block model, so the chest inside the faded disguise
  * comes from vanilla's chest renderer. It draws a stand-in chest with no
- * level, which vanilla renders as a single closed chest facing south; it is
- * turned to face north, as the Secret Chest converts to its counterpart,
+ * level, which vanilla renders as a single closed chest; it faces north, as
+ * the Secret Chest converts to its counterpart,
  * and lit from the sides the camera sees. The Secret Trapped Chest shows the
  * trapped chest's texture. Registered for
  * the shared secret block-entity type, so it returns at once for every
  * other block and while the view is off.
  */
-public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEntity> {
+public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEntity, BuilderChestRenderer.State> {
+
+	/** A chest's render state, and whether this block draws one at all. */
+	public static class State extends ChestRenderState {
+		boolean shown;
+	}
 
 	private final ChestRenderer<ChestBlockEntity> chestRenderer;
 	private ChestBlockEntity standIn;
@@ -41,9 +49,16 @@ public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEnti
 	}
 
 	@Override
-	public void render(SecretBlockEntity entity, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light, int overlay,
-			Vec3 camera) {
-		if (!BuilderView.isActive() || !(entity instanceof SecretChestBlockEntity) || entity.getLevel() == null) {
+	public State createRenderState() {
+		return new State();
+	}
+
+	@Override
+	public void extractRenderState(SecretBlockEntity entity, State state, float partialTick, Vec3 camera,
+			ModelFeatureRenderer.@Nullable CrumblingOverlay crumbling) {
+		BlockEntityRenderer.super.extractRenderState(entity, state, partialTick, camera, crumbling);
+		state.shown = BuilderView.isActive() && entity instanceof SecretChestBlockEntity && entity.getLevel() != null;
+		if (!state.shown) {
 			return;
 		}
 		if (standIn == null) {
@@ -53,13 +68,19 @@ public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEnti
 			trappedStandIn = new TrappedChestBlockEntity(BlockPos.ZERO, Blocks.TRAPPED_CHEST.defaultBlockState());
 		}
 		ChestBlockEntity chest = entity.getBlockState().is(ModBlocks.SECRET_TRAPPED_CHEST) ? trappedStandIn : standIn;
-		poseStack.pushPose();
-		poseStack.translate(0.5, 0.0, 0.5);
-		poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
-		poseStack.translate(-0.5, 0.0, -0.5);
-		chestRenderer.render(chest, partialTick, poseStack, buffers, seenSideLight(entity.getLevel(), entity.getBlockPos(), camera), overlay,
-				camera);
-		poseStack.popPose();
+		BlockPos pos = entity.getBlockPos();
+		chestRenderer.extractRenderState(chest, state, partialTick, camera, null);
+		state.blockPos = pos;
+		state.blockState = entity.getBlockState();
+		state.angle = Direction.NORTH.toYRot();
+		state.lightCoords = seenSideLight(entity.getLevel(), pos, camera);
+	}
+
+	@Override
+	public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+		if (state.shown) {
+			chestRenderer.submit(state, poseStack, collector, camera);
+		}
 	}
 
 	/**

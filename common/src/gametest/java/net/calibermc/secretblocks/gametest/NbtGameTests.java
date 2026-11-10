@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.calibermc.secretblocks.blocks.entity.SavedData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -78,7 +79,7 @@ public class NbtGameTests {
 		CompoundTag input = parse(h, snbt);
 		h.setBlock(A, block);
 		SecretBlockEntity be = plain(h, A);
-		be.loadWithComponents(input, h.getLevel().registryAccess());
+		be.loadWithComponents(SavedData.input(input, h.getLevel().registryAccess()));
 		for (Direction dir : Direction.values()) {
 			String name = dir.getName();
 			check(h, be.getState(dir) == NbtUtils.readBlockState(BuiltInRegistries.BLOCK, input.getCompoundOrEmpty(name + "State")), name + "State read back wrong: " + be.getState(dir));
@@ -154,7 +155,7 @@ public class NbtGameTests {
 		CompoundTag input = parse(h, B0_SIX_FACES.replace("{Name:\"minecraft:gold_block\"}", "{Name:\"minecraft:grass\"}"));
 		h.setBlock(A, ModBlocks.SOLID_BLOCK);
 		SecretBlockEntity be = plain(h, A);
-		be.loadWithComponents(input, h.getLevel().registryAccess());
+		be.loadWithComponents(SavedData.input(input, h.getLevel().registryAccess()));
 		check(h, be.getState(Direction.UP).is(Blocks.SHORT_GRASS), "the up face should be short grass, is " + be.getState(Direction.UP));
 		check(h, be.getState(Direction.DOWN).is(Blocks.DIAMOND_BLOCK), "the other faces should be unchanged");
 		h.succeed();

@@ -6,6 +6,9 @@ import net.calibermc.secretblocks.blocks.entity.Disguise;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.PistonCarry;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import net.calibermc.secretblocks.blocks.entity.SavedData;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -102,9 +105,9 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 	}
 
 	@Inject(method = "saveAdditional", at = @At("TAIL"))
-	private void secretblocks$save(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
+	private void secretblocks$save(ValueOutput output, CallbackInfo ci) {
 		if (secretblocks$carried != null) {
-			tag.put(SECRETBLOCKS_CARRIED, secretblocks$carried.copy());
+			output.store(SECRETBLOCKS_CARRIED, CompoundTag.CODEC, secretblocks$carried.copy());
 		}
 	}
 
@@ -123,8 +126,8 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 	}
 
 	@Inject(method = "loadAdditional", at = @At("TAIL"))
-	private void secretblocks$load(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
-		secretblocks$setCarried(tag.get(SECRETBLOCKS_CARRIED) instanceof CompoundTag ? tag.getCompoundOrEmpty(SECRETBLOCKS_CARRIED) : null);
+	private void secretblocks$load(ValueInput input, CallbackInfo ci) {
+		secretblocks$setCarried(input.read(SECRETBLOCKS_CARRIED, CompoundTag.CODEC).orElse(null));
 	}
 
 	/** The block placed at the end of the move gets the carried block entity data (disguise, stuck items). */
@@ -132,7 +135,7 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 	private static void secretblocks$restore(Level level, BlockPos pos, PistonMovingBlockEntity moving) {
 		CompoundTag carried = ((PistonCarry) moving).secretblocks$getCarried();
 		if (carried != null && level.getBlockEntity(pos) instanceof DisguisedBlockEntity secret) {
-			((BlockEntity) secret).loadWithComponents(carried, level.registryAccess());
+			((BlockEntity) secret).loadWithComponents(SavedData.input(carried, level.registryAccess()));
 			secret.markDisguiseChanged();
 		}
 	}

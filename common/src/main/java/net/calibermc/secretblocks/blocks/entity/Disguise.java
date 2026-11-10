@@ -5,7 +5,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -128,7 +128,7 @@ public final class Disguise {
 			age = tag.getIntOr("age", 0);
 		}
 		if (tag.get(ORIGINAL) instanceof StringTag) {
-			ResourceLocation id = ResourceLocation.tryParse(tag.getStringOr(ORIGINAL, ""));
+			Identifier id = Identifier.tryParse(tag.getStringOr(ORIGINAL, ""));
 			original = id != null && BuiltInRegistries.BLOCK.containsKey(id) ? BuiltInRegistries.BLOCK.getValue(id) : null;
 		}
 		for (Direction face : FACES) {

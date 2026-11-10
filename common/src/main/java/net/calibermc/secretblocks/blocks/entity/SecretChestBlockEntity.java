@@ -3,13 +3,13 @@ package net.calibermc.secretblocks.blocks.entity;
 import net.calibermc.secretblocks.blocks.SecretTrappedChest;
 import net.calibermc.secretblocks.screen.SecretChestScreenHandler;
 import net.calibermc.secretblocks.util.ImplementedInventory;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.world.entity.ContainerUser;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.world.Containers;
@@ -69,7 +69,7 @@ public class SecretChestBlockEntity extends SecretBlockEntity implements Impleme
 		}
 
 		@Override
-		protected boolean isOwnContainer(Player player) {
+		public boolean isOwnContainer(Player player) {
 			return player.containerMenu instanceof SecretChestScreenHandler menu && menu.getContainer() == SecretChestBlockEntity.this;
 		}
 	};
@@ -106,20 +106,17 @@ public class SecretChestBlockEntity extends SecretBlockEntity implements Impleme
 
 	/** Name and lock use vanilla's keys, so they carry over when the Camouflage Wand converts a chest. */
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
-		if (customName != null) {
-			tag.put("CustomName", ComponentSerialization.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), customName)
-					.getOrThrow());
-		}
-		lockKey.addToTag(tag, registries);
+	protected void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		output.storeNullable("CustomName", ComponentSerialization.CODEC, customName);
+		lockKey.addToTag(output);
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
-		customName = parseCustomNameSafe(tag.get("CustomName"), registries);
-		lockKey = LockCode.fromTag(tag, registries);
+	protected void loadUpgraded(ValueInput input) {
+		super.loadUpgraded(input);
+		customName = parseCustomNameSafe(input, "CustomName");
+		lockKey = LockCode.fromTag(input);
 	}
 
 	/** The custom name, for the item a broken chest drops (its loot table copies {@code minecraft:custom_name}). */
@@ -144,16 +141,16 @@ public class SecretChestBlockEntity extends SecretBlockEntity implements Impleme
 	}
 
 	@Override
-	public void startOpen(Player player) {
-		if (!remove && !player.isSpectator()) {
-			openers.incrementOpeners(player, getLevel(), getBlockPos(), getBlockState());
+	public void startOpen(ContainerUser user) {
+		if (!remove && !user.getLivingEntity().isSpectator()) {
+			openers.incrementOpeners(user.getLivingEntity(), getLevel(), getBlockPos(), getBlockState(), user.getContainerInteractionRange());
 		}
 	}
 
 	@Override
-	public void stopOpen(Player player) {
-		if (!remove && !player.isSpectator()) {
-			openers.decrementOpeners(player, getLevel(), getBlockPos(), getBlockState());
+	public void stopOpen(ContainerUser user) {
+		if (!remove && !user.getLivingEntity().isSpectator()) {
+			openers.decrementOpeners(user.getLivingEntity(), getLevel(), getBlockPos(), getBlockState());
 		}
 	}
 

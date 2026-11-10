@@ -12,7 +12,7 @@ import net.calibermc.secretblocks.screen.ModScreenHandlers;
 import net.calibermc.secretblocks.screen.SecretChestScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
@@ -36,8 +36,8 @@ final class SecretBlocksNeoForgeClient {
 				event.register(ModScreenHandlers.SECRET_CHEST_SCREEN_HANDLER, SecretChestScreen::new));
 		modBus.addListener((FMLClientSetupEvent event) -> event.enqueueWork(() -> {
 			// The Torch Lever draws vanilla's torch models, which need the cutout layer as vanilla's torch does.
-			ItemBlockRenderTypes.setRenderLayer(ModBlocks.TORCH_LEVER, RenderType.cutout());
-			ItemBlockRenderTypes.setRenderLayer(ModBlocks.WALL_TORCH_LEVER, RenderType.cutout());
+			ItemBlockRenderTypes.setRenderLayer(ModBlocks.TORCH_LEVER, ChunkSectionLayer.CUTOUT);
+			ItemBlockRenderTypes.setRenderLayer(ModBlocks.WALL_TORCH_LEVER, ChunkSectionLayer.CUTOUT);
 		}));
 		NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
 			Minecraft minecraft = Minecraft.getInstance();

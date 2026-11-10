@@ -12,7 +12,7 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * The mod's loader-neutral start: each loader's entry point calls {@link #init}
@@ -22,13 +22,13 @@ public class SecretBlocks {
 
     public static final String MOD_ID = "secretblocks";
 
-    public static ResourceLocation id(String id) {
-        return ResourceLocation.fromNamespaceAndPath("secretblocks", id);
+    public static Identifier id(String id) {
+        return Identifier.fromNamespaceAndPath("secretblocks", id);
     }
 
     /** Whether {@link #gogglesLootPool} goes into this loot table: vanilla's End City treasure. */
-    public static boolean getsGogglesLoot(ResourceLocation lootTable) {
-        return BuiltInLootTables.END_CITY_TREASURE.location().equals(lootTable);
+    public static boolean getsGogglesLoot(Identifier lootTable) {
+        return BuiltInLootTables.END_CITY_TREASURE.identifier().equals(lootTable);
     }
 
     /**

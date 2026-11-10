@@ -163,7 +163,7 @@ public class GogglesGameTests {
 		check(h, EnchantmentHelper.getItemEnchantmentLevel(mending, withMending) == 1, "Mending should apply, got " + withMending);
 		for (ResourceKey<Enchantment> other : List.of(Enchantments.PROTECTION, Enchantments.THORNS, Enchantments.RESPIRATION)) {
 			ItemStack result = anvil(player, goggles(), book(enchantment(h, other), 1));
-			check(h, result.isEmpty(), other.location() + " book must give no result, got " + result);
+			check(h, result.isEmpty(), other.identifier() + " book must give no result, got " + result);
 		}
 		ItemStack worn = goggles();
 		worn.setDamageValue(600);
@@ -187,11 +187,11 @@ public class GogglesGameTests {
 	public void onlyTheDurabilityEnchantments(GameTestHelper h) {
 		ItemStack stack = goggles();
 		for (ResourceKey<Enchantment> applies : List.of(Enchantments.UNBREAKING, Enchantments.MENDING, Enchantments.VANISHING_CURSE)) {
-			check(h, enchantment(h, applies).value().canEnchant(stack), applies.location() + " should apply to the goggles");
+			check(h, enchantment(h, applies).value().canEnchant(stack), applies.identifier() + " should apply to the goggles");
 		}
 		for (ResourceKey<Enchantment> other : List.of(Enchantments.PROTECTION, Enchantments.PROJECTILE_PROTECTION,
 				Enchantments.RESPIRATION, Enchantments.AQUA_AFFINITY, Enchantments.THORNS, Enchantments.BINDING_CURSE)) {
-			check(h, !enchantment(h, other).value().canEnchant(stack), other.location() + " must not apply to the goggles");
+			check(h, !enchantment(h, other).value().canEnchant(stack), other.identifier() + " must not apply to the goggles");
 		}
 		check(h, !goggles().has(DataComponents.ENCHANTABLE), "they should not be enchantable at a table");
 		Registry<Enchantment> all = h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);

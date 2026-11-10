@@ -8,14 +8,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Checks for the optional injections into other mods' renderers. Sodium (on
- * Fabric and NeoForge) and Embeddium (on NeoForge) cull faces in their own
- * {@code BlockOcclusionCache.shouldDrawSide}; the occlusion mixins hook it
- * with {@code require = 0}, since those mods' code may change. The loaders'
- * mixin plugins call {@link #checkOcclusionHook} after applying them, so a
- * version with nothing to hook is reported instead of the Builder's Goggles'
- * view quietly going wrong. (If a future version moves the class itself,
- * Mixin skips the pseudo mixin without a word; the tested versions are in the
- * wiki's Compatibility page.)
+ * Fabric and NeoForge) culls faces in its own block renderer's
+ * {@code shouldDrawSide}; the occlusion mixins hook it with {@code require = 0},
+ * since that code may change. The loaders' mixin plugins check that Sodium has
+ * the class ({@link #checkHookClass}: Mixin skips a pseudo mixin whose class is
+ * missing without a word) and, after applying the mixin, that the method was
+ * hooked ({@link #checkOcclusionHook}), so a version with nothing to hook is
+ * reported instead of the Builder's Goggles' view quietly going wrong.
  */
 public final class MixinHooks {
 
@@ -23,6 +22,18 @@ public final class MixinHooks {
 	static final String HANDLER_DESCRIPTOR_END = "Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V";
 
 	private MixinHooks() {
+	}
+
+	/** The class of Sodium's block renderer that the occlusion mixins hook, as a path in its jar. */
+	public static final String SODIUM_HOOK_CLASS = "net/caffeinemc/mods/sodium/client/render/model/AbstractBlockRenderContext.class";
+
+	/** Warns when an installed {@code mod} lacks the class its occlusion mixin hooks. */
+	public static void checkHookClass(String mod, boolean present) {
+		if (!present) {
+			LoggerFactory.getLogger("secretblocks").warn("This {} version has no {} to hook:"
+					+ " in the Builder's Goggles' view, faded secret blocks may show the world behind them",
+					mod, SODIUM_HOOK_CLASS.replace('/', '.').replace(".class", ""));
+		}
 	}
 
 	/** Warns when {@code mod}'s occlusion class came through the mixin without the hook. */

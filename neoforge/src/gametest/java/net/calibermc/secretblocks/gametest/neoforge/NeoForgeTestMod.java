@@ -46,10 +46,10 @@ public class NeoForgeTestMod {
 		// Outside production only, the loader ticks the running tests. A production
 		// server started as a game test server still runs them (they come with the
 		// data-pack registries), so there they are ticked once per server tick.
-		if (FMLLoader.isProduction() && Boolean.getBoolean("neoforge.gameTestServer")) {
+		if (FMLLoader.getCurrent().isProduction() && Boolean.getBoolean("neoforge.gameTestServer")) {
 			NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post event) -> GameTestTicker.SINGLETON.tick());
 		}
-		if (FMLEnvironment.dist.isClient()) {
+		if (FMLEnvironment.getDist().isClient()) {
 			NeoForgeDevClient.init();
 		}
 	}

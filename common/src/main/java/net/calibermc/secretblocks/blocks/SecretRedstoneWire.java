@@ -105,7 +105,7 @@ public class SecretRedstoneWire extends Block implements EntityBlock, SecretBloc
 
 	@Override
 	public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {
-		if (!oldState.is(this) && !level.isClientSide) {
+		if (!oldState.is(this) && !level.isClientSide()) {
 			updatePower(level, pos, state);
 			notifyAround(level, pos);
 		}
@@ -121,7 +121,7 @@ public class SecretRedstoneWire extends Block implements EntityBlock, SecretBloc
 
 	@Override
 	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean moved) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			updatePower(level, pos, state);
 		}
 	}

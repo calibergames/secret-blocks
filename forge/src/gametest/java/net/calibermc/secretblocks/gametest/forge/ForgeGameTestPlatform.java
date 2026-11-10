@@ -15,9 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.conditions.ICondition;
-import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.ChunkEvent;
 
@@ -26,8 +24,8 @@ public class ForgeGameTestPlatform implements GameTestPlatform {
 
 	@Override
 	public InteractionResult useBlockHooks(Player player, Level level, InteractionHand hand, BlockHitResult hit) {
-		PlayerInteractEvent.RightClickBlock event = ForgeEventFactory.onRightClickBlock(player, hand, hit.getBlockPos(), hit);
-		return event.isCanceled() ? event.getCancellationResult() : InteractionResult.PASS;
+		PlayerInteractEvent.RightClickBlock event = new PlayerInteractEvent.RightClickBlock(player, hand, hit.getBlockPos(), hit);
+		return PlayerInteractEvent.RightClickBlock.BUS.post(event) ? event.getCancellationResult() : InteractionResult.PASS;
 	}
 
 	@Override
@@ -43,6 +41,6 @@ public class ForgeGameTestPlatform implements GameTestPlatform {
 
 	@Override
 	public void chunkLoaded(ServerLevel level, LevelChunk chunk) {
-		MinecraftForge.EVENT_BUS.post(new ChunkEvent.Load(chunk, false));
+		ChunkEvent.Load.BUS.post(new ChunkEvent.Load(chunk, false));
 	}
 }

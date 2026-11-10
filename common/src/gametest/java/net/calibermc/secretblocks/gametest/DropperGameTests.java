@@ -9,7 +9,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -17,7 +17,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.DispenserMenu;
 import net.minecraft.world.item.Item;
@@ -390,9 +390,9 @@ public class DropperGameTests {
 		floor(h);
 		placeBoth(h, Direction.NORTH);
 		for (BlockPos pos : BOTH) {
-			List<ResourceLocation> stats = new ArrayList<>();
+			List<Identifier> stats = new ArrayList<>();
 			List<MenuProvider> opened = new ArrayList<>();
-			Player player = new Player(h.getLevel(), h.absolutePos(pos.north()), 0.0F, new GameProfile(UUID.randomUUID(), "test_dropper")) {
+			Player player = new Player(h.getLevel(), new GameProfile(UUID.randomUUID(), "test_dropper")) {
 				@Override
 				public net.minecraft.world.level.GameType gameMode() {
 					return net.minecraft.world.level.GameType.SURVIVAL;
@@ -409,7 +409,7 @@ public class DropperGameTests {
 				}
 
 				@Override
-				public void awardStat(ResourceLocation stat) {
+				public void awardStat(Identifier stat) {
 					stats.add(stat);
 				}
 
@@ -419,6 +419,7 @@ public class DropperGameTests {
 					return OptionalInt.empty();
 				}
 			};
+			player.snapTo(h.absolutePos(pos.north()), 0.0F, 0.0F);
 			BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(h.absolutePos(pos)), Direction.NORTH, h.absolutePos(pos), false);
 			InteractionResult result = use(h.getBlockState(pos), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 			check(h, result == InteractionResult.SUCCESS, "using " + name(pos) + " should succeed on the server, got " + result);
@@ -512,8 +513,8 @@ public class DropperGameTests {
 			dropper(h, pos).setChanged();
 		}
 		h.runAfterDelay(10, () -> {
-			int secret = h.getBlockState(SECRET_POS).getAnalogOutputSignal(h.getLevel(), h.absolutePos(SECRET_POS));
-			int vanilla = h.getBlockState(VANILLA_POS).getAnalogOutputSignal(h.getLevel(), h.absolutePos(VANILLA_POS));
+			int secret = h.getBlockState(SECRET_POS).getAnalogOutputSignal(h.getLevel(), h.absolutePos(SECRET_POS), Direction.NORTH);
+			int vanilla = h.getBlockState(VANILLA_POS).getAnalogOutputSignal(h.getLevel(), h.absolutePos(VANILLA_POS), Direction.NORTH);
 			check(h, vanilla == 4, "control: a vanilla dropper with 2 of 9 slots full reads 4, reads " + vanilla);
 			check(h, secret == vanilla, "the Secret Dropper should read " + vanilla + " on a comparator, reads " + secret);
 			for (BlockPos pos : BOTH) {

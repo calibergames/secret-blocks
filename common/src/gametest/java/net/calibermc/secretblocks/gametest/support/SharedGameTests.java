@@ -62,7 +62,7 @@ import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.gametest.framework.TestData;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * The shared game tests, registered the same way on every loader, in
@@ -79,7 +79,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class SharedGameTests {
 
 	public static final String NAMESPACE = "secretblocks_gametest";
-	public static final ResourceLocation ENVIRONMENT_TYPE = id("sky");
+	public static final Identifier ENVIRONMENT_TYPE = id("sky");
 	public static final MapCodec<SkyEnvironment> ENVIRONMENT_CODEC = SkyEnvironment.CODEC;
 	/**
 	 * An 8 x 8 x 8 test area of air, from this test mod's data (the same size
@@ -88,7 +88,7 @@ public final class SharedGameTests {
 	 * roofs it over too, so a test that builds or shoots above the area sets
 	 * {@link GameTest#skyAccess}.
 	 */
-	private static final ResourceLocation STRUCTURE = id("empty");
+	private static final Identifier STRUCTURE = id("empty");
 
 	/** Every class with shared tests. */
 	public static final List<Class<?>> CLASSES = List.of(
@@ -104,7 +104,7 @@ public final class SharedGameTests {
 			WandConversionGameTests.class, WeightedPlateGameTests.class, LightGameTests.class);
 
 	/** One test: its id, its settings and how to run it. */
-	public record Test(ResourceLocation id, GameTest settings, Consumer<GameTestHelper> function) {
+	public record Test(Identifier id, GameTest settings, Consumer<GameTestHelper> function) {
 	}
 
 	private static List<Test> tests;
@@ -112,14 +112,14 @@ public final class SharedGameTests {
 	private SharedGameTests() {
 	}
 
-	public static ResourceLocation id(String path) {
-		return ResourceLocation.fromNamespaceAndPath(NAMESPACE, path);
+	public static Identifier id(String path) {
+		return Identifier.fromNamespaceAndPath(NAMESPACE, path);
 	}
 
 	/** Every test, by id. Each class is made once; its test methods run on that instance. */
 	public static synchronized List<Test> tests() {
 		if (tests == null) {
-			Map<ResourceLocation, Test> found = new TreeMap<>();
+			Map<Identifier, Test> found = new TreeMap<>();
 			MethodHandles.Lookup lookup = MethodHandles.publicLookup();
 			for (Class<?> type : CLASSES) {
 				Object instance = newInstance(type);
@@ -129,7 +129,7 @@ public final class SharedGameTests {
 						continue;
 					}
 					check(method);
-					ResourceLocation id = id(type.getSimpleName().toLowerCase(Locale.ROOT) + "." + method.getName().toLowerCase(Locale.ROOT));
+					Identifier id = id(type.getSimpleName().toLowerCase(Locale.ROOT) + "." + method.getName().toLowerCase(Locale.ROOT));
 					MethodHandle handle;
 					try {
 						handle = lookup.unreflect(method).bindTo(instance);
@@ -149,7 +149,7 @@ public final class SharedGameTests {
 	}
 
 	/** Registers each test's function, under the test's id. */
-	public static void registerFunctions(BiConsumer<ResourceLocation, Consumer<GameTestHelper>> register) {
+	public static void registerFunctions(BiConsumer<Identifier, Consumer<GameTestHelper>> register) {
 		for (Test test : tests()) {
 			register.accept(test.id(), test.function());
 		}

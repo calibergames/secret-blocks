@@ -53,12 +53,15 @@ public class SecretChest extends BaseEntityBlock implements EntityBlock, SecretB
      */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             MenuProvider provider = state.getMenuProvider(world, pos);
             // A locked chest opens only for a player holding the key, as vanilla's.
-            if (provider != null && world.getBlockEntity(pos) instanceof SecretChestBlockEntity chest
-                    && BaseContainerBlockEntity.canUnlock(player, chest.getLockKey(), provider.getDisplayName())) {
-                player.openMenu(provider);
+            if (provider != null && world.getBlockEntity(pos) instanceof SecretChestBlockEntity chest) {
+                if (chest.getLockKey().canUnlock(player)) {
+                    player.openMenu(provider);
+                } else {
+                    BaseContainerBlockEntity.sendChestLockedNotifications(pos.getCenter(), player, provider.getDisplayName());
+                }
             }
         }
         return InteractionResult.SUCCESS;
@@ -109,7 +112,7 @@ public class SecretChest extends BaseEntityBlock implements EntityBlock, SecretB
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+    public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
         return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(world.getBlockEntity(pos));
     }
 

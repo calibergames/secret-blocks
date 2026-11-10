@@ -6,7 +6,7 @@ import net.calibermc.secretblocks.render.BuilderView;
 import net.calibermc.secretblocks.render.GogglesView;
 import net.calibermc.secretblocks.render.MovingDisguise;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.ChunkRenderTypeSet;
+import java.util.Collection;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +56,7 @@ final class ForgeDisguiseModel implements BlockStateModel {
 	}
 
 	@Override
-	public @NotNull ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
+	public @NotNull Collection<ChunkSectionLayer> getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
 		// With no model data (a piston move, drawn by Forge with empty data), the layers of the quads drawn then.
 		DisguiseQuads quads = data.get(QUADS);
 		return (quads != null ? quads : withoutModelData(state)).layers();
@@ -67,7 +67,7 @@ final class ForgeDisguiseModel implements BlockStateModel {
 	 * drawn by Forge with empty data), the quads drawn then.
 	 */
 	@Override
-	public void collectParts(RandomSource random, List<BlockModelPart> dest, ModelData data, @Nullable RenderType renderType) {
+	public void collectParts(RandomSource random, List<BlockModelPart> dest, ModelData data, @Nullable ChunkSectionLayer renderType) {
 		DisguiseQuads quads = data.get(QUADS);
 		if (quads == null) {
 			PistonMovingBlockEntity moving = MovingDisguise.moving();
@@ -85,7 +85,7 @@ final class ForgeDisguiseModel implements BlockStateModel {
 	}
 
 	/** One layer of a disguise's quads (every layer, for {@code null}). */
-	private record Layer(DisguiseQuads quads, @Nullable RenderType layer) implements BlockModelPart {
+	private record Layer(DisguiseQuads quads, @Nullable ChunkSectionLayer layer) implements BlockModelPart {
 
 		@Override
 		public List<BakedQuad> getQuads(@Nullable Direction side) {
