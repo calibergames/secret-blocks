@@ -29,4 +29,3 @@ public abstract class VanillaCullingMixin {
 		return draw != null ? draw : Block.shouldRenderFace(self, neighbour, side);
 	}
 }
-

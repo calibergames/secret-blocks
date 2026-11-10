@@ -63,6 +63,21 @@ minecraft {
 		}
 		register('client') {
 			workingDir = rootProject.layout.projectDirectory.dir('run-forge')
+			// From the game test source set (runGametestClient), a client with the
+			// development-only command-file driver, as on the other loaders: scripts
+			// act as the player through the real client code.
+			with(sourceSets.gametest) {
+				gametestMixinConfigs.each { args "-mixin.config=${it}" }
+				systemProperty 'secretblocks.driver', "${rootBuild}/devclient"
+				mods {
+					secretblocks {
+						source sourceSets.main
+					}
+					secretblocks_gametest {
+						source sourceSets.gametest
+					}
+				}
+			}
 		}
 		register('server') {
 			workingDir = rootProject.layout.projectDirectory.dir('run-forge/server')

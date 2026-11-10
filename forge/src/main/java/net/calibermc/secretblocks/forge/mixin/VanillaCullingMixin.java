@@ -21,7 +21,16 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(ModelBlockRenderer.class)
 public abstract class VanillaCullingMixin {
 
-	@Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, require = 2, at = @At(value = "INVOKE",
+	private static final String DRAW_ARGS = "Lnet/minecraft/world/level/BlockAndTintGetter;"
+			+ "Lnet/minecraft/client/resources/model/BakedModel;Lnet/minecraft/world/level/block/state/BlockState;"
+			+ "Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;"
+			+ "ZLnet/minecraft/util/RandomSource;JILnet/minecraftforge/client/model/data/ModelData;"
+			+ "Lnet/minecraft/client/renderer/RenderType;";
+
+	// Forge's overloads with model data and render type: the plain ones only call them.
+	@Redirect(method = {
+			"tesselateWithAO(" + DRAW_ARGS + ")V",
+			"tesselateWithoutAO(" + DRAW_ARGS + ")V"}, require = 2, at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"))
 	private boolean secretblocks$drawFace(BlockState self, BlockState neighbour, Direction side,
 			BlockAndTintGetter level, BakedModel model, BlockState state, BlockPos pos) {
@@ -29,4 +38,3 @@ public abstract class VanillaCullingMixin {
 		return draw != null ? draw : Block.shouldRenderFace(self, neighbour, side);
 	}
 }
-
