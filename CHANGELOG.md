@@ -1,17 +1,17 @@
 # Changelog
 
-## 2.1.1 (Minecraft 1.21.2 and 1.21.3: Fabric, Quilt, NeoForge, Forge)
+## 2.1.2 (Minecraft 1.21.2 and 1.21.3: Fabric, Quilt, NeoForge, Forge)
 
 Secret Blocks for Minecraft 1.21.2 and 1.21.3, with the same blocks and
-tools as 2.1.1 for 1.21.1.
+tools as 2.1.2 for 1.21.1.
 
 - **Three downloads:**
-  - `secret-blocks-fabric-1.21.3-2.1.1.jar` for Fabric and Quilt, on
+  - `secret-blocks-fabric-1.21.3-2.1.2.jar` for Fabric and Quilt, on
     Minecraft 1.21.2 or 1.21.3. It needs Fabric Loader 0.16.10 or later (or
     Quilt Loader; tested with 0.30.1) and Fabric API 0.106.1 or later.
-  - `secret-blocks-neoforge-1.21.3-2.1.1.jar` for NeoForge 21.3.56 or
+  - `secret-blocks-neoforge-1.21.3-2.1.2.jar` for NeoForge 21.3.56 or
     later, on Minecraft 1.21.3.
-  - `secret-blocks-forge-1.21.3-2.1.1.jar` for Forge 53.1.0 or later, on
+  - `secret-blocks-forge-1.21.3-2.1.2.jar` for Forge 53.1.0 or later, on
     Minecraft 1.21.3.
 - NeoForge and Forge have no stable builds for Minecraft 1.21.2, so their
   downloads are for 1.21.3 only.
@@ -20,6 +20,14 @@ tools as 2.1.1 for 1.21.1.
 - Secret Redstone follows the default redstone rules; worlds with the
   experimental redstone setting are not supported.
 - Tested with Sodium 0.6.13 on Fabric and NeoForge.
+
+## 2.1.2 (Minecraft 1.21 and 1.21.1: Fabric, Quilt, NeoForge, Forge)
+
+- **Fixed on Forge:** with the Builder's Goggles' see-through view on, the
+  faded disguise was drawn solid, so the block inside could not be seen.
+  It is now faded, as on Fabric, Quilt and NeoForge.
+- Same downloads, loaders and Minecraft versions as 2.1.1. Worlds from
+  2.1.1 load unchanged.
 
 ## 2.1.1 (Minecraft 1.21 and 1.21.1: Fabric, Quilt, NeoForge, Forge)
 
