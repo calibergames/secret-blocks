@@ -289,6 +289,10 @@ final class DisguiseQuads {
 			}
 			vertices[i * STRIDE + COLOR] = FaceQuads.swapRedBlue(color);
 		}
+		if (faded) {
+			return new FadedQuad(vertices, quad.getDirection(), quad.getSprite(), quad.isShade(), quad.getLightEmission(),
+					quad.hasAmbientOcclusion(), BuilderView.DISGUISE_ALPHA);
+		}
 		return new BakedQuad(vertices, -1, quad.getDirection(), quad.getSprite(), quad.isShade(), quad.getLightEmission(), quad.hasAmbientOcclusion());
 	}
 
@@ -348,6 +352,10 @@ final class DisguiseQuads {
 				vertices[base + NORMAL] = normal;
 			}
 			// Full-bright faces also skip shading and ambient occlusion, as the Fabric materials do.
+			int alpha = color >>> 24;
+			if (alpha < 0xFF) {
+				return new FadedQuad(vertices, face, sprite, !fullBright, 0, !fullBright, alpha);
+			}
 			return new BakedQuad(vertices, -1, face, sprite, !fullBright, 0, !fullBright);
 		}
 	}
