@@ -8,7 +8,7 @@ tools as 2.1.1 for 1.21.1.
 - **Three downloads:**
   - `secret-blocks-fabric-1.21.3-2.1.1.jar` for Fabric and Quilt, on
     Minecraft 1.21.2 or 1.21.3. It needs Fabric Loader 0.16.10 or later (or
-    Quilt Loader 0.30.1 or later) and Fabric API 0.106.1 or later.
+    Quilt Loader; tested with 0.30.1) and Fabric API 0.106.1 or later.
   - `secret-blocks-neoforge-1.21.3-2.1.1.jar` for NeoForge 21.3.56 or
     later, on Minecraft 1.21.3.
   - `secret-blocks-forge-1.21.3-2.1.1.jar` for Forge 53.1.0 or later, on
@@ -19,7 +19,7 @@ tools as 2.1.1 for 1.21.1.
   container contents and locks. Back the world up first, as Minecraft asks.
 - Secret Redstone follows the default redstone rules; worlds with the
   experimental redstone setting are not supported.
-- Tested with Sodium 0.6 on Fabric and NeoForge.
+- Tested with Sodium 0.6.13 on Fabric and NeoForge.
 
 ## 2.1.1 (Minecraft 1.21 and 1.21.1: Fabric, Quilt, NeoForge, Forge)
 
