@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.2 (Minecraft 1.21 and 1.21.1: Fabric, Quilt, NeoForge, Forge)
+
+- **Fixed on Forge:** with the Builder's Goggles' see-through view on, the
+  faded disguise was drawn solid, so the block inside could not be seen.
+  It is now faded, as on Fabric, Quilt and NeoForge.
+- Same downloads, loaders and Minecraft versions as 2.1.1. Worlds from
+  2.1.1 load unchanged.
+
 ## 2.1.1 (Minecraft 1.21 and 1.21.1: Fabric, Quilt, NeoForge, Forge)
 
 Secret Blocks for Minecraft 1.21 and 1.21.1 on all four loaders, with the
