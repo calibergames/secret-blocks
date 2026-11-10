@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DaylightDetectorBlock;
@@ -25,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static net.calibermc.secretblocks.gametest.TestSupport.*;
@@ -37,8 +39,10 @@ import static net.calibermc.secretblocks.gametest.TestSupport.*;
  * test environments of their own, which set them first and put noon and clear
  * weather back afterwards.
  *
- * Detectors update once a second, and the light engine needs a tick or two
- * after blocks are placed, so every check waits 45 ticks or more.
+ * Detectors update once a second, and the light engine lights a test area
+ * some ticks after it is placed (seconds, in the first batches after the
+ * server starts, while it lights the new chunks around them), so each check
+ * under the sky waits until the sky light is there ({@link #whenSkyLit}).
  */
 public class DaylightDetectorGameTests {
 
@@ -49,6 +53,38 @@ public class DaylightDetectorGameTests {
 	private static final String MORNING = TestEnvironments.DAYLIGHT_MORNING;
 	private static final String DUSK = TestEnvironments.DAYLIGHT_DUSK;
 	private static final String BEFORE_DAWN = TestEnvironments.DAYLIGHT_BEFORE_DAWN;
+
+	/** Detectors update when the game time is a multiple of this. */
+	private static final int DETECTOR_UPDATE = 20;
+
+	/** How long a check waits for the sky light before it runs anyway (and fails on what it reads). */
+	private static final int LIGHT_WAIT = 200;
+
+	/**
+	 * Runs {@code check} no sooner than {@code delay} ticks from now, and only
+	 * once the sky light at each of {@code open} (cells under the open sky,
+	 * where the detectors read it) is full and the detectors have updated since.
+	 * If the light is not there within {@link #LIGHT_WAIT} ticks, the check runs
+	 * anyway.
+	 */
+	private static void whenSkyLit(GameTestHelper h, int delay, Runnable check, BlockPos... open) {
+		long start = h.getTick();
+		long[] litAt = {-1};
+		h.startSequence().thenWaitUntil(() -> {
+			long now = h.getTick();
+			if (litAt[0] < 0 && Arrays.stream(open).allMatch(p -> h.getLevel().getBrightness(LightLayer.SKY, h.absolutePos(p)) == 15)) {
+				litAt[0] = now;
+			}
+			boolean updated = litAt[0] >= 0 && now > litAt[0] + DETECTOR_UPDATE;
+			check(h, now >= start + delay && (updated || now >= start + LIGHT_WAIT), "waiting for the sky light and a detector update");
+		}).thenExecute(check);
+	}
+
+	/** Under the open sky: above the Secret detectors at (1, 1, 1) and (1, 1, 5), and the vanilla ones' own cells at (5, 1, 1) and (5, 1, 5). */
+	private static final BlockPos[] FOUR_DETECTORS = {new BlockPos(1, 2, 1), new BlockPos(5, 1, 1), new BlockPos(1, 2, 5), new BlockPos(5, 1, 5)};
+
+	/** The same for the plain pair only. */
+	private static final BlockPos[] TWO_DETECTORS = {new BlockPos(1, 2, 1), new BlockPos(5, 1, 1)};
 
 	private static int power(GameTestHelper h, int x, int y, int z) {
 		return h.getBlockState(new BlockPos(x, y, z)).getValue(DaylightDetectorBlock.POWER);
@@ -73,7 +109,7 @@ public class DaylightDetectorGameTests {
 	}
 
 	/** Noon under an open sky: 15, and a lamp beside it lights; inverted: 0. As a vanilla detector. */
-	@GameTest(environment = NOON, maxTicks = 150)
+	@GameTest(environment = NOON, maxTicks = 400)
 	public void noonUnderAnOpenSky(GameTestHelper h) {
 		floor(h);
 		// Plain: Secret (1, 1, 1), vanilla (5, 1, 1). Inverted: Secret (1, 1, 5), vanilla (5, 1, 5). A lamp beside each plain one.
@@ -83,13 +119,13 @@ public class DaylightDetectorGameTests {
 		h.setBlock(5, 1, 1, Blocks.DAYLIGHT_DETECTOR);
 		h.setBlock(1, 1, 5, inverted(SECRET));
 		h.setBlock(5, 1, 5, inverted(Blocks.DAYLIGHT_DETECTOR));
-		h.runAfterDelay(45, () -> {
+		whenSkyLit(h, 45, () -> {
 			both(h, "noon, open sky", 15, power(h, 1, 1, 1), power(h, 5, 1, 1));
 			both(h, "noon, open sky, inverted", 0, power(h, 1, 1, 5), power(h, 5, 1, 5));
 			check(h, h.getBlockState(new BlockPos(6, 1, 1)).getValue(RedstoneLampBlock.LIT), "control: the lamp beside the vanilla detector should be lit");
 			check(h, h.getBlockState(new BlockPos(2, 1, 1)).getValue(RedstoneLampBlock.LIT), "the lamp beside the Secret Daylight Detector should be lit");
 			h.succeed();
-		});
+		}, FOUR_DETECTORS);
 	}
 
 	/**
@@ -97,7 +133,7 @@ public class DaylightDetectorGameTests {
 	 * buried vanilla detector. Buried after it was lit, it follows within two
 	 * updates.
 	 */
-	@GameTest(environment = NOON, maxTicks = 200)
+	@GameTest(environment = NOON, maxTicks = 400)
 	public void buriedReadsDark(GameTestHelper h) {
 		floor(h);
 		// Plain: Secret (1, 1, 1), vanilla (5, 1, 1). Inverted: Secret (1, 1, 5), vanilla (5, 1, 5).
@@ -106,14 +142,14 @@ public class DaylightDetectorGameTests {
 		h.setBlock(1, 1, 5, inverted(SECRET));
 		h.setBlock(5, 1, 5, inverted(Blocks.DAYLIGHT_DETECTOR));
 		boolean[] buried = {false};
-		h.runAfterDelay(45, () -> {
+		whenSkyLit(h, 45, () -> {
 			both(h, "before burying", 15, power(h, 1, 1, 1), power(h, 5, 1, 1));
 			for (int x : new int[] {1, 5}) {
 				bury(h, x, 1, 1);
 				bury(h, x, 1, 5);
 			}
 			buried[0] = true;
-		});
+		}, FOUR_DETECTORS);
 		// Once buried, both detectors read dark as soon as the sky light has
 		// spread and they update (once a second): checked each tick until then.
 		h.succeedWhen(() -> {
@@ -129,7 +165,7 @@ public class DaylightDetectorGameTests {
 	 * from below what reaches the space under it. A vanilla detector under a
 	 * block reads one less than full, the light that reaches its own space.
 	 */
-	@GameTest(environment = NOON, maxTicks = 150)
+	@GameTest(environment = NOON, maxTicks = 400)
 	public void anyOneOpenFaceIsEnough(GameTestHelper h) {
 		floor(h);
 		// One detector per face, each buried on its five other sides. The one open below sits high and to one
@@ -146,7 +182,12 @@ public class DaylightDetectorGameTests {
 		}
 		h.setBlock(7, 1, 3, Blocks.DAYLIGHT_DETECTOR);
 		h.setBlock(7, 2, 3, Blocks.STONE);
-		h.runAfterDelay(45, () -> {
+		// The cells the five upper detectors open onto, under the open sky.
+		BlockPos[] lit = new BlockPos[spots.length - 1];
+		for (int i = 0; i < lit.length; i++) {
+			lit[i] = spots[i].relative(open[i]);
+		}
+		whenSkyLit(h, 45, () -> {
 			for (int i = 0; i < spots.length; i++) {
 				int got = h.getBlockState(spots[i]).getValue(DaylightDetectorBlock.POWER);
 				if (open[i] == Direction.DOWN) {
@@ -157,7 +198,7 @@ public class DaylightDetectorGameTests {
 			}
 			check(h, power(h, 7, 1, 3) == 14, "for comparison: a vanilla detector under a block gives 14 at noon, gives " + power(h, 7, 1, 3));
 			h.succeed();
-		});
+		}, lit);
 	}
 
 	/**
@@ -165,7 +206,7 @@ public class DaylightDetectorGameTests {
 	 * detector; the disguise is kept through it; a player who may not build
 	 * changes nothing.
 	 */
-	@GameTest(environment = NOON, maxTicks = 150)
+	@GameTest(environment = NOON, maxTicks = 400)
 	public void useTogglesInverted(GameTestHelper h) {
 		floor(h);
 		BlockPos secret = new BlockPos(1, 1, 1);
@@ -173,7 +214,7 @@ public class DaylightDetectorGameTests {
 		h.setBlock(secret, SECRET);
 		h.setBlock(vanilla, Blocks.DAYLIGHT_DETECTOR);
 		secret(h, secret).setState(Blocks.BRICKS.defaultBlockState());
-		h.runAfterDelay(45, () -> {
+		whenSkyLit(h, 45, () -> {
 			both(h, "noon", 15, power(h, 1, 1, 1), power(h, 5, 1, 1));
 			Player player = h.makeMockPlayer(GameType.CREATIVE);
 			for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
@@ -190,12 +231,12 @@ public class DaylightDetectorGameTests {
 			InteractionResult refused = use(h.getBlockState(secret), h.getLevel(), player, InteractionHand.MAIN_HAND, hit);
 			check(h, refused == InteractionResult.PASS && h.getBlockState(secret).getValue(DaylightDetectorBlock.INVERTED),
 					"a player who may not build must not toggle it, got " + refused);
-		});
-		h.runAfterDelay(90, () -> {
-			both(h, "inverted at noon, two updates on", 0, power(h, 1, 1, 1), power(h, 5, 1, 1));
-			checkFaces(h, secret, Blocks.BRICKS);
-			h.succeed();
-		});
+			h.runAfterDelay(45, () -> {
+				both(h, "inverted at noon, two updates on", 0, power(h, 1, 1, 1), power(h, 5, 1, 1));
+				checkFaces(h, secret, Blocks.BRICKS);
+				h.succeed();
+			});
+		}, TWO_DETECTORS);
 	}
 
 	/**
@@ -203,14 +244,14 @@ public class DaylightDetectorGameTests {
 	 * conductor: a lamp behind a block next to it stays off, where a strongly
 	 * powered block would light it.
 	 */
-	@GameTest(environment = NOON, maxTicks = 150)
+	@GameTest(environment = NOON, maxTicks = 400)
 	public void weakPowerOnEverySide(GameTestHelper h) {
 		floor(h);
 		BlockPos pos = new BlockPos(2, 1, 2);
 		h.setBlock(4, 1, 2, Blocks.REDSTONE_LAMP);
 		h.setBlock(3, 1, 2, Blocks.STONE);
 		h.setBlock(pos, SECRET);
-		h.runAfterDelay(45, () -> {
+		whenSkyLit(h, 45, () -> {
 			BlockState state = h.getBlockState(pos);
 			check(h, state.getValue(DaylightDetectorBlock.POWER) == 15, "at noon it should be at 15");
 			for (Direction direction : Direction.values()) {
@@ -229,22 +270,22 @@ public class DaylightDetectorGameTests {
 			check(h, stonePushable, "control: a piston can push stone at this position");
 			check(h, !pushable && !vanillaPushable, "a piston must not move it, as it cannot move a vanilla detector (ours " + pushable + ", vanilla " + vanillaPushable + ")");
 			h.succeed();
-		});
+		}, pos.above());
 	}
 
 	/** Midnight under an open sky: 0, and inverted the same value as a vanilla detector (11). */
-	@GameTest(environment = MIDNIGHT, maxTicks = 150)
+	@GameTest(environment = MIDNIGHT, maxTicks = 400)
 	public void midnightUnderAnOpenSky(GameTestHelper h) {
 		floor(h);
 		h.setBlock(1, 1, 1, SECRET);
 		h.setBlock(5, 1, 1, Blocks.DAYLIGHT_DETECTOR);
 		h.setBlock(1, 1, 5, inverted(SECRET));
 		h.setBlock(5, 1, 5, inverted(Blocks.DAYLIGHT_DETECTOR));
-		h.runAfterDelay(45, () -> {
+		whenSkyLit(h, 45, () -> {
 			both(h, "midnight, open sky", 0, power(h, 1, 1, 1), power(h, 5, 1, 1));
 			both(h, "midnight, open sky, inverted", 11, power(h, 1, 1, 5), power(h, 5, 1, 5));
 			h.succeed();
-		});
+		}, FOUR_DETECTORS);
 	}
 
 	/**
@@ -259,26 +300,26 @@ public class DaylightDetectorGameTests {
 		h.setBlock(5, 1, 1, Blocks.DAYLIGHT_DETECTOR);
 		h.setBlock(1, 1, 5, inverted(SECRET));
 		h.setBlock(5, 1, 5, inverted(Blocks.DAYLIGHT_DETECTOR));
-		h.runAfterDelay(45, () -> {
+		whenSkyLit(h, 45, () -> {
 			int vanilla = power(h, 5, 1, 1);
 			check(h, vanilla > 0 && vanilla < 15, "control: " + when + " a vanilla detector should be between 1 and 14, gives " + vanilla);
 			check(h, power(h, 1, 1, 1) == vanilla, when + ": the Secret Daylight Detector gives " + power(h, 1, 1, 1) + ", the vanilla one " + vanilla);
 			check(h, power(h, 1, 1, 5) == power(h, 5, 1, 5), when + ", inverted: the Secret Daylight Detector gives " + power(h, 1, 1, 5) + ", the vanilla one " + power(h, 5, 1, 5));
 			h.succeed();
-		});
+		}, FOUR_DETECTORS);
 	}
 
-	@GameTest(environment = MORNING, maxTicks = 150)
+	@GameTest(environment = MORNING, maxTicks = 400)
 	public void morningMatchesVanilla(GameTestHelper h) {
 		matchesVanillaNow(h, "in the morning");
 	}
 
-	@GameTest(environment = DUSK, maxTicks = 150)
+	@GameTest(environment = DUSK, maxTicks = 400)
 	public void duskMatchesVanilla(GameTestHelper h) {
 		matchesVanillaNow(h, "at dusk");
 	}
 
-	@GameTest(environment = BEFORE_DAWN, maxTicks = 150)
+	@GameTest(environment = BEFORE_DAWN, maxTicks = 400)
 	public void beforeDawnMatchesVanilla(GameTestHelper h) {
 		matchesVanillaNow(h, "before dawn");
 	}
@@ -289,11 +330,11 @@ public class DaylightDetectorGameTests {
 		floor(h);
 		h.setBlock(1, 1, 1, SECRET);
 		h.setBlock(5, 1, 1, Blocks.DAYLIGHT_DETECTOR);
-		h.runAfterDelay(60, () -> {
+		whenSkyLit(h, 60, () -> {
 			check(h, h.getLevel().isRaining() && h.getLevel().getRainLevel(1.0F) > 0.9F, "control: it should be raining fully, rain level " + h.getLevel().getRainLevel(1.0F));
 			both(h, "noon in the rain", 12, power(h, 1, 1, 1), power(h, 5, 1, 1));
 			h.succeed();
-		});
+		}, TWO_DETECTORS);
 	}
 
 	/**

@@ -52,7 +52,8 @@ tasks.named('processGametestResources', ProcessResources) {
 
 def rootBuild = rootProject.layout.buildDirectory.get().asFile.path
 def mixinConfigs = ['secretblocks.mixins.json', 'secretblocks.forge.mixins.json']
-def gametestMixinConfigs = ['secretblocks_gametest.mixins.json', 'secretblocks_gametest.driver.mixins.json']
+def gametestMixinConfigs = ['secretblocks_gametest.mixins.json', 'secretblocks_gametest.driver.mixins.json',
+		'secretblocks_gametest.forge.mixins.json']
 
 minecraft {
 	mappings channel: 'official', version: minecraft_version
@@ -87,8 +88,6 @@ minecraft {
 		register('gameTestServer') {
 			workingDir = rootProject.layout.buildDirectory.dir('gametest-forge')
 			gametestMixinConfigs.each { args "-mixin.config=${it}" }
-			// The tests sit on the flat world's ground, as on Fabric (Forge's default is y 60).
-			args '--spawnPos', '0,0,0'
 			systemProperty 'secretblocks.gametest.report', "${rootBuild}/gametest-forge/junit.xml"
 			mods {
 				secretblocks {
@@ -121,18 +120,11 @@ processResources {
 // ForgeGradle makes each run once per source set; the game tests run from the
 // gametest source set, whose classpath holds the test mod and the mod.
 def gameTestRun = 'runGametestGameTestServer'
-// Each run starts from a fresh test world, a flat one as Fabric's (and vanilla's)
-// test server makes: Forge's makes its world from server.properties, which
-// would otherwise give normal terrain over the tests.
+// Vanilla's game test server makes a fresh flat test world for each run
+// (gametestserver/); only the last run's report is cleared first.
 tasks.matching { it.name == gameTestRun }.configureEach {
 	doFirst {
-		delete "${rootBuild}/gametest-forge/world"
 		delete "${rootBuild}/gametest-forge/junit.xml"
-		def properties = file("${rootBuild}/gametest-forge/server.properties")
-		properties.parentFile.mkdirs()
-		// Vanilla's default flat world: bedrock, two dirt, grass, plains.
-		properties.text = 'level-type=minecraft\\:flat\n' +
-				'generator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:dirt","height":2},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\n'
 	}
 }
 
@@ -141,8 +133,8 @@ tasks.named('check') {
 }
 
 // The game tests as a jar for production Forge servers (Mojang names, as Forge
-// 1.21.1 runs), to run them against released loader versions: start the server
-// with -Dforge.enableGameTest=true -Dforge.gameTestServer=true.
+// runs), to run them against released loader versions: start the server with
+// -Dsecretblocks.gametest.server=true (GameTestServerMainMixin).
 // Never published; it is built outside build/libs.
 tasks.register('gametestJar', Jar) {
 	from sourceSets.gametest.output

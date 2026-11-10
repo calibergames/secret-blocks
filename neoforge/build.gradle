@@ -88,8 +88,6 @@ neoForge {
 			type = 'gameTestServer'
 			gameDirectory = file("${rootBuild}/gametest-neoforge")
 			sourceSet = sourceSets.gametest
-			// The tests sit on the flat world's ground, as on Fabric (NeoForge's default is y 60).
-			programArguments.addAll '--spawnPos', '0,0,0'
 			systemProperty 'secretblocks.gametest.report', "${rootBuild}/gametest-neoforge/junit.xml"
 		}
 	}
@@ -106,18 +104,11 @@ neoForge {
 // The mixin configs are listed in neoforge.mods.toml ([[mixins]]), the test
 // mod's in its own.
 
-// Each run starts from a fresh test world, a flat one as Fabric's (and vanilla's)
-// test server makes: NeoForge's makes its world from server.properties, which
-// would otherwise give normal terrain over the tests.
+// Vanilla's game test server makes a fresh flat test world for each run
+// (gametestserver/); only the last run's report is cleared first.
 tasks.matching { it.name == 'runGameTestServer' }.configureEach {
 	doFirst {
-		delete "${rootBuild}/gametest-neoforge/world"
 		delete "${rootBuild}/gametest-neoforge/junit.xml"
-		def properties = file("${rootBuild}/gametest-neoforge/server.properties")
-		properties.parentFile.mkdirs()
-		// Vanilla's default flat world: bedrock, two dirt, grass, plains.
-		properties.text = 'level-type=minecraft\\:flat\n' +
-				'generator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:dirt","height":2},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\n'
 	}
 }
 
@@ -127,7 +118,8 @@ tasks.named('check') {
 
 // The game tests as a jar for production NeoForge servers (Mojang names, as
 // NeoForge runs), to run them against released loader versions: start the
-// server with -Dneoforge.enableGameTest=true -Dneoforge.gameTestServer=true.
+// server through net.neoforged.fml.startup.GameTestServer with
+// -Dneoforge.gameTestServer=true.
 // Never published; it is built outside build/libs.
 tasks.register('gametestJar', Jar) {
 	from sourceSets.gametest.output
