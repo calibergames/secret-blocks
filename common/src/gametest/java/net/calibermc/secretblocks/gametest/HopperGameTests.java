@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.blocks.entity.SecretHopperBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -55,7 +55,7 @@ public class HopperGameTests {
 		if (entity instanceof SecretHopperBlockEntity hopper) {
 			return hopper;
 		}
-		h.fail("expected a SecretHopperBlockEntity, found " + entity, rel);
+		h.fail(Component.literal("expected a SecretHopperBlockEntity, found " + entity), rel);
 		throw new AssertionError("unreachable");
 	}
 
@@ -82,7 +82,7 @@ public class HopperGameTests {
 	}
 
 	/** Chest above → Secret Hopper → chest below. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void movesItemsFromTheChestAboveToTheChestBelow(GameTestHelper h) {
 		floor(h);
 		h.setBlock(HOPPER.above(), Blocks.CHEST);
@@ -96,7 +96,7 @@ public class HopperGameTests {
 	}
 
 	/** Facing sideways, it pushes into the container it faces. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void pushesSidewaysIntoTheContainerItFaces(GameTestHelper h) {
 		floor(h);
 		h.setBlock(HOPPER, facing(Direction.EAST));
@@ -110,7 +110,7 @@ public class HopperGameTests {
 	}
 
 	/** Even as a full block, it collects an item resting on top. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void collectsAnItemRestingOnTop(GameTestHelper h) {
 		floor(h);
 		h.setBlock(HOPPER, facing(Direction.DOWN));
@@ -121,7 +121,7 @@ public class HopperGameTests {
 	}
 
 	/** Powered by redstone, it is locked: nothing moves. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lockedWhilePowered(GameTestHelper h) {
 		floor(h);
 		h.setBlock(HOPPER, facing(Direction.DOWN));
@@ -139,7 +139,7 @@ public class HopperGameTests {
 	 * Same code, same timing: a vanilla hopper and a Secret Hopper, side by
 	 * side, empty into chests at the same rate (one item per 8 ticks).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void transfersAtTheVanillaRate(GameTestHelper h) {
 		floor(h);
 		BlockPos vanilla = new BlockPos(5, 2, 3);
@@ -169,7 +169,7 @@ public class HopperGameTests {
 	 * Secret below. The bottom chests must fill at exactly the same rate on
 	 * every tick.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void hopperChainsMatchVanillaTiming(GameTestHelper h) {
 		floor(h);
 		BlockState vanillaDown = Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.DOWN);
@@ -201,7 +201,7 @@ public class HopperGameTests {
 	}
 
 	/** Placed through the item on a block's side, it faces like a vanilla hopper and copies the block. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void facingMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		h.setBlock(new BlockPos(1, 1, 2), Blocks.BRICKS);
@@ -217,7 +217,7 @@ public class HopperGameTests {
 	}
 
 	/** Toggling ENABLED changes the block state; the disguise must survive it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void keepsDisguiseWhenLockedAndUnlocked(GameTestHelper h) {
 		floor(h);
 		h.setBlock(HOPPER, facing(Direction.DOWN));
@@ -236,13 +236,13 @@ public class HopperGameTests {
 	}
 
 	/** It saves as its own type, so it loads back as a Secret Hopper with its disguise and contents. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void savesAndLoadsAsASecretHopper(GameTestHelper h) {
 		h.setBlock(HOPPER, facing(Direction.DOWN));
 		hopper(h, HOPPER).setDisguise(all(Blocks.BRICKS));
 		hopper(h, HOPPER).setItem(4, new ItemStack(Items.DIAMOND, 7));
 		CompoundTag saved = hopper(h, HOPPER).saveWithFullMetadata(h.getLevel().registryAccess());
-		check(h, "secretblocks:secret_hopper".equals(saved.getString("id")), "saved id should be secretblocks:secret_hopper, got " + saved.getString("id"));
+		check(h, "secretblocks:secret_hopper".equals(saved.getStringOr("id", "")), "saved id should be secretblocks:secret_hopper, got " + saved.getStringOr("id", ""));
 		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(HOPPER), h.getBlockState(HOPPER), saved, h.getLevel().registryAccess());
 		check(h, loaded instanceof SecretHopperBlockEntity, "loads back as a SecretHopperBlockEntity, got " + loaded);
 		SecretHopperBlockEntity copy = (SecretHopperBlockEntity) loaded;
@@ -253,7 +253,7 @@ public class HopperGameTests {
 	}
 
 	/** It opens the vanilla 5-slot hopper screen, titled with its own name. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void opensTheVanillaHopperScreen(GameTestHelper h) {
 		h.setBlock(HOPPER, facing(Direction.DOWN));
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
@@ -265,7 +265,7 @@ public class HopperGameTests {
 	}
 
 	/** Breaking it drops its contents and itself, keeping a custom name like vanilla. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dropsContentsAndItselfWithItsName(GameTestHelper h) {
 		floor(h);
 		h.setBlock(HOPPER.below(), Blocks.STONE);
@@ -285,7 +285,7 @@ public class HopperGameTests {
 	}
 
 	/** Clients receive the disguise, never the contents. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void clientsGetTheDisguiseNotTheContents(GameTestHelper h) {
 		h.setBlock(HOPPER, facing(Direction.DOWN));
 		hopper(h, HOPPER).setDisguise(all(Blocks.BRICKS));
@@ -302,7 +302,7 @@ public class HopperGameTests {
 	 * mine, how it sounds and how it stands up to a blast follow its look
 	 * ({@code DisguiseLookGameTests}).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dropsWithoutATool(GameTestHelper h) {
 		BlockState secret = ModBlocks.SECRET_HOPPER.defaultBlockState();
 		check(h, !secret.requiresCorrectToolForDrops(), "it should drop without a tool");
@@ -311,7 +311,7 @@ public class HopperGameTests {
 	}
 
 	/** Dummy Block + hopper. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipeWorks(GameTestHelper h) {
 		AbstractContainerMenu menu = new AbstractContainerMenu(null, 0) {
 			@Override

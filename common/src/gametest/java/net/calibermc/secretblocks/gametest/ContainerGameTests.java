@@ -6,7 +6,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -60,7 +60,7 @@ public class ContainerGameTests {
 	}
 
 	/** Every secret block with a block entity: a container only if its vanilla counterpart is one. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void onlyTheSecretContainersAreContainers(GameTestHelper h) {
 		floor(h);
 		BlockPos rel = new BlockPos(1, 1, 1);
@@ -81,7 +81,7 @@ public class ContainerGameTests {
 	}
 
 	/** A hopper feeds the Secret Chest, Dispenser, Hopper and Dropper exactly as it feeds the vanilla ones beside them. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void hoppersFeedTheSecretContainersLikeVanilla(GameTestHelper h) {
 		floor(h);
 		Block[][] pairs = {
@@ -109,7 +109,7 @@ public class ContainerGameTests {
 	}
 
 	/** A hopper over a plain secret block keeps its items, as over stone (it used to push them inside, lost). */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void hoppersDoNotFeedPlainSecretBlocks(GameTestHelper h) {
 		floor(h);
 		Block[] targets = {Blocks.STONE, ModBlocks.SOLID_BLOCK, ModBlocks.STAIR_BLOCK, ModBlocks.SECRET_OBSERVER, ModBlocks.PRESSURE_PLATE};
@@ -125,7 +125,7 @@ public class ContainerGameTests {
 				check(h, kept == 3, "the hopper over " + targets[i] + " should keep its 3 diamonds, has " + kept);
 				if (blockEntityAt(h, target) instanceof SecretBlockEntity secret) {
 					CompoundTag saved = secret.saveWithoutMetadata(h.getLevel().registryAccess());
-					check(h, saved.getList("Items", Tag.TAG_COMPOUND).isEmpty(), targets[i] + " must hold no items: " + saved.get("Items"));
+					check(h, saved.getListOrEmpty("Items").isEmpty(), targets[i] + " must hold no items: " + saved.get("Items"));
 				}
 			}
 			h.succeed();
@@ -138,7 +138,7 @@ public class ContainerGameTests {
 	 * In a batch of its own: a thrown diamond can fly several blocks, and a
 	 * neighbouring test's hopper or player could take it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200, batch = "container_droppers")
+	@GameTest(maxTicks = 200, environment = "container_droppers")
 	public void droppersTreatSecretBlocksLikeVanilla(GameTestHelper h) {
 		floor(h);
 		Block[] targets = {Blocks.STONE, ModBlocks.SOLID_BLOCK, Blocks.CHEST, ModBlocks.SECRET_CHEST};
@@ -160,7 +160,7 @@ public class ContainerGameTests {
 			// both diamonds exist as items. A diamond thrown into a solid block is
 			// pushed out and can fly several blocks, so the count covers a wide area.
 			CompoundTag dummy = plain(h, new BlockPos(3, 1, 3)).saveWithoutMetadata(h.getLevel().registryAccess());
-			check(h, dummy.getList("Items", Tag.TAG_COMPOUND).isEmpty(), "the Dummy Block must not take the dropper's diamond: " + dummy.get("Items"));
+			check(h, dummy.getListOrEmpty("Items").isEmpty(), "the Dummy Block must not take the dropper's diamond: " + dummy.get("Items"));
 			int thrown = h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(new BlockPos(2, 1, 3))).inflate(24),
 					e -> ItemStack.isSameItemSameComponents(e.getItem(), droppedDiamond())).stream().mapToInt(e -> e.getItem().getCount()).sum();
 			check(h, thrown == 2, "the droppers facing stone and the Dummy Block should each throw a diamond out, " + thrown + " found");
@@ -171,7 +171,7 @@ public class ContainerGameTests {
 	}
 
 	/** A hopper under a Secret Chest pulls its items out, as under a vanilla chest. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void hoppersPullFromTheSecretChestLikeVanilla(GameTestHelper h) {
 		floor(h);
 		Block[] chests = {Blocks.CHEST, ModBlocks.SECRET_CHEST};
@@ -210,10 +210,10 @@ public class ContainerGameTests {
 	 * block is broken (every plain block, including those whose vanilla class
 	 * skips the base removal code). A Secret Chest drops its contents once.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void storedItemsDropWhenBroken(GameTestHelper h) throws Exception {
 		floor(h);
-		CompoundTag stuck = TagParser.parseTag("{Items:[{Slot:0b,id:\"minecraft:diamond\",count:4}]}");
+		CompoundTag stuck = TagParser.parseCompoundFully("{Items:[{Slot:0b,id:\"minecraft:diamond\",count:4}]}");
 		int checked = 0;
 		for (Block block : ModBlocks.secretBlocksList) {
 			if (!(block instanceof EntityBlock) || CONTAINERS.contains(block)) {
@@ -251,7 +251,7 @@ public class ContainerGameTests {
 	 * explosion's radius). Out of 50 drops at radius 100 each kind keeps
 	 * fewer than five; without an explosion every one drops.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void chestsSurviveExplosionsAsVanilla(GameTestHelper h) {
 		floor(h);
 		BlockPos at = new BlockPos(1, 1, 1);
@@ -282,7 +282,7 @@ public class ContainerGameTests {
 	}
 
 	/** The Secret Chest's screen lays out its slots exactly as vanilla's single chest does. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void chestScreenLaysOutAsVanilla(GameTestHelper h) {
 		net.minecraft.world.entity.player.Player player = h.makeMockPlayer(GameType.CREATIVE);
 		net.minecraft.world.SimpleContainer box = new net.minecraft.world.SimpleContainer(27);

@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.render.DoorHalves;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DoorBlock;
@@ -42,7 +42,7 @@ public class DoorHalvesGameTests {
 	}
 
 	/** Secret doors, wooden and iron, closed and open: the lower half joins above, the upper half below. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aDoorsHalvesJoin(GameTestHelper h) {
 		int x = 0;
 		for (Block door : List.of(ModBlocks.DOOR_BLOCK, ModBlocks.IRON_DOOR_BLOCK)) {
@@ -66,7 +66,7 @@ public class DoorHalvesGameTests {
 	 * lower half under an iron door's upper half, and blocks that are not
 	 * doors.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void nothingElseJoins(GameTestHelper h) {
 		BlockState lower = lower(ModBlocks.DOOR_BLOCK);
 		BlockState upper = lower.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);

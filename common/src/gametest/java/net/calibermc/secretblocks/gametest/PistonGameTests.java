@@ -8,7 +8,7 @@ import net.calibermc.secretblocks.registry.Counterparts;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -75,7 +75,7 @@ public class PistonGameTests {
 	}
 
 	/** Pushes 12 blocks and refuses 13, as a vanilla piston. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void pushLimitMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		BlockPos[] pistons = {new BlockPos(1, 1, 1), new BlockPos(5, 1, 1), new BlockPos(1, 1, 5), new BlockPos(5, 1, 5)};
@@ -117,7 +117,7 @@ public class PistonGameTests {
 	 * The sticky one pushes a block and pulls it back, as vanilla's does; the
 	 * plain one leaves it. Base and head keep the disguise all along.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void stickyPullMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		BlockPos[] pistons = {new BlockPos(1, 1, 1), new BlockPos(5, 1, 1), new BlockPos(1, 1, 5), new BlockPos(5, 1, 5)};
@@ -161,7 +161,7 @@ public class PistonGameTests {
 	 * redstone block above the space above it powers it, but only once
 	 * something updates it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void sidePowerAndQuasiConnectivityMatchVanilla(GameTestHelper h) {
 		floor(h);
 		BlockPos[] side = {new BlockPos(1, 1, 1), new BlockPos(1, 1, 4)};
@@ -200,7 +200,7 @@ public class PistonGameTests {
 	 * The head belongs to its base: breaking the head breaks the base (which
 	 * drops itself), and breaking the base removes the head, as vanilla.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void theHeadAndBaseGoTogether(GameTestHelper h) {
 		floor(h);
 		BlockPos[] bases = {new BlockPos(1, 1, 1), new BlockPos(5, 1, 1), new BlockPos(1, 1, 5), new BlockPos(5, 1, 5)};
@@ -240,7 +240,7 @@ public class PistonGameTests {
 	 * facing it, as vanilla's: a sticky head on a plain base cannot, nor a
 	 * Secret Piston head on a vanilla piston or the reverse.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void aHeadNeedsABaseOfItsType(GameTestHelper h) {
 		floor(h);
 		BlockPos base = new BlockPos(3, 1, 3);
@@ -267,7 +267,7 @@ public class PistonGameTests {
 	}
 
 	/** Re-disguised while extended (a probe, later the wand), the base passes its new disguise to the head. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void theHeadFollowsTheBaseDisguise(GameTestHelper h) {
 		floor(h);
 		BlockPos base = new BlockPos(3, 1, 3);
@@ -287,7 +287,7 @@ public class PistonGameTests {
 	 * vanilla ends the move at once): the Secret Pistons end as vanilla's beside
 	 * them (a sticky one leaves its block behind), and keep their disguise.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void aOneTickPulseMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		BlockPos[] bases = {new BlockPos(1, 1, 1), new BlockPos(5, 1, 1), new BlockPos(1, 1, 5), new BlockPos(5, 1, 5)};
@@ -332,7 +332,7 @@ public class PistonGameTests {
 	 * the pushed block's move early and leaves it out there ("spits" it); the
 	 * Secret Piston left there keeps its disguise.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void aBlockLeftByAOneTickPulseKeepsItsDisguise(GameTestHelper h) {
 		floor(h);
 		BlockPos pusher = new BlockPos(3, 1, 3);
@@ -351,7 +351,7 @@ public class PistonGameTests {
 	}
 
 	/** In creative, breaking the head removes the base too and nothing drops, as vanilla. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void creativeBreakingTheHeadRemovesTheBase(GameTestHelper h) {
 		floor(h);
 		BlockPos[] bases = {new BlockPos(2, 1, 2), new BlockPos(5, 1, 2)};
@@ -387,7 +387,7 @@ public class PistonGameTests {
 	}
 
 	/** Extending and retracting twice, the base keeps its disguise and the head wears it. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void theDisguiseSurvivesExtendingAndRetracting(GameTestHelper h) {
 		floor(h);
 		BlockPos base = new BlockPos(3, 1, 3);
@@ -417,7 +417,7 @@ public class PistonGameTests {
 	 * disguise; a Secret Sticky Piston pulls it back, and it still does. An
 	 * extended Secret Piston cannot be pushed, as an extended vanilla one.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void aSecretPistonIsPushedLikeAPiston(GameTestHelper h) {
 		floor(h);
 		BlockPos pusher = new BlockPos(1, 1, 2);
@@ -457,7 +457,7 @@ public class PistonGameTests {
 	 * entity rebuilt from its saved data), the head still wears the disguise
 	 * when it lands.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void aMoveSavedHalfwayKeepsTheDisguise(GameTestHelper h) {
 		floor(h);
 		BlockPos base = new BlockPos(3, 1, 3);
@@ -491,7 +491,7 @@ public class PistonGameTests {
 	 * carries nothing: a new one's data would overwrite the moved block
 	 * entity's disguise when the move ends.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void aSourceWithoutItsBlockEntityIsNotGivenANewOne(GameTestHelper h) {
 		floor(h);
 		BlockPos source = new BlockPos(3, 1, 3);
@@ -523,7 +523,7 @@ public class PistonGameTests {
 	 * at its power when placed), and its head wears the disguise from the
 	 * placement.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void placedPoweredItExtendsWithItsDisguise(GameTestHelper h) {
 		floor(h);
 		h.setBlock(new BlockPos(3, 0, 3), Blocks.BRICKS);
@@ -546,7 +546,7 @@ public class PistonGameTests {
 	 * Set beside a redstone block (no player, no neighbour update: a command or
 	 * a structure), it extends, as a vanilla piston does.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void setBesidePowerItExtends(GameTestHelper h) {
 		floor(h);
 		BlockPos[] bases = {new BlockPos(2, 1, 2), new BlockPos(5, 1, 2)};
@@ -568,7 +568,7 @@ public class PistonGameTests {
 	 * While it moves, the Secret Piston's head collides as a full block (its own
 	 * shape); vanilla's moving head collides as its thin plate and rod.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void theMovingHeadCollidesAsAFullBlock(GameTestHelper h) {
 		floor(h);
 		BlockPos[] bases = {new BlockPos(2, 1, 2), new BlockPos(5, 1, 2)};
@@ -602,7 +602,7 @@ public class PistonGameTests {
 	 * gives the piston on pick-block and collides as a full block; counterparts
 	 * and recipes.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void propertiesAndRecipes(GameTestHelper h) {
 		floor(h);
 		BlockPos rel = new BlockPos(2, 1, 2);

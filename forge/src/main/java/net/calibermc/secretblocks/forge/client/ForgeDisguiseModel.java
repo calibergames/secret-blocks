@@ -8,7 +8,8 @@ import net.calibermc.secretblocks.render.MovingDisguise;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,7 +20,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.ChunkRenderTypeSet;
-import net.minecraftforge.client.model.IDynamicBakedModel;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ import java.util.List;
  * disguise ({@link DisguiseQuads}), worked out where the chunk is built, as
  * the block's model data.
  */
-final class ForgeDisguiseModel implements IDynamicBakedModel {
+final class ForgeDisguiseModel implements BlockStateModel {
 
 	private static final ModelProperty<DisguiseQuads> QUADS = new ModelProperty<>();
 	/**
@@ -43,10 +43,9 @@ final class ForgeDisguiseModel implements IDynamicBakedModel {
 	 */
 	private static final Disguise NO_DISGUISE = new Disguise();
 
-	private final ItemTransforms transforms;
+	static final ForgeDisguiseModel INSTANCE = new ForgeDisguiseModel();
 
-	ForgeDisguiseModel(ItemTransforms transforms) {
-		this.transforms = transforms;
+	private ForgeDisguiseModel() {
 	}
 
 	@Override
@@ -63,17 +62,45 @@ final class ForgeDisguiseModel implements IDynamicBakedModel {
 		return (quads != null ? quads : withoutModelData(state)).layers();
 	}
 
+	/**
+	 * The disguise's quads in one layer. With no model data (a piston move,
+	 * drawn by Forge with empty data), the quads drawn then.
+	 */
 	@Override
-	public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand,
-			@NotNull ModelData data, @Nullable RenderType renderType) {
-		if (state == null) {
-			return List.of();
-		}
+	public void collectParts(RandomSource random, List<BlockModelPart> dest, ModelData data, @Nullable RenderType renderType) {
 		DisguiseQuads quads = data.get(QUADS);
 		if (quads == null) {
-			quads = withoutModelData(state);
+			PistonMovingBlockEntity moving = MovingDisguise.moving();
+			if (moving == null) {
+				return;
+			}
+			quads = withoutModelData(moving.getMovedState());
 		}
-		return quads.quads(renderType, side);
+		dest.add(new Layer(quads, renderType));
+	}
+
+	/** Not drawn through the plain path: every block render asks with model data and a layer. */
+	@Override
+	public void collectParts(RandomSource random, List<BlockModelPart> dest) {
+	}
+
+	/** One layer of a disguise's quads (every layer, for {@code null}). */
+	private record Layer(DisguiseQuads quads, @Nullable RenderType layer) implements BlockModelPart {
+
+		@Override
+		public List<BakedQuad> getQuads(@Nullable Direction side) {
+			return quads.quads(layer, side);
+		}
+
+		@Override
+		public boolean useAmbientOcclusion() {
+			return true;
+		}
+
+		@Override
+		public TextureAtlasSprite particleIcon() {
+			return stone();
+		}
 	}
 
 	/**
@@ -132,27 +159,11 @@ final class ForgeDisguiseModel implements IDynamicBakedModel {
 	}
 
 	@Override
-	public boolean useAmbientOcclusion() {
-		return true;
+	public TextureAtlasSprite particleIcon() {
+		return stone();
 	}
 
-	@Override
-	public boolean isGui3d() {
-		return false;
-	}
-
-	@Override
-	public boolean usesBlockLight() {
-		return true;
-	}
-
-	@Override
-	public TextureAtlasSprite getParticleIcon() {
-		return Minecraft.getInstance().getBlockRenderer().getBlockModel(Blocks.STONE.defaultBlockState()).getParticleIcon();
-	}
-
-	@Override
-	public ItemTransforms getTransforms() {
-		return transforms;
+	private static TextureAtlasSprite stone() {
+		return Minecraft.getInstance().getBlockRenderer().getBlockModel(Blocks.STONE.defaultBlockState()).particleIcon();
 	}
 }

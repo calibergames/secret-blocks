@@ -5,14 +5,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.StairsShape;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -44,7 +41,7 @@ public class StairBlock extends net.minecraft.world.level.block.StairBlock imple
 
 	@Override  // COLLIDE ONLY WITH STAIR SHAPE
 	public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
-		return (state.getValue(HALF) == Half.TOP ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_INDICES[this.getShapeIndex(state)]];
+		return super.getShape(state, world, pos, context);
 
 	}
 
@@ -52,16 +49,6 @@ public class StairBlock extends net.minecraft.world.level.block.StairBlock imple
 	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return Shapes.block();
 
-	}
-
-	@Override
-	public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
-		super.onRemove(state, world, pos, newState, moved);
-		// StairBlock.onRemove hands removal to its base block, which removes this
-		// block entity only because the base (the Dummy Block) has one too.
-		if (!state.is(newState.getBlock())) {
-			world.removeBlockEntity(pos);
-		}
 	}
 
     //Gets the stair shape for collision

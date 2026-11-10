@@ -6,7 +6,7 @@ import net.calibermc.secretblocks.screen.ModScreenHandlers;
 import net.calibermc.secretblocks.screen.SecretChestScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -57,6 +57,11 @@ public class TrappedChestGameTests {
 	private static Player viewer(GameTestHelper h, List<Player> viewers, Vec3 rel) {
 		Player player = new Player(h.getLevel(), BlockPos.ZERO, 0.0F, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "test-viewer")) {
 			@Override
+			public net.minecraft.world.level.GameType gameMode() {
+				return net.minecraft.world.level.GameType.SURVIVAL;
+			}
+
+			@Override
 			public boolean isSpectator() {
 				return false;
 			}
@@ -78,7 +83,7 @@ public class TrappedChestGameTests {
 			}
 		};
 		Vec3 at = abs(h, rel);
-		player.moveTo(at.x, at.y, at.z, 0, 0);
+		player.snapTo(at.x, at.y, at.z, 0, 0);
 		h.getLevel().addFreshEntity(player);
 		viewers.add(player);
 		return player;
@@ -118,7 +123,7 @@ public class TrappedChestGameTests {
 	 * after the other leaves the game. Each count is held across the 5-tick
 	 * rechecks. A vanilla trapped chest beside it goes through the same steps.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 120)
+	@GameTest(maxTicks = 120)
 	public void signalCountsViewers(GameTestHelper h) {
 		floor(h);
 		// Chest x = 2 with wire at x = 3; Secret on z = 1, vanilla on z = 5. Viewers stand at x = 1.
@@ -170,7 +175,7 @@ public class TrappedChestGameTests {
 	 * longer valid and the recheck takes the signal back to 0, as for a vanilla
 	 * trapped chest.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void leavingWithoutClosingEndsTheSignal(GameTestHelper h) {
 		floor(h);
 		BlockPos secret = new BlockPos(2, 1, 1);
@@ -190,7 +195,7 @@ public class TrappedChestGameTests {
 			both(h, "open", 1, wire(h, 3, 1, 1), wire(h, 3, 1, 5));
 			for (Player player : viewers) {
 				player.setNoGravity(true);
-				player.moveTo(player.getX(), player.getY() + 40, player.getZ(), 0, 0);
+				player.snapTo(player.getX(), player.getY() + 40, player.getZ(), 0, 0);
 			}
 		});
 		h.runAfterDelay(30, () -> {
@@ -205,7 +210,7 @@ public class TrappedChestGameTests {
 	 * Broken while open: the signal goes, the screen closes, and the contents
 	 * drop once (5 gold ingots).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void brokenWhileOpen(GameTestHelper h) {
 		floor(h);
 		BlockPos secret = new BlockPos(2, 1, 2);
@@ -241,7 +246,7 @@ public class TrappedChestGameTests {
 	 * open chest lights (Secret and vanilla), and the block at the chest's side
 	 * is not strongly powered, so a lamp beyond it stays off.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void strongPowerBelowOnly(GameTestHelper h) {
 		floor(h);
 		// Chest at (2, 2, z) on stone (2, 1, z); lamp A at (3, 1, z) beside that stone.
@@ -290,7 +295,7 @@ public class TrappedChestGameTests {
 	 * a Secret Chest and another Secret Trapped Chest each stays a single 27-slot
 	 * chest with its own contents.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aSingleChestThatComparatorsRead(GameTestHelper h) {
 		floor(h);
 		BlockPos[] row = {new BlockPos(2, 1, 2), new BlockPos(3, 1, 2), new BlockPos(4, 1, 2)};
@@ -319,7 +324,7 @@ public class TrappedChestGameTests {
 	 * viewing like a vanilla chest now: the count goes back to 0 when the screen
 	 * closes.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void thePlainSecretChestGivesNoSignal(GameTestHelper h) {
 		floor(h);
 		BlockPos chest = new BlockPos(2, 1, 2);
@@ -343,7 +348,7 @@ public class TrappedChestGameTests {
 	 * The Secret Chest's screen closes like a vanilla chest's: valid beside the
 	 * chest, not valid more than 8 blocks away or once the chest is gone.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theScreenClosesWhenFarOrGone(GameTestHelper h) {
 		floor(h);
 		for (Block block : new Block[] {ModBlocks.SECRET_CHEST, SECRET}) {
@@ -352,11 +357,11 @@ public class TrappedChestGameTests {
 			SecretChestBlockEntity chest = (SecretChestBlockEntity) blockEntityAt(h, pos);
 			Player player = h.makeMockPlayer(GameType.CREATIVE);
 			Vec3 near = abs(h, new Vec3(1.5, 1, 2.5));
-			player.moveTo(near.x, near.y, near.z, 0, 0);
+			player.snapTo(near.x, near.y, near.z, 0, 0);
 			check(h, chest.stillValid(player), block + ": the screen should stay open for a player beside the chest");
-			player.moveTo(near.x + 9, near.y, near.z, 0, 0);
+			player.snapTo(near.x + 9, near.y, near.z, 0, 0);
 			check(h, !chest.stillValid(player), block + ": the screen should close for a player more than 8 blocks away");
-			player.moveTo(near.x, near.y, near.z, 0, 0);
+			player.snapTo(near.x, near.y, near.z, 0, 0);
 			h.setBlock(pos, Blocks.AIR);
 			check(h, !chest.stillValid(player), block + ": the screen should close once the chest is gone");
 		}
@@ -367,7 +372,7 @@ public class TrappedChestGameTests {
 	 * A slot set directly (as {@code /item} does) reaches a comparator without
 	 * anything else calling setChanged, as with a vanilla chest.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aSetSlotReachesComparators(GameTestHelper h) {
 		floor(h);
 		// Chest x = 1, comparator x = 2 (reads the chest at its west). Secret Chest z = 1, vanilla chest z = 5.
@@ -393,7 +398,7 @@ public class TrappedChestGameTests {
 	}
 
 	/** Sixteen viewers give 15, the most a redstone signal can be, as for a vanilla trapped chest. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void sixteenViewersGiveFifteen(GameTestHelper h) {
 		floor(h);
 		BlockPos secret = new BlockPos(2, 1, 1);
@@ -425,7 +430,7 @@ public class TrappedChestGameTests {
 	 * open-screen packet needs nothing extra on any loader. Use itself is a
 	 * smoke check here: a mock player opens no menu.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theMenuProviderOpensThisChest(GameTestHelper h) {
 		floor(h);
 		BlockPos pos = new BlockPos(2, 1, 2);
@@ -447,7 +452,7 @@ public class TrappedChestGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipe(GameTestHelper h) {
 		Optional<ItemStack> made = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.TRAPPED_CHEST);
 		check(h, made.isPresent() && made.get().is(SECRET.asItem()), "Dummy Block + trapped chest should make the Secret Trapped Chest, got " + made);

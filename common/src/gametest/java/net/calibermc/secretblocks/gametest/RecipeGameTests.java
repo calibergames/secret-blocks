@@ -9,7 +9,7 @@ import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -98,7 +98,7 @@ public class RecipeGameTests {
 	}
 
 	/** Every recipe file loads, except the parked ones. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everyRecipeLoads(GameTestHelper h) {
 		MinecraftServer server = h.getLevel().getServer();
 		checkLoads(h, "recipe", dataFiles(server, "recipe"), PARKED::contains,
@@ -107,7 +107,7 @@ public class RecipeGameTests {
 	}
 
 	/** Every loot table file loads, except the parked ones. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everyLootTableLoads(GameTestHelper h) {
 		MinecraftServer server = h.getLevel().getServer();
 		checkLoads(h, "loot table", dataFiles(server, "loot_table"), name -> PARKED.stream().anyMatch(p -> name.equals("blocks/" + p)),
@@ -116,7 +116,7 @@ public class RecipeGameTests {
 	}
 
 	/** Every registered block and item has a crafting recipe that makes it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everyItemHasARecipe(GameTestHelper h) {
 		List<RecipeHolder<?>> recipes = craftingRecipes(h);
 		int items = 0;
@@ -136,7 +136,7 @@ public class RecipeGameTests {
 	 * crafting grid (the first item each ingredient accepts; shaped recipes
 	 * laid out in their pattern).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everyRecipeCraftsFromItsIngredients(GameTestHelper h) {
 		int crafted = 0;
 		for (RecipeHolder<?> holder : craftingRecipes(h)) {
@@ -166,7 +166,7 @@ public class RecipeGameTests {
 	}
 
 	/** The four fixed recipes (chest, lever, redstone, stone button), with the vanilla items a player would use. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void fixedRecipes(GameTestHelper h) {
 		Item dummy = ModBlocks.SOLID_BLOCK.asItem();
 		record Case(Item ingredient, Block expected) {
@@ -187,7 +187,7 @@ public class RecipeGameTests {
 	 * The polished blackstone button and plate are vanilla's stone button
 	 * and stone plate under another look, so they make the same secret blocks.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void polishedBlackstoneCountsAsStone(GameTestHelper h) {
 		Item dummy = ModBlocks.SOLID_BLOCK.asItem();
 		for (Item[] c : new Item[][] {
@@ -202,7 +202,7 @@ public class RecipeGameTests {
 	}
 
 	/** The Dummy Block alone makes nothing. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theDummyBlockAloneMakesNothing(GameTestHelper h) {
 		Item dummy = ModBlocks.SOLID_BLOCK.asItem();
 		check(h, craft(h, dummy).isEmpty(), "the Dummy Block alone should make nothing");

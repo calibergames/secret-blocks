@@ -3,7 +3,7 @@ package net.calibermc.secretblocks.gametest;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
@@ -41,7 +41,7 @@ public class ClamberGameTests {
 	private static Player jumperIn(GameTestHelper h, int x) {
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		Vec3 feet = abs(h, new Vec3(x + 0.5, 1, 3.5));
-		player.moveTo(feet.x, feet.y, feet.z, 0, 0);
+		player.snapTo(feet.x, feet.y, feet.z, 0, 0);
 		player.setJumping(true);
 		h.getLevel().addFreshEntity(player);
 		return player;
@@ -55,7 +55,7 @@ public class ClamberGameTests {
 	 * Holding jump, a player climbs a Clamber column like a ladder; in a Ghost
 	 * Block column the same player only jumps (at most about 1.25 blocks).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 120)
+	@GameTest(maxTicks = 120)
 	public void playerClimbsAClamberColumn(GameTestHelper h) {
 		floor(h);
 		column(h, 2, ModBlocks.SECRET_CLAMBER);
@@ -75,7 +75,7 @@ public class ClamberGameTests {
 	}
 
 	/** Climbable through the vanilla tag, so it works the same on every loader. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void climbableThroughTheVanillaTag(GameTestHelper h) {
 		check(h, ModBlocks.SECRET_CLAMBER.defaultBlockState().is(BlockTags.CLIMBABLE), "Secret Clamber is in #minecraft:climbable");
 		check(h, !ModBlocks.GHOST_BLOCK.defaultBlockState().is(BlockTags.CLIMBABLE), "Ghost Block is not climbable");
@@ -83,7 +83,7 @@ public class ClamberGameTests {
 	}
 
 	/** Placed through the item: copies the clicked block, walk-through, drawn with its disguise. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void placedDisguisedAndWalkThrough(GameTestHelper h) {
 		floor(h);
 		BlockPos target = new BlockPos(3, 1, 2);
@@ -98,7 +98,7 @@ public class ClamberGameTests {
 	}
 
 	/** Ghost Block + ladder. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipeWorks(GameTestHelper h) {
 		AbstractContainerMenu menu = new AbstractContainerMenu(null, 0) {
 			@Override

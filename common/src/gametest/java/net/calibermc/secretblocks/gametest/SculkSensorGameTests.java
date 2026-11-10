@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.core.registries.Registries;
 import net.calibermc.secretblocks.blocks.entity.SecretSculkSensorBlockEntity;
@@ -9,7 +10,7 @@ import net.calibermc.secretblocks.registry.ModEntities;
 import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -93,7 +94,7 @@ public class SculkSensorGameTests {
 		if (blockEntityAt(h, rel) instanceof SculkSensorBlockEntity sensor) {
 			return sensor;
 		}
-		h.fail("expected a sculk sensor block entity, found " + blockEntityAt(h, rel), rel);
+		h.fail(Component.literal("expected a sculk sensor block entity, found " + blockEntityAt(h, rel)), rel);
 		throw new AssertionError("unreachable");
 	}
 
@@ -119,7 +120,7 @@ public class SculkSensorGameTests {
 	/** All the experience an orb holds: equal orbs that land together merge into one that counts several times. */
 	private static int experienceIn(ExperienceOrb orb) {
 		CompoundTag saved = orb.saveWithoutId(new CompoundTag());
-		return saved.getShort("Value") * Math.max(1, saved.getInt("Count"));
+		return saved.getShortOr("Value", (short) 0) * Math.max(1, saved.getIntOr("Count", 0));
 	}
 
 	private static Map<Direction, BlockState> all(Block block) {
@@ -135,7 +136,7 @@ public class SculkSensorGameTests {
 	 * block, rounded down), the block-place frequency, which the comparator
 	 * behind each passes to a lamp.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_place")
+	@GameTest(skyAccess = true, environment = "sculk_place")
 	public void aPlacedBlockSetsItOff(GameTestHelper h) {
 		floor(h);
 		quiet(h);
@@ -168,7 +169,7 @@ public class SculkSensorGameTests {
 	 * projectile-land frequency. It starts 12 blocks up, out of their hearing:
 	 * an arrow's first tick makes a "shot" vibration where it is.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_arrow")
+	@GameTest(skyAccess = true, environment = "sculk_arrow")
 	public void anArrowLandingSetsItOff(GameTestHelper h) {
 		floor(h);
 		quiet(h);
@@ -200,7 +201,7 @@ public class SculkSensorGameTests {
 	 * Wool between the vibration and a sensor blocks it, for both kinds; the
 	 * open sensors at the same distance hear it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_wool")
+	@GameTest(skyAccess = true, environment = "sculk_wool")
 	public void woolBlocksIt(GameTestHelper h) {
 		floor(h);
 		quiet(h);
@@ -233,7 +234,7 @@ public class SculkSensorGameTests {
 	 * a one-tick cooldown, then listening again. A vibration while active is
 	 * ignored; one after the cooldown sets them off again.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_timing", timeoutTicks = 200)
+	@GameTest(skyAccess = true, environment = "sculk_timing", maxTicks = 200)
 	public void timingAndCooldownMatchVanilla(GameTestHelper h) {
 		floor(h);
 		quiet(h);
@@ -281,7 +282,7 @@ public class SculkSensorGameTests {
 	 * disguise survives too. The block entity is replaced in place, not
 	 * through a real chunk unload (the old one, removed, stops listening).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_reload")
+	@GameTest(skyAccess = true, environment = "sculk_reload")
 	public void aVibrationInFlightSurvivesSaveAndLoad(GameTestHelper h) {
 		floor(h);
 		quiet(h);
@@ -297,7 +298,7 @@ public class SculkSensorGameTests {
 			for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
 				check(h, phase(h, pos) == SculkSensorPhase.INACTIVE, name(h, pos) + " should still be waiting for the vibration (6 blocks: 6 ticks), is " + phase(h, pos));
 				CompoundTag saved = sensor(h, pos).saveWithFullMetadata(h.getLevel().registryAccess());
-				check(h, saved.getCompound("listener").contains("event"), name(h, pos) + " should save the vibration in flight: " + saved.get("listener"));
+				check(h, saved.getCompoundOrEmpty("listener").contains("event"), name(h, pos) + " should save the vibration in flight: " + saved.get("listener"));
 				BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(pos), h.getBlockState(pos), saved, h.getLevel().registryAccess());
 				check(h, loaded != null, name(h, pos) + " should load back");
 				h.getLevel().setBlockEntity(loaded);
@@ -321,7 +322,7 @@ public class SculkSensorGameTests {
 	 * once from the same distance, and the higher frequency, the landing's,
 	 * is the one heard. A warden stepping on either does nothing.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_step")
+	@GameTest(skyAccess = true, environment = "sculk_step")
 	public void landingOnItSetsItOff(GameTestHelper h) {
 		floor(h);
 		quiet(h);
@@ -349,7 +350,7 @@ public class SculkSensorGameTests {
 			for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
 				Pig pig = EntityType.PIG.create(h.getLevel(), EntitySpawnReason.COMMAND);
 				Vec3 above = Vec3.atBottomCenterOf(h.absolutePos(pos.above(2)));
-				pig.moveTo(above.x, above.y, above.z);
+				pig.snapTo(above.x, above.y, above.z);
 				h.getLevel().addFreshEntity(pig);
 				pigs.add(pig);
 			}
@@ -368,7 +369,7 @@ public class SculkSensorGameTests {
 	 * block away for both: power 14 and the block-place frequency. Only a mob
 	 * standing on the Secret Sculk Sensor counts as at it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_on_top")
+	@GameTest(skyAccess = true, environment = "sculk_on_top")
 	public void aBlockPlacedOnTopIsABlockAway(GameTestHelper h) {
 		floor(h);
 		quiet(h);
@@ -393,7 +394,7 @@ public class SculkSensorGameTests {
 	 * Placed in water it is not waterlogged (vanilla's is) and holds no water;
 	 * a bucket cannot fill it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_misc")
+	@GameTest(skyAccess = true, environment = "sculk_misc")
 	public void neverWaterlogged(GameTestHelper h) {
 		floor(h);
 		BlockPos secret = new BlockPos(2, 1, 3);
@@ -428,7 +429,7 @@ public class SculkSensorGameTests {
 	 * Broken, it drops itself and no experience; a vanilla sensor broken without
 	 * Silk Touch drops only 5 experience. With Silk Touch both drop themselves.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_misc")
+	@GameTest(skyAccess = true, environment = "sculk_misc")
 	public void breakingDropsItselfAndNoExperience(GameTestHelper h) {
 		floor(h);
 		BlockPos secret = new BlockPos(1, 1, 2);
@@ -486,7 +487,7 @@ public class SculkSensorGameTests {
 	 * it), a signal source that comparators read, and the server ticker for
 	 * its own block entity type only.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_misc")
+	@GameTest(skyAccess = true, environment = "sculk_misc")
 	public void properties(GameTestHelper h) {
 		floor(h);
 		BlockPos rel = new BlockPos(2, 1, 2);
@@ -515,7 +516,7 @@ public class SculkSensorGameTests {
 	 * The disguise survives going active (a state change), and saving and
 	 * loading with the last frequency; clients receive the disguise only.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_misc")
+	@GameTest(skyAccess = true, environment = "sculk_misc")
 	public void keepsItsDisguiseAndSendsOnlyThat(GameTestHelper h) {
 		floor(h);
 		BlockPos rel = new BlockPos(2, 1, 5);
@@ -528,7 +529,7 @@ public class SculkSensorGameTests {
 		check(h, blockEntityAt(h, rel) == sensor, "going active should keep the block entity");
 		checkFaces(h, rel, Blocks.BRICKS);
 		CompoundTag saved = sensor.saveWithFullMetadata(h.getLevel().registryAccess());
-		check(h, saved.getString("id").equals("secretblocks:secret_sculk_sensor"), "it should save as secretblocks:secret_sculk_sensor, got " + saved.getString("id"));
+		check(h, saved.getStringOr("id", "").equals("secretblocks:secret_sculk_sensor"), "it should save as secretblocks:secret_sculk_sensor, got " + saved.getStringOr("id", ""));
 		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(rel), h.getBlockState(rel), saved, h.getLevel().registryAccess());
 		check(h, loaded instanceof SecretSculkSensorBlockEntity copy && copy.getLastVibrationFrequency() == 9
 				&& copy.getState(Direction.UP).is(Blocks.BRICKS), "it should load back with frequency 9 and bricks, got " + loaded);
@@ -542,7 +543,7 @@ public class SculkSensorGameTests {
 	}
 
 	/** Dummy Block + sculk sensor makes one. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true, batch = "sculk_misc")
+	@GameTest(skyAccess = true, environment = "sculk_misc")
 	public void recipeWorks(GameTestHelper h) {
 		Optional<ItemStack> result = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.SCULK_SENSOR);
 		check(h, result.isPresent() && result.get().is(SECRET.asItem()) && result.get().getCount() == 1,

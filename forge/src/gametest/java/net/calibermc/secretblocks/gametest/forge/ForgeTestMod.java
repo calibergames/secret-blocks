@@ -1,16 +1,15 @@
 package net.calibermc.secretblocks.gametest.forge;
 
+import net.calibermc.secretblocks.gametest.support.SharedGameTests;
 import net.calibermc.secretblocks.gametest.support.TestBlocks;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestTicker;
 import net.minecraft.gametest.framework.GlobalTestReporter;
 import net.minecraft.gametest.framework.JUnitLikeTestReporter;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegisterGameTestsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLEnvironment;
@@ -21,7 +20,7 @@ import java.io.File;
 
 /**
  * The Forge test mod: registers the blocks only the game tests use,
- * and the shared game tests themselves ({@link SharedGameTests}).
+ * and the shared game tests' functions and environment type ({@link SharedGameTests}).
  */
 @Mod("secretblocks_gametest")
 public class ForgeTestMod {
@@ -41,13 +40,15 @@ public class ForgeTestMod {
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 		modBus.addListener((RegisterEvent event) -> event.register(Registries.BLOCK,
 				helper -> helper.register(TestBlocks.TEST_GATE_OWNER_ID, TestBlocks.createTestGateOwner())));
-		modBus.addListener((RegisterGameTestsEvent event) -> SharedGameTests.register());
-		// Outside production only, Forge fires RegisterGameTestsEvent and ticks the
-		// running tests. A production server started as a game test server
-		// (forge.gameTestServer) still runs whatever is registered, so there the
-		// tests register themselves and the tests are ticked once per server tick.
+		modBus.addListener((RegisterEvent event) -> {
+			event.register(Registries.TEST_FUNCTION, helper -> SharedGameTests.registerFunctions(helper::register));
+			event.register(Registries.TEST_ENVIRONMENT_DEFINITION_TYPE,
+					helper -> helper.register(SharedGameTests.ENVIRONMENT_TYPE, SharedGameTests.ENVIRONMENT_CODEC));
+		});
+		// Outside production only, the loader ticks the running tests. A production
+		// server started as a game test server still runs them (they come with the
+		// data-pack registries), so there they are ticked once per server tick.
 		if (FMLLoader.isProduction() && Boolean.getBoolean("forge.gameTestServer")) {
-			modBus.addListener((FMLCommonSetupEvent event) -> SharedGameTests.register());
 			MinecraftForge.EVENT_BUS.addListener((TickEvent.ServerTickEvent event) -> {
 				if (event.phase == TickEvent.Phase.END) {
 					GameTestTicker.SINGLETON.tick();

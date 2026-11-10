@@ -2,6 +2,7 @@ package net.calibermc.secretblocks.blocks;
 
 import java.util.Map;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -116,8 +117,8 @@ public class TorchLever extends TorchBlock {
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
-		TorchLevers.removed(state, level, pos, newState, moved, Direction.UP);
-		super.onRemove(state, level, pos, newState, moved);
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
+		TorchLevers.removed(state, level, pos, moved, Direction.UP);
+		super.affectNeighborsAfterRemoval(state, level, pos, moved);
 	}
 }

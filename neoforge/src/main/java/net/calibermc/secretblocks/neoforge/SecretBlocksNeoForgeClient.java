@@ -27,7 +27,7 @@ final class SecretBlocksNeoForgeClient {
 	}
 
 	static void init(IEventBus modBus) {
-		modBus.addListener((ModelEvent.RegisterLoaders event) -> NeoForgeClientRendering.registerLoader(event));
+		modBus.addListener((ModelEvent.ModifyBakingResult event) -> NeoForgeClientRendering.modifyBakingResult(event));
 		modBus.addListener((ModelEvent.BakingCompleted event) -> NeoForgeClientRendering.modelsBaked(event));
 		modBus.addListener((RegisterKeyMappingsEvent event) -> event.register(BuilderView.TOGGLE_KEY));
 		modBus.addListener((EntityRenderersEvent.RegisterRenderers event) ->

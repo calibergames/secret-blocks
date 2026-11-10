@@ -2,9 +2,10 @@ package net.calibermc.secretblocks.gametest;
 
 import net.calibermc.secretblocks.blocks.entity.SecretDispenserBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -54,7 +55,7 @@ public class DispenserGameTests {
 		if (entity instanceof SecretDispenserBlockEntity dispenser) {
 			return dispenser;
 		}
-		h.fail("expected a SecretDispenserBlockEntity, found " + entity, DISPENSER);
+		h.fail(Component.literal("expected a SecretDispenserBlockEntity, found " + entity), DISPENSER);
 		throw new AssertionError("unreachable");
 	}
 
@@ -71,7 +72,7 @@ public class DispenserGameTests {
 	}
 
 	/** Placed through the item, it faces the way a vanilla dispenser would, and copies the clicked block. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void facingMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		place(h, ModBlocks.SECRET_DISPENSER.asItem(), new Vec3(1.5, 1, 6.5), new BlockPos(1, 0, 3), Direction.UP, new Vec3(1.5, 1.0, 3.5));
@@ -94,7 +95,7 @@ public class DispenserGameTests {
 	 * appears: game tests share one world, and a flying item can reach a
 	 * neighbouring test's area (which may clear items) if checked late.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dispensesOncePerRisingEdge(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DISPENSER, facingNorth());
@@ -115,7 +116,7 @@ public class DispenserGameTests {
 	}
 
 	/** Vanilla dispense behaviors apply: an arrow is shot, not dropped. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void shootsArrows(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DISPENSER, facingNorth());
@@ -126,7 +127,7 @@ public class DispenserGameTests {
 	}
 
 	/** Dispensing toggles the TRIGGERED state; the disguise must survive it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void keepsDisguiseWhenTriggered(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DISPENSER, facingNorth());
@@ -146,7 +147,7 @@ public class DispenserGameTests {
 	}
 
 	/** It opens the vanilla 3×3 dispenser screen, titled with its own name. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void opensTheVanillaDispenserScreen(GameTestHelper h) {
 		h.setBlock(DISPENSER, facingNorth());
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
@@ -158,7 +159,7 @@ public class DispenserGameTests {
 	}
 
 	/** Contents and disguise survive a save and load of the block entity. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void contentsAndDisguiseSurviveSaveAndLoad(GameTestHelper h) {
 		h.setBlock(DISPENSER, facingNorth());
 		dispenser(h).setDisguise(all(Blocks.BRICKS));
@@ -181,7 +182,7 @@ public class DispenserGameTests {
 	}
 
 	/** Breaking it drops its contents and itself. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dropsContentsAndItselfWhenBroken(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DISPENSER, facingNorth());
@@ -195,7 +196,7 @@ public class DispenserGameTests {
 	}
 
 	/** A comparator reads its contents. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void comparatorReadsIt(GameTestHelper h) {
 		floor(h);
 		BlockPos comparator = DISPENSER.north();
@@ -209,7 +210,7 @@ public class DispenserGameTests {
 	}
 
 	/** Clients receive the disguise, never the contents. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void clientsGetTheDisguiseNotTheContents(GameTestHelper h) {
 		h.setBlock(DISPENSER, facingNorth());
 		dispenser(h).setDisguise(all(Blocks.BRICKS));
@@ -220,19 +221,19 @@ public class DispenserGameTests {
 	}
 
 	/** The block-entity update packet also carries the disguise only. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void updatePacketCarriesTheDisguiseOnly(GameTestHelper h) {
 		h.setBlock(DISPENSER, facingNorth());
 		dispenser(h).setDisguise(all(Blocks.BRICKS));
 		dispenser(h).setItem(0, new ItemStack(Items.DIAMOND, 5));
 		CompoundTag packet = dispenser(h).getUpdatePacket().getTag();
-		check(h, packet != null && packet.getCompound("northState").getString("Name").equals("minecraft:bricks") && !packet.contains("Items"),
+		check(h, packet != null && packet.getCompoundOrEmpty("northState").getStringOr("Name", "").equals("minecraft:bricks") && !packet.contains("Items"),
 				"update packet should carry the disguise only: " + packet);
 		h.succeed();
 	}
 
 	/** Setting the disguise (placement) marks the chunk for saving. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void setDisguiseMarksChunkForSaving(GameTestHelper h) {
 		h.setBlock(DISPENSER, facingNorth());
 		net.minecraft.world.level.chunk.LevelChunk chunk = h.getLevel().getChunkAt(h.absolutePos(DISPENSER));
@@ -243,7 +244,7 @@ public class DispenserGameTests {
 	}
 
 	/** Like a vanilla dispenser, a renamed Secret Dispenser keeps its name when broken. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void keepsItsCustomNameWhenBroken(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DISPENSER, facingNorth());
@@ -256,7 +257,7 @@ public class DispenserGameTests {
 	}
 
 	/** Dummy Block + dispenser. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipeWorks(GameTestHelper h) {
 		AbstractContainerMenu menu = new AbstractContainerMenu(null, 0) {
 			@Override

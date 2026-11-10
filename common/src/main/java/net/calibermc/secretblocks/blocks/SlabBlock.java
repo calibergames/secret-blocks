@@ -4,14 +4,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -41,15 +38,8 @@ public class SlabBlock extends net.minecraft.world.level.block.SlabBlock impleme
 	}
 
 	public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
-		SlabType slabType = (SlabType)state.getValue(TYPE);
-		switch(slabType) {
-			case DOUBLE:
-				return Shapes.block();
-			case TOP:
-				return TOP_AABB;
-			default:
-				return BOTTOM_AABB;
-		}
+		// The slab's own shape (a full block when double); the outline stays a full cube.
+		return super.getShape(state, world, pos, context);
 	}
 
 	@Override

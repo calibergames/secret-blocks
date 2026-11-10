@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.blocks.PressurePlate;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Pig;
@@ -53,7 +53,7 @@ public class PressurePlateGameTests {
 	}
 
 	/** A mob landing on it presses it; it powers the lamps beside and below it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void mobPressesPlate(GameTestHelper h) {
 		plate(h, ModBlocks.PRESSURE_PLATE);
 		h.spawnWithNoFreeWill(EntityType.PIG, PLATE.above());
@@ -65,7 +65,7 @@ public class PressurePlateGameTests {
 	}
 
 	/** Like the original's Secret Pressure Plate, any entity counts, dropped items too. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void droppedItemPressesPlate(GameTestHelper h) {
 		plate(h, ModBlocks.PRESSURE_PLATE);
 		h.spawnItem(Items.DIAMOND, 3.5f, 2.2f, 3.5f);
@@ -73,7 +73,7 @@ public class PressurePlateGameTests {
 	}
 
 	/** Released within about a second of the last entity leaving; lamps go off. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void releasesAfterMobLeaves(GameTestHelper h) {
 		plate(h, ModBlocks.PRESSURE_PLATE);
 		Pig pig = h.spawnWithNoFreeWill(EntityType.PIG, PLATE.above());
@@ -93,7 +93,7 @@ public class PressurePlateGameTests {
 	 * given a neighbor update, so it reads the stone's power directly (a
 	 * powered plate does not update the stone's neighbors itself).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void doesNotPowerThroughTheBlockBelow(GameTestHelper h) {
 		plate(h, ModBlocks.PRESSURE_PLATE);
 		h.setBlock(LAMP_BELOW, Blocks.STONE);
@@ -108,7 +108,7 @@ public class PressurePlateGameTests {
 		});
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void playerPlateIgnoresMobsAndItems(GameTestHelper h) {
 		plate(h, ModBlocks.PLAYER_PRESSURE_PLATE);
 		h.spawnWithNoFreeWill(EntityType.PIG, PLATE.above());
@@ -125,18 +125,18 @@ public class PressurePlateGameTests {
 	 * network connection), added to the level so it falls and steps on the
 	 * plate like any entity.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void playerPressesPlayerPlate(GameTestHelper h) {
 		playerSteps(h, ModBlocks.PLAYER_PRESSURE_PLATE, false);
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void playerPressesPlate(GameTestHelper h) {
 		playerSteps(h, ModBlocks.PRESSURE_PLATE, false);
 	}
 
 	/** Like the original, there is no sneak check: sneaking players press it too. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void sneakingPlayerPressesPlate(GameTestHelper h) {
 		playerSteps(h, ModBlocks.PRESSURE_PLATE, true);
 	}
@@ -146,7 +146,7 @@ public class PressurePlateGameTests {
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		player.setShiftKeyDown(sneaking);
 		Vec3 feet = abs(h, new Vec3(3.5, 2.5, 3.5));
-		player.moveTo(feet.x, feet.y, feet.z, 0, 0);
+		player.snapTo(feet.x, feet.y, feet.z, 0, 0);
 		h.getLevel().addFreshEntity(player);
 		h.runAfterDelay(30, () -> {
 			check(h, powered(h), "a player standing on the plate should press it");
@@ -156,7 +156,7 @@ public class PressurePlateGameTests {
 	}
 
 	/** A full, solid, drawn block, placed through the item with the floor's disguise. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void placedAsDisguisedFloor(GameTestHelper h) {
 		floor(h);
 		h.setBlock(PLATE.north(), Blocks.BRICKS);
@@ -170,7 +170,7 @@ public class PressurePlateGameTests {
 	}
 
 	/** Pressing changes the block state; the disguise must survive it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void keepsDisguiseWhenPressed(GameTestHelper h) {
 		floor(h);
 		h.setBlock(PLATE.north(), Blocks.BRICKS);
@@ -182,7 +182,7 @@ public class PressurePlateGameTests {
 		});
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dropsItselfWhenBroken(GameTestHelper h) {
 		floor(h);
 		for (Block block : new Block[] {ModBlocks.PRESSURE_PLATE, ModBlocks.PLAYER_PRESSURE_PLATE}) {
@@ -203,7 +203,7 @@ public class PressurePlateGameTests {
 	}
 
 	/** Dummy Block + any wooden plate → Secret Pressure Plate; + stone plate → Secret Player Pressure Plate. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipesWork(GameTestHelper h) {
 		Item dummy = ModBlocks.SOLID_BLOCK.asItem();
 		checkCrafts(h, ModBlocks.PRESSURE_PLATE.asItem(), dummy, Items.OAK_PRESSURE_PLATE);

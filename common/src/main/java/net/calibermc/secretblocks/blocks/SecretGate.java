@@ -187,11 +187,9 @@ public class SecretGate extends Block implements EntityBlock, SecretBlock, GateS
 
 	/** Broken or replaced: its segments go, and, if it was open, the gates it opened close. */
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
-		if (!level.isClientSide() && !state.is(newState.getBlock())) {
-			removeLine(level, pos, state, state.getValue(OPEN));
-		}
-		super.onRemove(state, level, pos, newState, moved);
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
+		removeLine(level, pos, state, state.getValue(OPEN));
+		super.affectNeighborsAfterRemoval(state, level, pos, moved);
 	}
 
 	/**

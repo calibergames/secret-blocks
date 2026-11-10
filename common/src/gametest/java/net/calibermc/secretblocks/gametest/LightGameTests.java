@@ -8,7 +8,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
@@ -48,7 +48,7 @@ public class LightGameTests {
 	 * no longer counts as solid to renderers); stone, tinted glass and no
 	 * disguise do not; one stone face is enough to block it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lightFollowsTheLooks(GameTestHelper h) {
 		floor(h);
 		h.setBlock(AT, ModBlocks.SOLID_BLOCK);
@@ -72,7 +72,7 @@ public class LightGameTests {
 	}
 
 	/** Every disguised secret block drawn as a full block carries the property; doors, trapdoors, One Way Glass, the Ghost Block and Clamber do not. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theRightBlocksCarryIt(GameTestHelper h) {
 		List<String> problems = new ArrayList<>();
 		int carriers = 0;
@@ -104,7 +104,7 @@ public class LightGameTests {
 	 * through glass (13 two blocks on), and not through one that looks like
 	 * stone (light has to go round it).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 60)
+	@GameTest(maxTicks = 60)
 	public void lampLightShinesThroughAGlassLook(GameTestHelper h) {
 		floor(h);
 		BlockPos lamp = new BlockPos(1, 2, 3);
@@ -130,7 +130,7 @@ public class LightGameTests {
 	 * connections change, also when vanilla rebuilds its state from the
 	 * default one (a change above it).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dustKeepsItsLightWhenItConnects(GameTestHelper h) {
 		floor(h);
 		h.setBlock(AT.below(), Blocks.STONE);
@@ -146,7 +146,7 @@ public class LightGameTests {
 	}
 
 	/** A secret block whose state disagrees with its looks (a world saved before) is put right by a check. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aWrongStateIsPutRight(GameTestHelper h) {
 		floor(h);
 		h.setBlock(AT, ModBlocks.SOLID_BLOCK);
@@ -165,7 +165,7 @@ public class LightGameTests {
 	}
 
 	/** A Secret Piston that looks like glass pushes out a see-through head and stays see-through out and back. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 60)
+	@GameTest(maxTicks = 60)
 	public void aGlassLookPistonMoves(GameTestHelper h) {
 		floor(h);
 		BlockPos base = new BlockPos(2, 1, 3);
@@ -187,7 +187,7 @@ public class LightGameTests {
 	}
 
 	/** A Secret Gate that looks like glass builds see-through segments. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void aGlassLookGateBuildsSeeThroughSegments(GameTestHelper h) {
 		floor(h);
 		BlockPos gate = new BlockPos(1, 1, 3);
@@ -205,7 +205,7 @@ public class LightGameTests {
 	}
 
 	/** A Secret Hopper that looks like glass moves items as usual and stays see-through. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 80)
+	@GameTest(maxTicks = 80)
 	public void aGlassLookHopperMovesItems(GameTestHelper h) {
 		floor(h);
 		BlockPos hopper = new BlockPos(3, 2, 3);
@@ -223,7 +223,7 @@ public class LightGameTests {
 	}
 
 	/** The check run as a chunk loads notes a wrong secret block, and the end of the tick puts it right. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theChunkLoadCheckPutsItRight(GameTestHelper h) {
 		floor(h);
 		h.setBlock(AT, ModBlocks.SOLID_BLOCK);
@@ -242,7 +242,7 @@ public class LightGameTests {
 	 * chunk holding a wrong secret block, then the level's next tick. This is
 	 * what puts right a chunk saved with a wrong state when it loads again.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theLoaderEventsPutItRight(GameTestHelper h) {
 		floor(h);
 		h.setBlock(AT, ModBlocks.SOLID_BLOCK);

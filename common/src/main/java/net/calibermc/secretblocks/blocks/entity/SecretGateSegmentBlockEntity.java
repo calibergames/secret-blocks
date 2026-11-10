@@ -111,7 +111,7 @@ public class SecretGateSegmentBlockEntity extends BlockEntity implements Disguis
 	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadAdditional(tag, registries);
 		disguise.load(tag);
-		owner = tag.contains(OWNER, CompoundTag.TAG_COMPOUND) ? readPos(tag.getCompound(OWNER)) : null;
+		owner = tag.get(OWNER) instanceof CompoundTag ? readPos(tag.getCompoundOrEmpty(OWNER)) : null;
 		DisguisedBlockEntity.redrawAfterLoad(this);
 	}
 
@@ -125,7 +125,7 @@ public class SecretGateSegmentBlockEntity extends BlockEntity implements Disguis
 	}
 
 	private static BlockPos readPos(CompoundTag tag) {
-		return new BlockPos(tag.getInt("X"), tag.getInt("Y"), tag.getInt("Z"));
+		return new BlockPos(tag.getIntOr("X", 0), tag.getIntOr("Y", 0), tag.getIntOr("Z", 0));
 	}
 
 	@Override
@@ -137,5 +137,19 @@ public class SecretGateSegmentBlockEntity extends BlockEntity implements Disguis
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		return disguise.saveForClients(new CompoundTag());
+	}
+
+	/**
+	 * The segment is being replaced by another block: its gate takes it out of
+	 * the line (the gate's own removal of its segments comes through here too).
+	 */
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		if (level != null && owner != null && level.isLoaded(owner)) {
+			BlockState ownerState = level.getBlockState(owner);
+			if (ownerState.getBlock() instanceof GateSegmentOwner gate) {
+				gate.segmentRemoved(ownerState, level, owner, pos);
+			}
+		}
 	}
 }

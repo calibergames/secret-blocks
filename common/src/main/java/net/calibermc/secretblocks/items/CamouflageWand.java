@@ -3,12 +3,14 @@ package net.calibermc.secretblocks.items;
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.registry.ModItems;
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -24,7 +26,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -121,12 +122,12 @@ public class CamouflageWand extends Item {
 	 */
 	public static Optional<BlockState> loadedDisguise(ItemStack stack) {
 		CompoundTag tag = ItemData.read(stack);
-		if (!tag.contains(DISGUISE, Tag.TAG_COMPOUND)) {
+		if (!(tag.get(DISGUISE) instanceof CompoundTag)) {
 			return Optional.empty();
 		}
-		CompoundTag disguise = tag.getCompound(DISGUISE);
+		CompoundTag disguise = tag.getCompoundOrEmpty(DISGUISE);
 		// readBlockState throws on a malformed id; an unknown but well-formed one reads as air.
-		if (!disguise.contains("Name", Tag.TAG_STRING) || ResourceLocation.tryParse(disguise.getString("Name")) == null) {
+		if (!(disguise.get("Name") instanceof StringTag) || ResourceLocation.tryParse(disguise.getStringOr("Name", "")) == null) {
 			return Optional.empty();
 		}
 		BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, disguise);
@@ -139,8 +140,9 @@ public class CamouflageWand extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		tooltip.add(loadedDisguise(stack)
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip,
+			TooltipFlag flag) {
+		tooltip.accept(loadedDisguise(stack)
 				.map(state -> Component.translatable(MESSAGES + "tooltip.loaded", state.getBlock().getName()))
 				.orElse(Component.translatable(MESSAGES + "tooltip.empty"))
 				.withStyle(ChatFormatting.GRAY));

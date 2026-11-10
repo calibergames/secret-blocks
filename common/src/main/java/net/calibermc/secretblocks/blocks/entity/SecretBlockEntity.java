@@ -71,6 +71,17 @@ public class SecretBlockEntity extends BlockEntity implements DisguisedBlockEnti
 		}
 	}
 
+	/**
+	 * The block is being replaced by another block (not moved by a piston),
+	 * while this block entity still exists: drop what it holds, once.
+	 */
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		if (level != null) {
+			dropStoredItems(level, pos);
+		}
+	}
+
 	@Override
 	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.saveAdditional(tag, registries);

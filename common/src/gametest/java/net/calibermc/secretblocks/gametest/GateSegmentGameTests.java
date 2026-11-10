@@ -9,7 +9,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -89,7 +89,7 @@ public class GateSegmentGameTests {
 	 * No item, nothing dropped (broken by hand or by a survival player), and
 	 * pick-block gives nothing (there is no item; the block also says so).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void noItemNoDropsNoPickBlock(GameTestHelper h) {
 		floor(h);
 		owner(h, true);
@@ -116,7 +116,7 @@ public class GateSegmentGameTests {
 	 * What it is made of: wool-like toughness, a conductor, a full block
 	 * with no light, no counterpart, and pistons can neither push nor break it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void properties(GameTestHelper h) {
 		floor(h);
 		owner(h, true);
@@ -139,7 +139,7 @@ public class GateSegmentGameTests {
 	 * a block with a block entity, so this passes without the segment's own
 	 * {@code PushReaction.BLOCK}; {@link #properties} checks that.)
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void aPistonCannotMoveIt(GameTestHelper h) {
 		floor(h);
 		owner(h, true);
@@ -161,7 +161,7 @@ public class GateSegmentGameTests {
 	}
 
 	/** Segments on a powered owner's line stay, check after check. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void keptWhileItsOwnerKeepsIt(GameTestHelper h) {
 		floor(h);
 		owner(h, true);
@@ -180,7 +180,7 @@ public class GateSegmentGameTests {
 	 * Its owner gone, a segment removes itself on its next check, dropping
 	 * nothing; so does a segment loaded from a save whose owner is gone.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void removedWhenItsOwnerIsGone(GameTestHelper h) {
 		floor(h);
 		owner(h, true);
@@ -204,7 +204,7 @@ public class GateSegmentGameTests {
 	}
 
 	/** Its owner unpowered, a segment removes itself; one placed beside an unpowered owner goes at once. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void removedWhenItsOwnerIsUnpowered(GameTestHelper h) {
 		floor(h);
 		owner(h, true);
@@ -223,7 +223,7 @@ public class GateSegmentGameTests {
 	}
 
 	/** A segment whose owner position holds some other block (here stone) removes itself. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void removedWhenItsOwnerIsNotAGate(GameTestHelper h) {
 		floor(h);
 		h.setBlock(OWNER, Blocks.STONE);
@@ -235,7 +235,7 @@ public class GateSegmentGameTests {
 	}
 
 	/** A segment placed by {@code /setblock}, with no owner, removes itself. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void aSegmentFromSetblockIsRemoved(GameTestHelper h) {
 		floor(h);
 		owner(h, true);
@@ -253,7 +253,7 @@ public class GateSegmentGameTests {
 	 * A segment copied by {@code /clone} off its owner's line removes itself
 	 * (its owner does not keep a segment there); the original stays.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void aClonedSegmentIsRemoved(GameTestHelper h) {
 		floor(h);
 		owner(h, true);
@@ -275,7 +275,7 @@ public class GateSegmentGameTests {
 	 * loaded either) is not waited for: the segment goes, and the check loads
 	 * nothing.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void anOwnerOutOfReachIsNotWaitedFor(GameTestHelper h) {
 		floor(h);
 		BlockPos far = h.absolutePos(OWNER).offset(20000, 0, 0);
@@ -294,7 +294,7 @@ public class GateSegmentGameTests {
 	 * segment and is not asked; a loaded one decides; no owner, or one out of
 	 * reach (off its six lines, or more than 9 away), never keeps it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void theOwnershipDecision(GameTestHelper h) {
 		BlockPos segment = new BlockPos(100, 64, 100);
 		java.util.function.Predicate<BlockPos> mustNotAsk = owner -> {
@@ -319,7 +319,7 @@ public class GateSegmentGameTests {
 	}
 
 	/** The owner's position and the disguise are saved; clients receive the disguise only. */
-	@GameTest(template = EMPTY_STRUCTURE, skyAccess = true)
+	@GameTest(skyAccess = true)
 	public void ownerIsSavedButNeverSentToClients(GameTestHelper h) {
 		floor(h);
 		owner(h, true);
@@ -328,7 +328,7 @@ public class GateSegmentGameTests {
 		segment.setDisguise(all(Blocks.BRICKS));
 		checkFaces(h, rel, Blocks.BRICKS);
 		CompoundTag saved = segment.saveWithFullMetadata(h.getLevel().registryAccess());
-		check(h, saved.getString("id").equals("secretblocks:secret_gate_segment"), "it should save as secretblocks:secret_gate_segment, got " + saved.getString("id"));
+		check(h, saved.getStringOr("id", "").equals("secretblocks:secret_gate_segment"), "it should save as secretblocks:secret_gate_segment, got " + saved.getStringOr("id", ""));
 		check(h, saved.contains(SecretGateSegmentBlockEntity.OWNER), "the owner should be saved: " + saved);
 		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(rel), h.getBlockState(rel), saved, h.getLevel().registryAccess());
 		check(h, loaded instanceof SecretGateSegmentBlockEntity copy && h.absolutePos(OWNER).equals(copy.getOwner())

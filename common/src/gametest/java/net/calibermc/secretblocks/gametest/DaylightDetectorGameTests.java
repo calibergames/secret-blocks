@@ -5,9 +5,8 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.AfterBatch;
-import net.minecraft.gametest.framework.BeforeBatch;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
+import net.calibermc.secretblocks.gametest.support.TestEnvironments;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -35,8 +34,8 @@ import static net.calibermc.secretblocks.gametest.TestSupport.*;
  * from the brightest sky light around it. Each check has a vanilla detector
  * beside it under the same sky. The time of day and the weather belong to the
  * whole test world, so the tests that need noon, midnight or rain run in
- * batches of their own, which set them first and put noon and clear weather
- * back afterwards.
+ * test environments of their own, which set them first and put noon and clear
+ * weather back afterwards.
  *
  * Detectors update once a second, and the light engine needs a tick or two
  * after blocks are placed, so every check waits 45 ticks or more.
@@ -44,74 +43,12 @@ import static net.calibermc.secretblocks.gametest.TestSupport.*;
 public class DaylightDetectorGameTests {
 
 	private static final Block SECRET = ModBlocks.SECRET_DAYLIGHT_DETECTOR;
-	private static final String NOON = "secretblocks_daylight_noon";
-	private static final String MIDNIGHT = "secretblocks_daylight_midnight";
-	private static final String RAIN = "secretblocks_daylight_rain";
-	private static final String MORNING = "secretblocks_daylight_morning";
-	private static final String DUSK = "secretblocks_daylight_dusk";
-	private static final String BEFORE_DAWN = "secretblocks_daylight_before_dawn";
-
-	private static void sky(ServerLevel level, long dayTime, boolean rain) {
-		level.setDayTime(dayTime);
-		level.setWeatherParameters(rain ? 0 : 100000, rain ? 100000 : 0, rain, false);
-		// At once, not over the 100 ticks the weather takes to change: a batch must not start in the last one's fading rain.
-		level.setRainLevel(rain ? 1.0F : 0.0F);
-	}
-
-	@BeforeBatch(batch = NOON)
-	public static void noon(ServerLevel level) {
-		sky(level, 6000, false);
-	}
-
-	@BeforeBatch(batch = MIDNIGHT)
-	public static void midnight(ServerLevel level) {
-		sky(level, 18000, false);
-	}
-
-	@BeforeBatch(batch = RAIN)
-	public static void rain(ServerLevel level) {
-		sky(level, 6000, true);
-	}
-
-	@BeforeBatch(batch = MORNING)
-	public static void morning(ServerLevel level) {
-		sky(level, 1000, false);
-	}
-
-	@BeforeBatch(batch = DUSK)
-	public static void dusk(ServerLevel level) {
-		sky(level, 12500, false);
-	}
-
-	@BeforeBatch(batch = BEFORE_DAWN)
-	public static void beforeDawn(ServerLevel level) {
-		sky(level, 23000, false);
-	}
-
-	@AfterBatch(batch = MORNING)
-	public static void afterMorning(ServerLevel level) {
-		sky(level, 6000, false);
-	}
-
-	@AfterBatch(batch = DUSK)
-	public static void afterDusk(ServerLevel level) {
-		sky(level, 6000, false);
-	}
-
-	@AfterBatch(batch = BEFORE_DAWN)
-	public static void afterBeforeDawn(ServerLevel level) {
-		sky(level, 6000, false);
-	}
-
-	@AfterBatch(batch = MIDNIGHT)
-	public static void afterMidnight(ServerLevel level) {
-		sky(level, 6000, false);
-	}
-
-	@AfterBatch(batch = RAIN)
-	public static void afterRain(ServerLevel level) {
-		sky(level, 6000, false);
-	}
+	private static final String NOON = TestEnvironments.DAYLIGHT_NOON;
+	private static final String MIDNIGHT = TestEnvironments.DAYLIGHT_MIDNIGHT;
+	private static final String RAIN = TestEnvironments.DAYLIGHT_RAIN;
+	private static final String MORNING = TestEnvironments.DAYLIGHT_MORNING;
+	private static final String DUSK = TestEnvironments.DAYLIGHT_DUSK;
+	private static final String BEFORE_DAWN = TestEnvironments.DAYLIGHT_BEFORE_DAWN;
 
 	private static int power(GameTestHelper h, int x, int y, int z) {
 		return h.getBlockState(new BlockPos(x, y, z)).getValue(DaylightDetectorBlock.POWER);
@@ -136,7 +73,7 @@ public class DaylightDetectorGameTests {
 	}
 
 	/** Noon under an open sky: 15, and a lamp beside it lights; inverted: 0. As a vanilla detector. */
-	@GameTest(template = EMPTY_STRUCTURE, batch = NOON, timeoutTicks = 150)
+	@GameTest(environment = NOON, maxTicks = 150)
 	public void noonUnderAnOpenSky(GameTestHelper h) {
 		floor(h);
 		// Plain: Secret (1, 1, 1), vanilla (5, 1, 1). Inverted: Secret (1, 1, 5), vanilla (5, 1, 5). A lamp beside each plain one.
@@ -160,7 +97,7 @@ public class DaylightDetectorGameTests {
 	 * buried vanilla detector. Buried after it was lit, it follows within two
 	 * updates.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, batch = NOON, timeoutTicks = 200)
+	@GameTest(environment = NOON, maxTicks = 200)
 	public void buriedReadsDark(GameTestHelper h) {
 		floor(h);
 		// Plain: Secret (1, 1, 1), vanilla (5, 1, 1). Inverted: Secret (1, 1, 5), vanilla (5, 1, 5).
@@ -168,17 +105,21 @@ public class DaylightDetectorGameTests {
 		h.setBlock(5, 1, 1, Blocks.DAYLIGHT_DETECTOR);
 		h.setBlock(1, 1, 5, inverted(SECRET));
 		h.setBlock(5, 1, 5, inverted(Blocks.DAYLIGHT_DETECTOR));
+		boolean[] buried = {false};
 		h.runAfterDelay(45, () -> {
 			both(h, "before burying", 15, power(h, 1, 1, 1), power(h, 5, 1, 1));
 			for (int x : new int[] {1, 5}) {
 				bury(h, x, 1, 1);
 				bury(h, x, 1, 5);
 			}
+			buried[0] = true;
 		});
-		h.runAfterDelay(100, () -> {
+		// Once buried, both detectors read dark as soon as the sky light has
+		// spread and they update (once a second): checked each tick until then.
+		h.succeedWhen(() -> {
+			check(h, buried[0], "not buried yet");
 			both(h, "buried", 0, power(h, 1, 1, 1), power(h, 5, 1, 1));
 			both(h, "buried, inverted", 15, power(h, 1, 1, 5), power(h, 5, 1, 5));
-			h.succeed();
 		});
 	}
 
@@ -188,7 +129,7 @@ public class DaylightDetectorGameTests {
 	 * from below what reaches the space under it. A vanilla detector under a
 	 * block reads one less than full, the light that reaches its own space.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, batch = NOON, timeoutTicks = 150)
+	@GameTest(environment = NOON, maxTicks = 150)
 	public void anyOneOpenFaceIsEnough(GameTestHelper h) {
 		floor(h);
 		// One detector per face, each buried on its five other sides. The one open below sits high and to one
@@ -224,7 +165,7 @@ public class DaylightDetectorGameTests {
 	 * detector; the disguise is kept through it; a player who may not build
 	 * changes nothing.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, batch = NOON, timeoutTicks = 150)
+	@GameTest(environment = NOON, maxTicks = 150)
 	public void useTogglesInverted(GameTestHelper h) {
 		floor(h);
 		BlockPos secret = new BlockPos(1, 1, 1);
@@ -262,7 +203,7 @@ public class DaylightDetectorGameTests {
 	 * conductor: a lamp behind a block next to it stays off, where a strongly
 	 * powered block would light it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, batch = NOON, timeoutTicks = 150)
+	@GameTest(environment = NOON, maxTicks = 150)
 	public void weakPowerOnEverySide(GameTestHelper h) {
 		floor(h);
 		BlockPos pos = new BlockPos(2, 1, 2);
@@ -292,7 +233,7 @@ public class DaylightDetectorGameTests {
 	}
 
 	/** Midnight under an open sky: 0, and inverted the same value as a vanilla detector (11). */
-	@GameTest(template = EMPTY_STRUCTURE, batch = MIDNIGHT, timeoutTicks = 150)
+	@GameTest(environment = MIDNIGHT, maxTicks = 150)
 	public void midnightUnderAnOpenSky(GameTestHelper h) {
 		floor(h);
 		h.setBlock(1, 1, 1, SECRET);
@@ -327,23 +268,23 @@ public class DaylightDetectorGameTests {
 		});
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE, batch = MORNING, timeoutTicks = 150)
+	@GameTest(environment = MORNING, maxTicks = 150)
 	public void morningMatchesVanilla(GameTestHelper h) {
 		matchesVanillaNow(h, "in the morning");
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE, batch = DUSK, timeoutTicks = 150)
+	@GameTest(environment = DUSK, maxTicks = 150)
 	public void duskMatchesVanilla(GameTestHelper h) {
 		matchesVanillaNow(h, "at dusk");
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE, batch = BEFORE_DAWN, timeoutTicks = 150)
+	@GameTest(environment = BEFORE_DAWN, maxTicks = 150)
 	public void beforeDawnMatchesVanilla(GameTestHelper h) {
 		matchesVanillaNow(h, "before dawn");
 	}
 
 	/** Rain at noon dims the sky: both give the same value, less than 15 (12 in full rain). */
-	@GameTest(template = EMPTY_STRUCTURE, batch = RAIN, timeoutTicks = 400)
+	@GameTest(environment = RAIN, maxTicks = 400)
 	public void rainAtNoon(GameTestHelper h) {
 		floor(h);
 		h.setBlock(1, 1, 1, SECRET);
@@ -361,7 +302,7 @@ public class DaylightDetectorGameTests {
 	 * inverted; rain at noon (darkened by 3) 12; one less light, one less
 	 * signal.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void formulaOnKnownValues(GameTestHelper h) {
 		float pi = (float) Math.PI;
 		int[][] cases = {{15, 0, 0, 0, 15}, {15, 11, 1, 0, 0}, {15, 11, 1, 1, 11}, {0, 0, 0, 0, 0}, {0, 0, 0, 1, 15}, {15, 3, 0, 0, 12}, {14, 0, 0, 0, 14}, {0, 11, 1, 1, 15}};
@@ -382,7 +323,7 @@ public class DaylightDetectorGameTests {
 	 * Where there is no sky it never updates, as vanilla: the block gives no
 	 * ticker in the Nether, and gives one in the Overworld.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void noUpdatesWithoutASky(GameTestHelper h) {
 		EntityBlock secret = (EntityBlock) SECRET;
 		EntityBlock vanilla = (EntityBlock) Blocks.DAYLIGHT_DETECTOR;
@@ -395,7 +336,7 @@ public class DaylightDetectorGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipe(GameTestHelper h) {
 		Optional<ItemStack> made = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.DAYLIGHT_DETECTOR);
 		check(h, made.isPresent() && made.get().is(SECRET.asItem()), "Dummy Block + daylight detector should make the Secret Daylight Detector, got " + made);

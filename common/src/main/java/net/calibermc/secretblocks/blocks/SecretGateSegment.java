@@ -72,18 +72,6 @@ public class SecretGateSegment extends Block implements EntityBlock, SecretBlock
 	}
 
 	/** Tell the owner, so a gate that is open can build it again. */
-	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
-		if (!level.isClientSide() && !state.is(newState.getBlock())
-				&& level.getBlockEntity(pos) instanceof SecretGateSegmentBlockEntity segment && segment.getOwner() != null
-				&& level.isLoaded(segment.getOwner())) {
-			BlockState ownerState = level.getBlockState(segment.getOwner());
-			if (ownerState.getBlock() instanceof GateSegmentOwner owner) {
-				owner.segmentRemoved(ownerState, level, segment.getOwner(), pos);
-			}
-		}
-		super.onRemove(state, level, pos, newState, moved);
-	}
 
 	/** No pick-block: there is no item to pick (vanilla's would be empty too; this says so). */
 	@Override

@@ -1,10 +1,10 @@
 package net.calibermc.secretblocks.blocks;
 
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
-import net.minecraft.world.entity.player.Player;
 import net.calibermc.secretblocks.blocks.entity.SecretSculkSensorBlockEntity;
 import net.calibermc.secretblocks.registry.ModEntities;
 import net.minecraft.core.BlockPos;
@@ -101,7 +101,7 @@ public class SecretSculkSensor extends SculkSensorBlock implements SecretBlock {
 	}
 
 	@Override
-	public boolean canPlaceLiquid(@Nullable Player player, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
+	public boolean canPlaceLiquid(@Nullable LivingEntity owner, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
 		return false;
 	}
 

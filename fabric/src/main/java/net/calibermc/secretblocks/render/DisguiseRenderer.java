@@ -1,7 +1,6 @@
 package net.calibermc.secretblocks.render;
 
 import net.calibermc.secretblocks.blocks.DisguiseLook;
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.calibermc.secretblocks.blocks.DoorBlock;
@@ -14,7 +13,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +25,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import net.calibermc.secretblocks.blocks.entity.Disguise;
 import net.calibermc.secretblocks.platform.Services;
 
@@ -49,7 +49,7 @@ public final class DisguiseRenderer {
 	}
 
 	public static void render(Disguise disguise, QuadEmitter emitter, BlockAndTintGetter blockView, BlockState state, BlockPos pos,
-			Supplier<net.minecraft.util.RandomSource> randomSupplier, Predicate<Direction> cullTest) {
+			RandomSource random, Predicate<Direction> cullTest) {
 
 		boolean builder = BuilderView.isActive();
 		boolean joinsAbove = builder && DoorHalves.joinsAbove(blockView, pos, state);
@@ -65,15 +65,15 @@ public final class DisguiseRenderer {
 			int tempRotation = 0;
 
 			if (tag.contains(direction.name().toLowerCase() + "State")) {
-				tempState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompound(direction.name().toLowerCase() + "State"));
+				tempState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompoundOrEmpty(direction.name().toLowerCase() + "State"));
 			}
 
 			if (tag.contains(direction.name().toLowerCase() + "Direction")) {
-				tempDirection = Disguise.byName(tag.getString(direction.name().toLowerCase() + "Direction"));
+				tempDirection = Disguise.byName(tag.getStringOr(direction.name().toLowerCase() + "Direction", ""));
 			}
 
 			if (tag.contains(direction.name().toLowerCase() + "Rotation")) {
-				tempRotation = tag.getInt(direction.name().toLowerCase() + "Rotation");
+				tempRotation = tag.getIntOr(direction.name().toLowerCase() + "Rotation", 0);
 			}
 
 			if (!DisguiseLook.showsItself(tempState, blockView, pos, tempDirection)) {
@@ -81,8 +81,9 @@ public final class DisguiseRenderer {
 			}
 			RenderMaterial layer = builder ? null : DisguiseMaterials.forDisguise(tempState);
 
-			BakedModel fullModel = minecraft.getBlockRenderer().getBlockModel(tempState);
-			List<BakedQuad> abqList = fullModel.getQuads(tempState, tempDirection,  randomSupplier.get());
+			BlockStateModel fullModel = minecraft.getBlockRenderer().getBlockModel(tempState);
+			random.setSeed(tempState.getSeed(pos));
+			List<BakedQuad> abqList = quadsOf(fullModel, tempDirection, random);
 
 			BlockColors colors = minecraft.getBlockColors();
 			int color = 0xFF00_0000 | colors.getColor(tempState, blockView, pos, 0xFF);
@@ -105,12 +106,12 @@ public final class DisguiseRenderer {
 			boolean whole = !ghost && tempRotation == 0 && tempDirection == direction
 					&& !(state.getBlock() instanceof DoorBlock) && !(state.getBlock() instanceof TrapdoorBlock);
 			if (whole) {
-				emitWhole(emitter, cullTest, fullModel, abqList, tempState, blockView, pos, randomSupplier, direction, layer, builder);
+				emitWhole(emitter, cullTest, fullModel, tempState, blockView, pos, random, direction, layer, builder);
 			}
 
 			for (BakedQuad quad : ghost || whole ? List.<BakedQuad>of() : abqList) {
 
-				TextureAtlasSprite quadSprite = quad.getSprite();
+				TextureAtlasSprite quadSprite = quad.sprite();
 
 				emitShape(emitter, state, direction);
 
@@ -141,7 +142,7 @@ public final class DisguiseRenderer {
 			}
 		}
 		if (builder) {
-			emitRealBlock(state, blockView, pos, randomSupplier, emitter);
+			emitRealBlock(state, blockView, pos, random, emitter);
 		}
 	}
 
@@ -158,24 +159,27 @@ public final class DisguiseRenderer {
 	 * block's own, which crashed on redstone wire's multipart model.
 	 */
 	private static void emitRealBlock(BlockState state, BlockAndTintGetter blockView, BlockPos pos,
-			Supplier<net.minecraft.util.RandomSource> randomSupplier, QuadEmitter emitter) {
+			RandomSource random, QuadEmitter emitter) {
 		DisguiseShapes.realStateOf(state).ifPresent(vanilla -> {
 			BlockColors colors = Minecraft.getInstance().getBlockColors();
-			BakedModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(vanilla);
-			RenderMaterial material = FabricMaterials.real(model.useAmbientOcclusion());
-			for (int index = 0; index <= Direction.values().length; index++) {
-				Direction face = index < Direction.values().length ? Direction.values()[index] : null;
-				for (BakedQuad quad : model.getQuads(vanilla, face, randomSupplier.get())) {
-					emitter.fromVanilla(quad, material, face);
-					for (int i = 0; i < 4; i++) {
-						emitter.pos(i, shrink(emitter.x(i)), shrink(emitter.y(i)), shrink(emitter.z(i)));
+			BlockStateModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(vanilla);
+			random.setSeed(vanilla.getSeed(pos));
+			for (BlockModelPart part : model.collectParts(random)) {
+				RenderMaterial material = FabricMaterials.real(part.useAmbientOcclusion());
+				for (int index = 0; index <= Direction.values().length; index++) {
+					Direction face = index < Direction.values().length ? Direction.values()[index] : null;
+					for (BakedQuad quad : part.getQuads(face)) {
+						emitter.fromVanilla(quad, material, face);
+						for (int i = 0; i < 4; i++) {
+							emitter.pos(i, shrink(emitter.x(i)), shrink(emitter.y(i)), shrink(emitter.z(i)));
+						}
+						if (quad.isTinted()) {
+							int tint = 0xFF00_0000 | colors.getColor(vanilla, blockView, pos, quad.tintIndex());
+							emitter.color(tint, tint, tint, tint);
+							emitter.tintIndex(-1);
+						}
+						emitter.emit();
 					}
-					if (quad.isTinted()) {
-						int tint = 0xFF00_0000 | colors.getColor(vanilla, blockView, pos, quad.getTintIndex());
-						emitter.color(tint, tint, tint, tint);
-						emitter.tintIndex(-1);
-					}
-					emitter.emit();
 				}
 			}
 		});
@@ -188,40 +192,39 @@ public final class DisguiseRenderer {
 
 
 	/**
-	 * One side of a look drawn by the look's own model. A model that renders
-	 * itself (connected textures, for one) is given a view where secret
-	 * blocks read as their looks, and only its quads on this side are kept;
-	 * a plain model's quads are copied with their own texture coordinates, so
-	 * random variants and rotations show as on the real block. Tints are the
-	 * look's, and the material is the look's pass (or the Builder's Goggles'
-	 * fade).
+	 * One side of a look drawn by the look's own model, given a view where
+	 * secret blocks read as their looks (so a connected-texture model works out
+	 * its connections as for the look itself); only its quads on this side are
+	 * kept, with their own texture coordinates, so random variants and
+	 * rotations show as on the real block. Tints are the look's, and the
+	 * material is the look's pass (or the Builder's Goggles' fade).
 	 */
-	private static void emitWhole(QuadEmitter emitter, Predicate<Direction> cullTest, BakedModel model, List<BakedQuad> quads, BlockState look,
-			BlockAndTintGetter blockView, BlockPos pos, Supplier<net.minecraft.util.RandomSource> randomSupplier, Direction direction,
+	private static void emitWhole(QuadEmitter emitter, Predicate<Direction> cullTest, BlockStateModel model, BlockState look,
+			BlockAndTintGetter blockView, BlockPos pos, RandomSource random, Direction direction,
 			@org.jetbrains.annotations.Nullable RenderMaterial layer, boolean builder) {
-		// Every baked model is a FabricBakedModel; a plain vanilla one is its adapter.
-		FabricBakedModel fabric = (FabricBakedModel) model;
-		if (!fabric.isVanillaAdapter()) {
-			emitter.pushTransform(quad -> {
-				Direction side = quad.cullFace() != null ? quad.cullFace() : quad.lightFace();
-				if (side != direction) {
-					return false;
-				}
-				finishWhole(quad, look, blockView, pos, layer, builder);
-				return true;
-			});
-			try {
-				fabric.emitBlockQuads(emitter, new LookView(blockView, direction), look, pos, randomSupplier, cullTest);
-			} finally {
-				emitter.popTransform();
+		emitter.pushTransform(quad -> {
+			Direction side = quad.cullFace() != null ? quad.cullFace() : quad.lightFace();
+			if (side != direction) {
+				return false;
 			}
-		} else {
-			for (BakedQuad quad : quads) {
-				emitter.fromVanilla(quad, layer, direction);
-				finishWhole(emitter, look, blockView, pos, layer, builder);
-				emitter.emit();
-			}
+			finishWhole(quad, look, blockView, pos, layer, builder);
+			return true;
+		});
+		try {
+			random.setSeed(look.getSeed(pos));
+			model.emitQuads(emitter, new LookView(blockView, direction), pos, look, random, cullTest);
+		} finally {
+			emitter.popTransform();
 		}
+	}
+
+	/** A model's quads on one side (or none), from every part it draws. */
+	private static List<BakedQuad> quadsOf(BlockStateModel model, @org.jetbrains.annotations.Nullable Direction side, RandomSource random) {
+		List<BakedQuad> quads = new java.util.ArrayList<>();
+		for (BlockModelPart part : model.collectParts(random)) {
+			quads.addAll(part.getQuads(side));
+		}
+		return quads;
 	}
 
 	private static void finishWhole(MutableQuadView quad, BlockState look, BlockAndTintGetter blockView, BlockPos pos,

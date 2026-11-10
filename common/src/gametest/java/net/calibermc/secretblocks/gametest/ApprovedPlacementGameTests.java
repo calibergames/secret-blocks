@@ -3,7 +3,7 @@ package net.calibermc.secretblocks.gametest;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -47,7 +47,7 @@ public class ApprovedPlacementGameTests {
 	 * volume and pitch, as placing the look itself would: glass, not the
 	 * Dummy Block's own wool.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void placingPlaysTheLooksSound(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.GLASS);
@@ -65,7 +65,7 @@ public class ApprovedPlacementGameTests {
 	}
 
 	/** P6, different type: copies the clicked face (1.2.0 copied the down face, diamond). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void differentSecretTypeCopiesClickedFace(GameTestHelper h) {
 		floor(h);
 		sixFacedDummy(h);
@@ -75,7 +75,7 @@ public class ApprovedPlacementGameTests {
 	}
 
 	/** P6, same type: copies the clicked face (1.2.0 looked through it and got stone). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void sameSecretTypeCopiesClickedFace(GameTestHelper h) {
 		floor(h);
 		sixFacedDummy(h);
@@ -85,7 +85,7 @@ public class ApprovedPlacementGameTests {
 	}
 
 	/** P2: clicking tall grass copies the block it stood on (1.2.0 copied the bricks behind it). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void tallGrassCopiesTheGroundBelow(GameTestHelper h) {
 		floor(h);
 		h.setBlock(PLACED.below(), Blocks.GRASS_BLOCK);
@@ -98,7 +98,7 @@ public class ApprovedPlacementGameTests {
 	}
 
 	/** P2: clicking a snow layer copies the block it lay on. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void snowLayerCopiesTheGroundBelow(GameTestHelper h) {
 		floor(h);
 		h.setBlock(PLACED.below(), Blocks.GRASS_BLOCK);
@@ -110,7 +110,7 @@ public class ApprovedPlacementGameTests {
 	}
 
 	/** P10: stacking a second slab keeps the first slab's disguise (1.2.0 re-picked it: stone here). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void stackedSlabKeepsItsDisguise(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.BRICKS);
@@ -125,7 +125,7 @@ public class ApprovedPlacementGameTests {
 	}
 
 	/** E1: a click near the bottom edge of a face copies the clicked block (1.2.0 copied the block below). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void edgeClickCopiesTheClickedBlock(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.BRICKS);
@@ -135,7 +135,7 @@ public class ApprovedPlacementGameTests {
 	}
 
 	/** P3b: placement without a player works and copies the clicked block (1.2.0 would crash). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void placementWithoutPlayer(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.BRICKS);
@@ -146,7 +146,7 @@ public class ApprovedPlacementGameTests {
 	}
 
 	/** P3b: One Way Glass placed without a player puts the glass on the face away from the clicked block. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void oneWayGlassWithoutPlayer(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.BRICKS);

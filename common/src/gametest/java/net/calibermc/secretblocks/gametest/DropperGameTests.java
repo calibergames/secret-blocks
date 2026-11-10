@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.blocks.entity.SecretDispenserBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -78,7 +78,7 @@ public class DropperGameTests {
 		if (entity instanceof DispenserBlockEntity dropper) {
 			return dropper;
 		}
-		h.fail("expected a dropper block entity, found " + entity, rel);
+		h.fail(Component.literal("expected a dropper block entity, found " + entity), rel);
 		throw new AssertionError("unreachable");
 	}
 
@@ -86,7 +86,7 @@ public class DropperGameTests {
 		if (blockEntityAt(h, SECRET_POS) instanceof SecretDispenserBlockEntity dropper) {
 			return dropper;
 		}
-		h.fail("expected a SecretDispenserBlockEntity, found " + blockEntityAt(h, SECRET_POS), SECRET_POS);
+		h.fail(Component.literal("expected a SecretDispenserBlockEntity, found " + blockEntityAt(h, SECRET_POS)), SECRET_POS);
 		throw new AssertionError("unreachable");
 	}
 
@@ -143,7 +143,7 @@ public class DropperGameTests {
 	}
 
 	/** Placed through the item, it faces the way a vanilla dropper would, and copies the clicked block. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void facingMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		place(h, SECRET.asItem(), new Vec3(1.5, 1, 6.5), new BlockPos(1, 0, 3), Direction.UP, new Vec3(1.5, 1.0, 3.5));
@@ -166,7 +166,7 @@ public class DropperGameTests {
 	 * signal does not repeat it. An arrow is dropped as an item, not shot (a
 	 * dispenser shoots it).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dropsOneItemPerRisingEdge(GameTestHelper h) {
 		floor(h);
 		cells(h);
@@ -189,7 +189,7 @@ public class DropperGameTests {
 	}
 
 	/** Facing a chest, it puts the item inside and throws nothing. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void pushesIntoTheContainerItFaces(GameTestHelper h) {
 		floor(h);
 		placeBoth(h, Direction.NORTH);
@@ -210,7 +210,7 @@ public class DropperGameTests {
 	}
 
 	/** Facing a full chest, it keeps the item: nothing is thrown and nothing lost. With room made, the next pulse moves one. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void keepsTheItemWhenTheContainerIsFull(GameTestHelper h) {
 		floor(h);
 		placeBoth(h, Direction.NORTH);
@@ -250,7 +250,7 @@ public class DropperGameTests {
 	 * Secret Chest and a Secret Hopper, and a vanilla dropper fills a Secret
 	 * Dropper.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void worksWithTheOtherSecretContainers(GameTestHelper h) {
 		floor(h);
 		Block[][] rows = {
@@ -281,7 +281,7 @@ public class DropperGameTests {
 	 * Item conservation into a chest: 64 pulses move 64 items, one per pulse,
 	 * and at every pulse the dropper and the chest together hold exactly 64.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 450)
+	@GameTest(maxTicks = 450)
 	public void sixtyFourPulsesMoveSixtyFourItemsIntoAChest(GameTestHelper h) {
 		floor(h);
 		placeBoth(h, Direction.NORTH);
@@ -316,7 +316,7 @@ public class DropperGameTests {
 	 * pulse the dropper and the thrown items together make exactly 64. A glass
 	 * cell in front of each dropper keeps the items in place.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 450)
+	@GameTest(maxTicks = 450)
 	public void sixtyFourPulsesThrowSixtyFourItems(GameTestHelper h) {
 		floor(h);
 		cells(h);
@@ -346,7 +346,7 @@ public class DropperGameTests {
 	}
 
 	/** Dropping toggles the TRIGGERED state; the disguise must survive it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void keepsDisguiseWhenTriggered(GameTestHelper h) {
 		floor(h);
 		h.setBlock(SECRET_POS, facing(SECRET, Direction.NORTH));
@@ -367,7 +367,7 @@ public class DropperGameTests {
 	}
 
 	/** It opens the vanilla 3×3 screen, titled with its own name. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void opensTheVanillaScreenTitledSecretDropper(GameTestHelper h) {
 		placeBoth(h, Direction.NORTH);
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
@@ -385,7 +385,7 @@ public class DropperGameTests {
 	 * vanilla dropper does (vanilla decides by the block entity's class, which
 	 * ours is not).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void openingItCountsAsADropperSearched(GameTestHelper h) {
 		floor(h);
 		placeBoth(h, Direction.NORTH);
@@ -393,6 +393,11 @@ public class DropperGameTests {
 			List<ResourceLocation> stats = new ArrayList<>();
 			List<MenuProvider> opened = new ArrayList<>();
 			Player player = new Player(h.getLevel(), h.absolutePos(pos.north()), 0.0F, new GameProfile(UUID.randomUUID(), "test_dropper")) {
+				@Override
+				public net.minecraft.world.level.GameType gameMode() {
+					return net.minecraft.world.level.GameType.SURVIVAL;
+				}
+
 				@Override
 				public boolean isSpectator() {
 					return false;
@@ -424,7 +429,7 @@ public class DropperGameTests {
 	}
 
 	/** Contents and disguise survive a save and load of the block entity, as a Secret Dropper. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void contentsAndDisguiseSurviveSaveAndLoad(GameTestHelper h) {
 		h.setBlock(SECRET_POS, facing(SECRET, Direction.NORTH));
 		secretDropper(h).setDisguise(all(Blocks.BRICKS));
@@ -433,9 +438,9 @@ public class DropperGameTests {
 		secretDropper(h).setDirection(Direction.NORTH, Direction.UP);
 		secretDropper(h).setRotation(Direction.EAST, 180);
 		CompoundTag saved = secretDropper(h).saveWithFullMetadata(h.getLevel().registryAccess());
-		check(h, saved.getString("id").equals("secretblocks:secret_dispenser"), "it is saved as the shared type secretblocks:secret_dispenser, got " + saved.getString("id"));
+		check(h, saved.getStringOr("id", "").equals("secretblocks:secret_dispenser"), "it is saved as the shared type secretblocks:secret_dispenser, got " + saved.getStringOr("id", ""));
 		// The shared type must list the dropper: the game checks it when it looks a block entity up by type.
-		check(h, secretDropper(h).getType().isValid(h.getBlockState(SECRET_POS)), "the block entity type " + saved.getString("id") + " should accept the Secret Dropper");
+		check(h, secretDropper(h).getType().isValid(h.getBlockState(SECRET_POS)), "the block entity type " + saved.getStringOr("id", "") + " should accept the Secret Dropper");
 		check(h, h.getLevel().getBlockEntity(h.absolutePos(SECRET_POS), secretDropper(h).getType()).isPresent(), "the Secret Dropper's block entity should be found by its type");
 		BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(SECRET_POS), h.getBlockState(SECRET_POS), saved, h.getLevel().registryAccess());
 		check(h, loaded instanceof SecretDispenserBlockEntity, "loads back as a SecretDispenserBlockEntity, got " + loaded);
@@ -453,7 +458,7 @@ public class DropperGameTests {
 	}
 
 	/** Clients receive the disguise, never the contents. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void clientsGetTheDisguiseNotTheContents(GameTestHelper h) {
 		h.setBlock(SECRET_POS, facing(SECRET, Direction.NORTH));
 		secretDropper(h).setDisguise(all(Blocks.BRICKS));
@@ -461,13 +466,13 @@ public class DropperGameTests {
 		CompoundTag update = secretDropper(h).getUpdateTag(h.getLevel().registryAccess());
 		check(h, update.contains("northState") && !update.contains("Items"), "the update tag should carry the disguise only: " + update);
 		CompoundTag packet = secretDropper(h).getUpdatePacket().getTag();
-		check(h, packet != null && packet.getCompound("northState").getString("Name").equals("minecraft:bricks") && !packet.contains("Items"),
+		check(h, packet != null && packet.getCompoundOrEmpty("northState").getStringOr("Name", "").equals("minecraft:bricks") && !packet.contains("Items"),
 				"the update packet should carry the disguise only: " + packet);
 		h.succeed();
 	}
 
 	/** Broken, it drops its contents and itself, keeping a custom name, as a vanilla dropper does. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dropsContentsAndItselfWhenBroken(GameTestHelper h) {
 		floor(h);
 		placeBoth(h, Direction.NORTH);
@@ -493,7 +498,7 @@ public class DropperGameTests {
 	}
 
 	/** A comparator reads its contents as it reads a vanilla dropper's. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void comparatorReadsIt(GameTestHelper h) {
 		floor(h);
 		for (BlockPos pos : BOTH) {
@@ -522,7 +527,7 @@ public class DropperGameTests {
 	 * What it is made of: wool-like toughness and, like a vanilla dropper,
 	 * a conductor that pistons cannot move and that gives no light or signal.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void properties(GameTestHelper h) {
 		floor(h);
 		placeBoth(h, Direction.NORTH);
@@ -541,7 +546,7 @@ public class DropperGameTests {
 	}
 
 	/** Dummy Block + dropper makes one; a dispenser does not. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipeWorks(GameTestHelper h) {
 		Optional<ItemStack> result = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.DROPPER);
 		check(h, result.isPresent() && result.get().is(SECRET.asItem()) && result.get().getCount() == 1,

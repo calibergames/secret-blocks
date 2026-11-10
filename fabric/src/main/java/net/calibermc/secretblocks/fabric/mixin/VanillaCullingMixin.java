@@ -2,30 +2,33 @@ package net.calibermc.secretblocks.fabric.mixin;
 
 import net.calibermc.secretblocks.render.SecretCulling;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Face culling beside secret blocks ({@link SecretCulling}) in the vanilla
- * block renderer, which draws every block with a vanilla model. Its face
- * test sees only the two block states; the block's level and position come
- * from the method that draws it.
+ * block renderer, which draws every block with a vanilla model. Its face test
+ * is given the level, the block's state and the neighbour's position.
  */
 @Mixin(ModelBlockRenderer.class)
 public abstract class VanillaCullingMixin {
 
-	@Redirect(method = {"tesselateWithAO", "tesselateWithoutAO"}, require = 2, at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"))
-	private boolean secretblocks$drawFace(BlockState self, BlockState neighbour, Direction side,
-			BlockAndTintGetter level, BakedModel model, BlockState state, BlockPos pos) {
-		Boolean draw = SecretCulling.drawFace(self, level, pos, side, pos.relative(side));
-		return draw != null ? draw : Block.shouldRenderFace(self, neighbour, side);
+	@Inject(method = "shouldRenderFace(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/world/level/block/state/BlockState;ZLnet/minecraft/core/Direction;Lnet/minecraft/core/BlockPos;)Z",
+			at = @At("HEAD"), cancellable = true)
+	private static void secretblocks$drawFace(BlockAndTintGetter level, BlockState self, boolean checkSides, Direction side,
+			BlockPos neighbourPos, CallbackInfoReturnable<Boolean> cir) {
+		if (checkSides) {
+			BlockPos neighbour = neighbourPos.immutable();
+			Boolean draw = SecretCulling.drawFace(self, level, neighbour.relative(side.getOpposite()), side, neighbour);
+			if (draw != null) {
+				cir.setReturnValue(draw);
+			}
+		}
 	}
 }

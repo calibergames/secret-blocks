@@ -3,7 +3,7 @@ package net.calibermc.secretblocks.gametest;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
@@ -55,7 +55,7 @@ public class IronDoorGameTests {
 	}
 
 	/** Using it by hand does nothing, as with a vanilla iron door and iron trapdoor. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void handUseDoesNothing(GameTestHelper h) {
 		floor(h);
 		door(h, SECRET, ModBlocks.IRON_DOOR_BLOCK);
@@ -75,7 +75,7 @@ public class IronDoorGameTests {
 	}
 
 	/** A redstone signal opens it; removing the signal closes it. Doors keep both halves' disguise. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void redstoneOpensAndCloses(GameTestHelper h) {
 		floor(h);
 		h.setBlock(SECRET.north(), Blocks.BRICKS);
@@ -108,7 +108,7 @@ public class IronDoorGameTests {
 	 * The iron block set type, as vanilla's (iron open and close sounds, no hand use),
 	 * but no tool needed to drop: how long it takes to mine follows its look.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void ironButDropsWithoutATool(GameTestHelper h) {
 		for (Block block : new Block[] {ModBlocks.IRON_DOOR_BLOCK, ModBlocks.IRON_TRAPDOOR_BLOCK}) {
 			BlockState secret = block.defaultBlockState();
@@ -122,7 +122,7 @@ public class IronDoorGameTests {
 	}
 
 	/** Broken with a pickaxe or by hand, it drops itself. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dropsWithOrWithoutAPickaxe(GameTestHelper h) {
 		floor(h);
 		ServerPlayer player = player(h, new Vec3(3.5, 1, 6.5), new Vec3(3.5, 1.5, 3.5));
@@ -158,7 +158,7 @@ public class IronDoorGameTests {
 	}
 
 	/** Dummy Block + iron door / iron trapdoor. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipesWork(GameTestHelper h) {
 		Optional<ItemStack> door = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.IRON_DOOR);
 		Optional<ItemStack> trapdoor = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.IRON_TRAPDOOR);

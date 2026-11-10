@@ -11,7 +11,7 @@ import net.calibermc.secretblocks.items.BuildersGoggles;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -47,7 +47,7 @@ public class BuildersGogglesGameTests {
 	}
 
 	/** Helmet slot, equipped by using them; no armour, toughness or other modifiers; worn with the Secret Goggles' look. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void wornOnTheHeadWithNoArmor(GameTestHelper h) {
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		player.setItemInHand(InteractionHand.MAIN_HAND, goggles());
@@ -64,7 +64,7 @@ public class BuildersGogglesGameTests {
 	}
 
 	/** They never wear out: not damageable, and taking hits while wearing them leaves them as new. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void neverWearOut(GameTestHelper h) {
 		check(h, !goggles().isDamageableItem(), "they must not be damageable (max damage " + goggles().getMaxDamage() + ")");
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
@@ -76,7 +76,7 @@ public class BuildersGogglesGameTests {
 		}
 		for (int tick = 0; tick < 200; tick++) {
 			player.tickCount = tick;
-			player.getItemBySlot(EquipmentSlot.HEAD).inventoryTick(h.getLevel(), player, 39, false);
+			player.getItemBySlot(EquipmentSlot.HEAD).inventoryTick(h.getLevel(), player, EquipmentSlot.HEAD);
 		}
 		ItemStack worn = player.getItemBySlot(EquipmentSlot.HEAD);
 		check(h, worn.is(ModItems.BUILDERS_GOGGLES) && worn.getDamageValue() == 0, "after 20 hits and 200 ticks they should be as new, got " + worn);
@@ -89,7 +89,7 @@ public class BuildersGogglesGameTests {
 	 * from books or {@code /enchant}), an anvil with a book gives nothing;
 	 * and nothing repairs them.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void notEnchantableOrRepairable(GameTestHelper h) {
 		check(h, !goggles().has(DataComponents.ENCHANTABLE), "they should not be enchantable at a table");
 		Registry<Enchantment> enchantments = h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
@@ -110,7 +110,7 @@ public class BuildersGogglesGameTests {
 	}
 
 	/** A creative/op tool: no recipe makes them and no loot table holds them. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void noRecipeOrLoot(GameTestHelper h) {
 		MinecraftServer server = h.getLevel().getServer();
 		check(h, server.getRecipeManager().getRecipes().stream().noneMatch(r -> makes(r.value(), h.getLevel(), ModItems.BUILDERS_GOGGLES)),

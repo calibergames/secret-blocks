@@ -2,6 +2,7 @@ package net.calibermc.secretblocks.blocks;
 
 import org.jetbrains.annotations.Nullable;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -111,12 +112,10 @@ public class SecretRedstoneWire extends Block implements EntityBlock, SecretBloc
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
-		if (!state.is(newState.getBlock())) {
-			super.onRemove(state, level, pos, newState, moved);
-			if (!moved && !level.isClientSide) {
-				notifyAround(level, pos);
-			}
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
+		super.affectNeighborsAfterRemoval(state, level, pos, moved);
+		if (!moved) {
+			notifyAround(level, pos);
 		}
 	}
 

@@ -11,7 +11,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -92,7 +92,7 @@ public class DisguiseLookGameTests {
 	 * Each secret block, with each look and each tool, takes exactly as long
 	 * to mine as the block it looks like.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void miningTakesAsLongAsTheLook(GameTestHelper h) {
 		floor(h);
 		List<String> problems = new ArrayList<>();
@@ -125,7 +125,7 @@ public class DisguiseLookGameTests {
 	}
 
 	/** The face being mined decides: obsidian on the north face, dirt on the others. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void eachFaceMinesAsItsLook(GameTestHelper h) {
 		floor(h);
 		h.setBlock(SECRET, ModBlocks.SOLID_BLOCK);
@@ -156,7 +156,7 @@ public class DisguiseLookGameTests {
 	 * player cannot be hitting (behind the block) counts as the face toward
 	 * them. Obsidian on the north face (toward the player), dirt elsewhere.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theServerTakesTheFaceFromTheStartAction(GameTestHelper h) {
 		floor(h);
 		h.setBlock(SECRET, ModBlocks.SOLID_BLOCK);
@@ -190,12 +190,14 @@ public class DisguiseLookGameTests {
 	}
 
 	/** A creative break takes its face from the start action too. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aCreativeBreakTakesTheFaceFromTheStartAction(GameTestHelper h) {
 		floor(h);
 		h.setBlock(SECRET, ModBlocks.SOLID_BLOCK);
 		ServerPlayer player = miner(h, Direction.UP, ItemStack.EMPTY);
 		((ServerPlayerGameModeAccessor) player.gameMode).secretblocksTest$setGameModeForPlayer(GameType.CREATIVE);
+		// Breaking in creative goes by the abilities the game mode gives.
+		GameType.CREATIVE.updatePlayerAbilities(player.getAbilities());
 		((MiningFace) player).secretblocks$setMiningFace(Direction.UP);
 		dig(player, h, SECRET, ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, Direction.NORTH);
 		check(h, ((MiningFace) player).secretblocks$getMiningFace() == Direction.NORTH, "a creative start on the north face should keep north");
@@ -207,7 +209,7 @@ public class DisguiseLookGameTests {
 	 * The server allows the eyes up to 0.3 block behind a face's plane (players
 	 * move between ticks): 0.2 behind the top keeps the top, 0.4 behind does not.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theFaceCheckAllowsALittleMovement(GameTestHelper h) {
 		floor(h);
 		h.setBlock(SECRET, ModBlocks.SOLID_BLOCK);
@@ -225,7 +227,7 @@ public class DisguiseLookGameTests {
 	}
 
 	/** An unbreakable look (bedrock, barrier) mines as stone, so no look makes a secret block unbreakable. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void unbreakableLooksMineAsStone(GameTestHelper h) {
 		floor(h);
 		h.setBlock(SECRET, ModBlocks.SOLID_BLOCK);
@@ -242,7 +244,7 @@ public class DisguiseLookGameTests {
 	}
 
 	/** Broken by hand, a secret block that looks like stone drops itself, the ones that once needed a pickaxe too. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void alwaysDropsItself(GameTestHelper h) {
 		floor(h);
 		List<String> problems = new ArrayList<>();
@@ -282,7 +284,7 @@ public class DisguiseLookGameTests {
 	 * radius 1000 each keeps fewer than five; broken without an explosion it
 	 * drops every time.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void explosionsDropAsVanilla(GameTestHelper h) {
 		floor(h);
 		List<String> problems = new ArrayList<>();
@@ -319,7 +321,7 @@ public class DisguiseLookGameTests {
 	}
 
 	/** Blast resistance is the look's on the face toward the blast; an unbreakable look counts as stone. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void blastResistanceFollowsTheFaceTowardTheBlast(GameTestHelper h) {
 		floor(h);
 		h.setBlock(SECRET, ModBlocks.SOLID_BLOCK);
@@ -337,7 +339,7 @@ public class DisguiseLookGameTests {
 	}
 
 	/** TNT beside them: a secret block that looks like dirt breaks, one that looks like obsidian stays. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void tntBreaksTheLookItWouldBreak(GameTestHelper h) {
 		floor(h);
 		BlockPos dirt = new BlockPos(2, 1, 3);
@@ -359,7 +361,7 @@ public class DisguiseLookGameTests {
 	 * connected-texture mods ask the loader about each neighbour); any other
 	 * block appears as itself.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void appearanceIsTheFaceLook(GameTestHelper h) {
 		floor(h);
 		BlockPos secretPos = new BlockPos(3, 1, 3);

@@ -7,7 +7,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -42,16 +41,6 @@ public class SecretObserver extends net.minecraft.world.level.block.ObserverBloc
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return Shapes.block();
-    }
-
-    @Override
-    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
-        super.onRemove(state, world, pos, newState, moved);
-        // ObserverBlock.onRemove does not call BlockBehaviour.onRemove, which is
-        // what removes a block entity, so the disguise would be left behind.
-        if (!state.is(newState.getBlock())) {
-            world.removeBlockEntity(pos);
-        }
     }
 
 }

@@ -7,7 +7,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
@@ -78,7 +78,7 @@ public class PushableGameTests {
 	 * keeps its disguise, and leaves no block entity behind (the wire and diode
 	 * blocks skip vanilla's removal code when moved).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everyPushableSecretBlockMovesWithItsDisguise(GameTestHelper h) {
 		floor(h);
 		for (int i = 0; i < PUSHABLE.length; i++) {
@@ -122,7 +122,7 @@ public class PushableGameTests {
 	 * blocks skip the removal code when moved; in a plain push the piston head
 	 * takes the old spot, so only a pull shows it).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aPulledBackBlockLeavesNoBlockEntityBehind(GameTestHelper h) {
 		floor(h);
 		for (int i = 0; i < PUSHABLE.length; i++) {
@@ -166,7 +166,7 @@ public class PushableGameTests {
 	 * each its own disguise (vanilla moves the front block first); a Dummy Block
 	 * dragged along by a slime block beside the one pushed.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void statesLinesAndSlimeMoveIntact(GameTestHelper h) {
 		floor(h);
 		BlockState[] states = {
@@ -229,7 +229,7 @@ public class PushableGameTests {
 	 * face, pushed and pulled back by a Secret Sticky Piston, has every face as
 	 * before.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void pushedAndPulledADummyBlockKeepsEveryFace(GameTestHelper h) {
 		floor(h);
 		BlockPos piston = new BlockPos(1, 1, 3);
@@ -269,20 +269,20 @@ public class PushableGameTests {
 	 * Items stuck in a Dummy Block before 2.0.0 travel with it (clients are sent
 	 * only its disguise during the move), and still drop when it is broken.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void storedItemsTravelWithTheBlock(GameTestHelper h) throws Exception {
 		floor(h);
 		BlockPos piston = new BlockPos(1, 1, 3);
 		BlockPos block = piston.east();
 		pistonAt(h, piston, Blocks.PISTON, Direction.EAST);
 		h.setBlock(block, ModBlocks.SOLID_BLOCK);
-		plain(h, block).loadWithComponents(TagParser.parseTag("{Items:[{Slot:0b,id:\"minecraft:diamond\",count:4}]}"), h.getLevel().registryAccess());
+		plain(h, block).loadWithComponents(TagParser.parseCompoundFully("{Items:[{Slot:0b,id:\"minecraft:diamond\",count:4}]}"), h.getLevel().registryAccess());
 		boolean[] seen = {false};
 		h.onEachTick(() -> {
 			if (!seen[0] && blockEntityAt(h, block.east()) instanceof net.minecraft.world.level.block.piston.PistonMovingBlockEntity moving) {
 				seen[0] = true;
-				CompoundTag saved = moving.saveWithoutMetadata(h.getLevel().registryAccess()).getCompound("SecretBlocksDisguise");
-				CompoundTag sent = moving.getUpdateTag(h.getLevel().registryAccess()).getCompound("SecretBlocksDisguise");
+				CompoundTag saved = moving.saveWithoutMetadata(h.getLevel().registryAccess()).getCompoundOrEmpty("SecretBlocksDisguise");
+				CompoundTag sent = moving.getUpdateTag(h.getLevel().registryAccess()).getCompoundOrEmpty("SecretBlocksDisguise");
 				check(h, saved.contains("Items"), "the move should carry the stuck items: " + saved);
 				check(h, sent.contains("northState") && !sent.contains("Items"), "clients should get the disguise only, never the items: " + sent);
 			}
@@ -292,7 +292,7 @@ public class PushableGameTests {
 			check(h, seen[0], "control: the move was caught");
 			checkBlock(h, block.east(), ModBlocks.SOLID_BLOCK);
 			check(h, blockEntityAt(h, block.east()) instanceof SecretBlockEntity moved
-					&& moved.saveWithoutMetadata(h.getLevel().registryAccess()).getList("Items", 10).size() == 1, "the stuck diamonds should have moved with the block");
+					&& moved.saveWithoutMetadata(h.getLevel().registryAccess()).getListOrEmpty("Items").size() == 1, "the stuck diamonds should have moved with the block");
 			h.setBlock(block.east(), Blocks.AIR);
 			int dropped = h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(block.east())).inflate(2), e -> e.getItem().is(Items.DIAMOND))
 					.stream().mapToInt(e -> e.getItem().getCount()).sum();
@@ -307,7 +307,7 @@ public class PushableGameTests {
 	 * The containers, the sensors, the comparator and the gate stay unpushable:
 	 * the piston does not extend and the block stays.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void containersSensorsAndTheGateAreRefused(GameTestHelper h) {
 		floor(h);
 		Block[] refused = {ModBlocks.SECRET_CHEST, ModBlocks.SECRET_TRAPPED_CHEST, ModBlocks.SECRET_DISPENSER, ModBlocks.SECRET_DROPPER,
@@ -345,7 +345,7 @@ public class PushableGameTests {
 	 * their vanilla twins do, each beside its twin: doors, buttons, levers and
 	 * plates break, trapdoors move.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void doorsAndSwitchesBehaveAsTheirVanillaTwins(GameTestHelper h) {
 		floor(h);
 		Block[][] pairs = {
@@ -393,7 +393,7 @@ public class PushableGameTests {
 	 * dust, repeater and comparator do, each beside its twin: the piston breaks
 	 * them, and each secret one drops itself.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void redstoneBreaksAsItsVanillaTwins(GameTestHelper h) {
 		floor(h);
 		Block[][] pairs = {
@@ -440,7 +440,7 @@ public class PushableGameTests {
 	 * Blocks into an opening and pull them back out, twice; the door blocks
 	 * keep their disguise throughout.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 120)
+	@GameTest(maxTicks = 120)
 	public void aHiddenTwoByTwoDoor(GameTestHelper h) {
 		floor(h);
 		// The opening: x = 3, 4; y = 1, 2; z = 3. Door blocks wait at z = 4 in front of pistons at z = 5 facing north.

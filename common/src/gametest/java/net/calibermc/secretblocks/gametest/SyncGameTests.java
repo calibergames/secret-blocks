@@ -6,7 +6,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.Blocks;
@@ -44,12 +44,12 @@ public class SyncGameTests {
 		for (Map.Entry<Direction, BlockState> face : faces.entrySet()) {
 			String key = face.getKey().getName() + "State";
 			String expected = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(face.getValue().getBlock()).toString();
-			check(h, tag != null && expected.equals(tag.getCompound(key).getString("Name")),
+			check(h, tag != null && expected.equals(tag.getCompoundOrEmpty(key).getStringOr("Name", "")),
 					what + " should carry " + key + "=" + expected + ", got " + (tag == null ? null : tag.get(key)));
 		}
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void updatePacketCarriesDisguise(GameTestHelper h) {
 		h.setBlock(A, ModBlocks.SOLID_BLOCK);
 		SecretBlockEntity be = plain(h, A);
@@ -58,7 +58,7 @@ public class SyncGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void chunkDataCarriesDisguise(GameTestHelper h) {
 		h.setBlock(A, ModBlocks.SOLID_BLOCK);
 		SecretBlockEntity be = plain(h, A);
@@ -67,7 +67,7 @@ public class SyncGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void placementWriteMarksChunkForSaving(GameTestHelper h) {
 		h.setBlock(A, ModBlocks.SOLID_BLOCK);
 		SecretBlockEntity be = plain(h, A);
@@ -83,7 +83,7 @@ public class SyncGameTests {
 	 * privacy fix): the update tag carries the disguise only. Players still see
 	 * the contents through the chest menu when they open it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void chestContentsAreNotSentToClients(GameTestHelper h) {
 		h.setBlock(A, ModBlocks.SECRET_CHEST);
 		SecretChestBlockEntity chest = chest(h, A);

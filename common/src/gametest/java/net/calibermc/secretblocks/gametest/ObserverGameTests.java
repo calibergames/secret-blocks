@@ -3,7 +3,7 @@ package net.calibermc.secretblocks.gametest;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -71,7 +71,7 @@ public class ObserverGameTests {
 	}
 
 	/** Placed through the item, it faces the same way a vanilla observer would. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void facingMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		// Level look (horizontal facing) and a steep look (facing down).
@@ -93,7 +93,7 @@ public class ObserverGameTests {
 	}
 
 	/** A block change in front gives exactly one short pulse out of the back. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void changeInFrontPulsesOnceOutOfTheBack(GameTestHelper h) {
 		floor(h);
 		h.setBlock(FRONT, Blocks.STONE);
@@ -112,7 +112,7 @@ public class ObserverGameTests {
 	}
 
 	/** Changing a disguise (the watched block's or the observer's own) is not a block change. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void disguiseChangesDoNotTrigger(GameTestHelper h) {
 		floor(h);
 		h.setBlock(FRONT, ModBlocks.SOLID_BLOCK);
@@ -129,7 +129,7 @@ public class ObserverGameTests {
 	}
 
 	/** Pulsing changes the block state; the disguise must survive it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void keepsDisguiseThroughAPulse(GameTestHelper h) {
 		floor(h);
 		h.setBlock(FRONT, Blocks.STONE);
@@ -145,7 +145,7 @@ public class ObserverGameTests {
 	}
 
 	/** Breaking it drops it and removes its block entity. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dropsItselfAndLeavesNoBlockEntity(GameTestHelper h) {
 		floor(h);
 		h.setBlock(OBSERVER, observerFacingNorth());
@@ -162,7 +162,7 @@ public class ObserverGameTests {
 	 * A piston pushes it as it pushes a vanilla observer, and it keeps its
 	 * disguise.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aPistonPushesItAsAVanillaObserver(GameTestHelper h) {
 		floor(h);
 		h.setBlock(OBSERVER, observerFacingNorth());
@@ -185,7 +185,7 @@ public class ObserverGameTests {
 		});
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipeWorks(GameTestHelper h) {
 		AbstractContainerMenu menu = new AbstractContainerMenu(null, 0) {
 			@Override

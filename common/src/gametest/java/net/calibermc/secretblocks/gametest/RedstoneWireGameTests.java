@@ -3,7 +3,7 @@ package net.calibermc.secretblocks.gametest;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -41,7 +41,7 @@ public class RedstoneWireGameTests {
 	}
 
 	/** A line of Wire from a redstone block reads 15, 14, 13, ... and lights the lamp at its end. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lineLosesOnePerBlock(GameTestHelper h) {
 		floor(h);
 		h.setBlock(7, 1, 2, Blocks.REDSTONE_LAMP);
@@ -59,7 +59,7 @@ public class RedstoneWireGameTests {
 	}
 
 	/** A column carries the signal up from a source below and down from a source above. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void columnCarriesUpAndDown(GameTestHelper h) {
 		floor(h);
 		for (int y = 2; y <= 6; y++) {
@@ -80,7 +80,7 @@ public class RedstoneWireGameTests {
 	}
 
 	/** Wire, Dust and vanilla wire mixed: 1 lost per block; all 0 within 10 ticks of the source going (no latch). */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void mixedWithDustAndVanillaWire(GameTestHelper h) {
 		floor(h);
 		Block[] line = {WIRE, ModBlocks.SECRET_REDSTONE, Blocks.REDSTONE_WIRE, WIRE, ModBlocks.SECRET_REDSTONE, Blocks.REDSTONE_WIRE};
@@ -103,7 +103,7 @@ public class RedstoneWireGameTests {
 	}
 
 	/** A lamp on each of the five free faces of a powered Wire lights. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lampOnEveryFaceLights(GameTestHelper h) {
 		floor(h);
 		int[][] lamps = {{4, 3, 3}, {3, 3, 4}, {3, 3, 2}, {3, 4, 3}, {3, 2, 3}};
@@ -125,7 +125,7 @@ public class RedstoneWireGameTests {
 	 * control, vanilla wire pointing into a block, powers it strongly, so its
 	 * lamp lights.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void weakPowerOnly(GameTestHelper h) {
 		floor(h);
 		for (int z : new int[] {2, 5}) {
@@ -145,7 +145,7 @@ public class RedstoneWireGameTests {
 	}
 
 	/** Breaking a Wire in the middle of a line leaves the far side unpowered. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void breakingTheMiddleSplitsTheLine(GameTestHelper h) {
 		floor(h);
 		for (int x = 1; x <= 6; x++) {
@@ -168,7 +168,7 @@ public class RedstoneWireGameTests {
 	}
 
 	/** Vanilla wire and Dust resting on a Wire read it (power - 1), and a Wire resting on vanilla wire reads it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void verticalJoinsWithDustAndVanillaWire(GameTestHelper h) {
 		floor(h);
 		// Wire at y = 1 powered by a redstone block beside it; vanilla wire and Dust on top.
@@ -196,7 +196,7 @@ public class RedstoneWireGameTests {
 	 * turns fully off when the source goes, in one tick each. The times are
 	 * printed; the bound is generous because the test machine is slow.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void clusterPowersAndUnpowers(GameTestHelper h) {
 		for (int x = 2; x <= 5; x++) {
 			for (int y = 1; y <= 4; y++) {
@@ -240,7 +240,7 @@ public class RedstoneWireGameTests {
 	 * with air above the Wire), reads it (power - 1). The Wire notifies its
 	 * neighbours' neighbours, so the stepped wire hears it.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void steppedVanillaWireReadsTheWire(GameTestHelper h) {
 		floor(h);
 		h.setBlock(3, 1, 3, Blocks.STONE);
@@ -255,7 +255,7 @@ public class RedstoneWireGameTests {
 	}
 
 	/** A powered Wire works the devices touching it: a repeater (into a lamp), a piston and a door. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void worksDevicesOnItsFaces(GameTestHelper h) {
 		floor(h);
 		h.setBlock(5, 1, 3, Blocks.REDSTONE_LAMP);
@@ -274,7 +274,7 @@ public class RedstoneWireGameTests {
 	}
 
 	/** Non-block sources feed a Wire: a lever and a repeater. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void fedByALeverAndARepeater(GameTestHelper h) {
 		floor(h);
 		h.setBlock(6, 1, 2, Blocks.REDSTONE_LAMP);
@@ -293,7 +293,7 @@ public class RedstoneWireGameTests {
 	}
 
 	/** Dummy Block + redstone dust + redstone torch; Dummy Block + redstone dust still makes the Dust. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipes(GameTestHelper h) {
 		Optional<ItemStack> wire = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.REDSTONE, Items.REDSTONE_TORCH);
 		Optional<ItemStack> dust = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.REDSTONE);

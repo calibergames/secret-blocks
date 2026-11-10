@@ -5,7 +5,6 @@ import com.mojang.math.Axis;
 import net.calibermc.secretblocks.blocks.entity.SecretBlockEntity;
 import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -42,7 +41,8 @@ public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEnti
 	}
 
 	@Override
-	public void render(SecretBlockEntity entity, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light, int overlay) {
+	public void render(SecretBlockEntity entity, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light, int overlay,
+			Vec3 camera) {
 		if (!BuilderView.isActive() || !(entity instanceof SecretChestBlockEntity) || entity.getLevel() == null) {
 			return;
 		}
@@ -57,8 +57,8 @@ public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEnti
 		poseStack.translate(0.5, 0.0, 0.5);
 		poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
 		poseStack.translate(-0.5, 0.0, -0.5);
-		Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-		chestRenderer.render(chest, partialTick, poseStack, buffers, seenSideLight(entity.getLevel(), entity.getBlockPos(), camera), overlay);
+		chestRenderer.render(chest, partialTick, poseStack, buffers, seenSideLight(entity.getLevel(), entity.getBlockPos(), camera), overlay,
+				camera);
 		poseStack.popPose();
 	}
 

@@ -1,12 +1,18 @@
 package net.calibermc.secretblocks.blocks.entity;
 
 import com.mojang.datafixers.DSL;
+import com.google.gson.JsonParser;
 import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.util.datafix.fixes.References;
 
@@ -54,7 +60,7 @@ public final class LegacyData {
 	 * to date: {@code tag} itself when it is current, else an upgraded copy.
 	 */
 	public static CompoundTag upgradeDisguise(CompoundTag tag, String originalKey) {
-		int from = tag.contains(VERSION, Tag.TAG_INT) ? tag.getInt(VERSION) : OLDEST;
+		int from = tag.get(VERSION) instanceof IntTag ? tag.getIntOr(VERSION, 0) : OLDEST;
 		int to = current();
 		if (from >= to) {
 			return tag;
@@ -62,11 +68,11 @@ public final class LegacyData {
 		tag = tag.copy();
 		for (Direction face : Direction.values()) {
 			String key = face.getName() + "State";
-			if (tag.contains(key, Tag.TAG_COMPOUND)) {
-				tag.put(key, fix(References.BLOCK_STATE, tag.getCompound(key), from, to));
+			if (tag.get(key) instanceof CompoundTag) {
+				tag.put(key, fix(References.BLOCK_STATE, tag.getCompoundOrEmpty(key), from, to));
 			}
 		}
-		if (tag.contains(originalKey, Tag.TAG_STRING)) {
+		if (tag.get(originalKey) instanceof StringTag) {
 			tag.put(originalKey, fix(References.BLOCK_NAME, tag.get(originalKey), from, to));
 		}
 		tag.putInt(VERSION, to);
@@ -82,7 +88,7 @@ public final class LegacyData {
 	 * is brought up to date when it loads ({@link #upgradeDisguise}).
 	 */
 	public static void upgradeContainer(CompoundTag tag, String vanillaId) {
-		int from = tag.contains(VERSION, Tag.TAG_INT) ? tag.getInt(VERSION) : OLDEST;
+		int from = tag.get(VERSION) instanceof IntTag ? tag.getIntOr(VERSION, 0) : OLDEST;
 		int to = current();
 		if (from >= to) {
 			return;
@@ -91,16 +97,42 @@ public final class LegacyData {
 		CompoundTag data = tag.copy();
 		data.putString("id", vanillaId);
 		CompoundTag fixed = (CompoundTag) fix(References.BLOCK_ENTITY, data, from, to);
-		for (String key : List.copyOf(tag.getAllKeys())) {
+		if (from < TEXT_AS_TAGS) {
+			unflattenLockName(fixed);
+		}
+		for (String key : List.copyOf(tag.keySet())) {
 			tag.remove(key);
 		}
-		for (String key : fixed.getAllKeys()) {
+		for (String key : fixed.keySet()) {
 			tag.put(key, fixed.get(key));
 		}
 		if (id != null) {
 			tag.put("id", id);
 		} else {
 			tag.remove("id");
+		}
+	}
+
+	/** The data version from which text components are saved as tags, not JSON strings (Minecraft 1.21.5). */
+	private static final int TEXT_AS_TAGS = 4290;
+
+	/**
+	 * The name a lock asks for, brought from a JSON string to a text tag. The
+	 * game's own upgrade turns a lock saved before 1.21.2 into a predicate whose
+	 * name is a JSON string, then from 1.21.5 on reads that string as plain text
+	 * (quotes and all), so the lock would open for no item. Called after the
+	 * game's own upgrade, for data saved before 1.21.5.
+	 */
+	private static void unflattenLockName(CompoundTag tag) {
+		if (tag.get("lock") instanceof CompoundTag lock && lock.get("components") instanceof CompoundTag components
+				&& components.get("minecraft:custom_name") instanceof StringTag name) {
+			try {
+				Component text = ComponentSerialization.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(name.value()))
+						.getOrThrow();
+				components.put("minecraft:custom_name", ComponentSerialization.CODEC.encodeStart(NbtOps.INSTANCE, text).getOrThrow());
+			} catch (RuntimeException notJson) {
+				// Already plain text: left as it is.
+			}
 		}
 	}
 

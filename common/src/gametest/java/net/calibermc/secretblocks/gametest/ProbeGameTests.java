@@ -6,7 +6,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -34,7 +34,7 @@ public class ProbeGameTests {
 	private static final Vec3 DUMMY_NORTH = new Vec3(3.5, 1.5, 3.0);
 	private static final Vec3 FEET_NORTH_OF_DUMMY = new Vec3(3.5, 1, 0.5);
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void probeCopiesThenApplies(GameTestHelper h) {
 		floor(h);
 		BlockPos granite = new BlockPos(5, 1, 3);
@@ -46,9 +46,9 @@ public class ProbeGameTests {
 		Vec3 graniteNorth = new Vec3(5.5, 1.5, 3.0);
 		useOn(h, player(h, new Vec3(5.5, 1, 0.5), graniteNorth), probe, granite, Direction.NORTH, graniteNorth);
 		CompoundTag tag = ItemData.read(probe);
-		check(h, "minecraft:polished_granite".equals(tag.getCompound("setState").getString("Name")),
+		check(h, "minecraft:polished_granite".equals(tag.getCompoundOrEmpty("setState").getStringOr("Name", "")),
 				"probe should store polished granite, got " + tag);
-		check(h, "north".equals(tag.getString("setDirection")), "probe should store the north face, got " + tag);
+		check(h, "north".equals(tag.getStringOr("setDirection", "")), "probe should store the north face, got " + tag);
 
 		// The loaded probe sets the clicked face only, and stays loaded.
 		useOn(h, player(h, FEET_NORTH_OF_DUMMY, DUMMY_NORTH), probe, DUMMY, Direction.NORTH, DUMMY_NORTH);
@@ -59,7 +59,7 @@ public class ProbeGameTests {
 	}
 
 	/** A fresh probe used on a secret block copies that face. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void probeCopiesFromSecretBlock(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DUMMY, ModBlocks.SOLID_BLOCK);
@@ -67,13 +67,13 @@ public class ProbeGameTests {
 		ItemStack probe = new ItemStack(ModItems.SWITCH_PROBE);
 		useOn(h, player(h, FEET_NORTH_OF_DUMMY, DUMMY_NORTH), probe, DUMMY, Direction.NORTH, DUMMY_NORTH);
 		CompoundTag tag = ItemData.read(probe);
-		check(h, "minecraft:emerald_block".equals(tag.getCompound("setState").getString("Name")),
+		check(h, "minecraft:emerald_block".equals(tag.getCompoundOrEmpty("setState").getStringOr("Name", "")),
 				"probe should copy the emerald face, got " + tag);
 		h.succeed();
 	}
 
 	/** The Rotator Probe turns the clicked face by 90 degrees per use. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void rotatorTurnsFace(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DUMMY, ModBlocks.SOLID_BLOCK);
@@ -88,7 +88,7 @@ public class ProbeGameTests {
 	}
 
 	/** Sneak + use in the air swaps the probe mode and clears the stored block. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void sneakUseTogglesMode(GameTestHelper h) {
 		ServerPlayer player = player(h, new Vec3(3.5, 1, 3.5), new Vec3(3.5, 8, 3.6));
 		player.setShiftKeyDown(true);
@@ -109,7 +109,7 @@ public class ProbeGameTests {
 	}
 
 	/** A probe apply and a rotator turn each flag the chunk for saving. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void probeEditsFlagTheChunkForSaving(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DUMMY, ModBlocks.SOLID_BLOCK);
@@ -129,7 +129,7 @@ public class ProbeGameTests {
 	}
 
 	/** Every disguise setter flags the chunk for saving, on a plain secret block and on the dispenser. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everyDisguiseSetterFlagsTheChunk(GameTestHelper h) {
 		floor(h);
 		StringBuilder problems = new StringBuilder();
@@ -156,7 +156,7 @@ public class ProbeGameTests {
 	}
 
 	/** Probe edits are in the saved data: a save and load of the block entity keeps them. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void probeEditsSurviveSaveAndLoad(GameTestHelper h) {
 		floor(h);
 		h.setBlock(DUMMY, ModBlocks.SOLID_BLOCK);

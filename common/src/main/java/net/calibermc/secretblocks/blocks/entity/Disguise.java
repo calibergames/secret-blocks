@@ -2,9 +2,9 @@ package net.calibermc.secretblocks.blocks.entity;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -125,22 +125,22 @@ public final class Disguise {
 	public void load(CompoundTag tag) {
 		tag = LegacyData.upgradeDisguise(tag, ORIGINAL);
 		if (tag.contains("age")) {
-			age = tag.getInt("age");
+			age = tag.getIntOr("age", 0);
 		}
-		if (tag.contains(ORIGINAL, Tag.TAG_STRING)) {
-			ResourceLocation id = ResourceLocation.tryParse(tag.getString(ORIGINAL));
+		if (tag.get(ORIGINAL) instanceof StringTag) {
+			ResourceLocation id = ResourceLocation.tryParse(tag.getStringOr(ORIGINAL, ""));
 			original = id != null && BuiltInRegistries.BLOCK.containsKey(id) ? BuiltInRegistries.BLOCK.getValue(id) : null;
 		}
 		for (Direction face : FACES) {
 			String name = face.getName();
 			if (tag.contains(name + "State")) {
-				states.put(face, NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompound(name + "State")));
+				states.put(face, NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompoundOrEmpty(name + "State")));
 			}
 			if (tag.contains(name + "Direction")) {
-				directions.put(face, byName(tag.getString(name + "Direction")));
+				directions.put(face, byName(tag.getStringOr(name + "Direction", "")));
 			}
 			if (tag.contains(name + "Rotation")) {
-				rotations.put(face, tag.getInt(name + "Rotation"));
+				rotations.put(face, tag.getIntOr(name + "Rotation", 0));
 			}
 		}
 	}

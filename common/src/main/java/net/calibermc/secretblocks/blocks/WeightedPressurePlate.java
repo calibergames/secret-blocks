@@ -124,10 +124,9 @@ public class WeightedPressurePlate extends Block implements EntityBlock, SecretB
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
-		boolean removed = !state.is(newState.getBlock());
-		super.onRemove(state, level, pos, newState, moved);
-		if (removed && state.getValue(POWER) > 0) {
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
+		super.affectNeighborsAfterRemoval(state, level, pos, moved);
+		if (state.getValue(POWER) > 0) {
 			level.updateNeighborsAt(pos, this);
 		}
 	}

@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -17,7 +18,7 @@ import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -61,9 +62,9 @@ public class NbtGameTests {
 
 	private static CompoundTag parse(GameTestHelper h, String snbt) {
 		try {
-			return TagParser.parseTag(snbt);
+			return TagParser.parseCompoundFully(snbt);
 		} catch (CommandSyntaxException e) {
-			h.fail("bad test SNBT: " + e.getMessage());
+			h.fail(Component.literal("bad test SNBT: " + e.getMessage()));
 			throw new AssertionError("unreachable");
 		}
 	}
@@ -80,12 +81,12 @@ public class NbtGameTests {
 		be.loadWithComponents(input, h.getLevel().registryAccess());
 		for (Direction dir : Direction.values()) {
 			String name = dir.getName();
-			check(h, be.getState(dir) == NbtUtils.readBlockState(BuiltInRegistries.BLOCK, input.getCompound(name + "State")), name + "State read back wrong: " + be.getState(dir));
-			check(h, be.getDir(dir).getName().equals(input.getString(name + "Direction")), name + "Direction read back wrong: " + be.getDir(dir));
-			check(h, be.getRotation(dir) == input.getInt(name + "Rotation"), name + "Rotation read back wrong: " + be.getRotation(dir));
+			check(h, be.getState(dir) == NbtUtils.readBlockState(BuiltInRegistries.BLOCK, input.getCompoundOrEmpty(name + "State")), name + "State read back wrong: " + be.getState(dir));
+			check(h, be.getDir(dir).getName().equals(input.getStringOr(name + "Direction", "")), name + "Direction read back wrong: " + be.getDir(dir));
+			check(h, be.getRotation(dir) == input.getIntOr(name + "Rotation", 0), name + "Rotation read back wrong: " + be.getRotation(dir));
 		}
 		CompoundTag saved = be.saveWithoutMetadata(h.getLevel().registryAccess());
-		for (String key : input.getAllKeys()) {
+		for (String key : input.keySet()) {
 			if (key.equals("Items")) {
 				continue;
 			}
@@ -96,7 +97,7 @@ public class NbtGameTests {
 		return be;
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void sixFacesAndRotations(GameTestHelper h) {
 		SecretBlockEntity be = roundTrip(h, ModBlocks.SOLID_BLOCK, B0_SIX_FACES);
 		check(h, be.getState(Direction.DOWN).is(Blocks.DIAMOND_BLOCK), "down face should be diamond");
@@ -104,7 +105,7 @@ public class NbtGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void propertyStatesAndDrawnSides(GameTestHelper h) {
 		SecretBlockEntity be = roundTrip(h, ModBlocks.SOLID_BLOCK, B1_LOG_AXIS_X);
 		check(h, be.getState(Direction.UP).getValue(RotatedPillarBlock.AXIS) == Direction.Axis.X, "log axis should be x");
@@ -112,25 +113,25 @@ public class NbtGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void furnaceRotations(GameTestHelper h) {
 		roundTrip(h, ModBlocks.SOLID_BLOCK, B2_FURNACE_ROTATIONS);
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void tintedAndCutoutStates(GameTestHelper h) {
 		roundTrip(h, ModBlocks.SOLID_BLOCK, B3_TINTED_CUTOUT);
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void oneWayGlassState(GameTestHelper h) {
 		roundTrip(h, ModBlocks.ONE_WAY_GLASS, ROW_A_ONE_WAY_GLASS);
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void chestWithItems(GameTestHelper h) {
 		roundTrip(h, ModBlocks.SECRET_CHEST, ROW_A_CHEST);
 		SecretChestBlockEntity be = chest(h, A);
@@ -141,14 +142,14 @@ public class NbtGameTests {
 		check(h, EnchantmentHelper.getItemEnchantmentLevel(sharpness, sword) == 5, "the sword should keep Sharpness V, got " + sword);
 		check(h, be.getItem(2).is(ModBlocks.SOLID_BLOCK.asItem()) && be.getItem(2).getCount() == 64, "slot 2 should hold 64 dummy blocks, holds " + be.getItem(2));
 		check(h, be.getItem(26).is(Items.OAK_LOG) && be.getItem(26).getCount() == 64, "slot 26 should hold 64 oak logs, holds " + be.getItem(26));
-		ListTag saved = be.saveWithoutMetadata(h.getLevel().registryAccess()).getList("Items", Tag.TAG_COMPOUND);
+		ListTag saved = be.saveWithoutMetadata(h.getLevel().registryAccess()).getListOrEmpty("Items");
 		check(h, saved.size() == 4 && saved.stream().allMatch(item -> ((CompoundTag) item).contains("count") && !((CompoundTag) item).contains("Count")),
 				"the items should save in the new format, got " + saved);
 		h.succeed();
 	}
 
 	/** A disguise naming a block that was renamed since (grass, short grass from 1.20.3) loads under its new name. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aRenamedBlockLoadsUnderItsNewName(GameTestHelper h) {
 		CompoundTag input = parse(h, B0_SIX_FACES.replace("{Name:\"minecraft:gold_block\"}", "{Name:\"minecraft:grass\"}"));
 		h.setBlock(A, ModBlocks.SOLID_BLOCK);

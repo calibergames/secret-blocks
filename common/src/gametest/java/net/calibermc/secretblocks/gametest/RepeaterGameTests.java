@@ -3,7 +3,7 @@ package net.calibermc.secretblocks.gametest;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -48,7 +48,7 @@ public class RepeaterGameTests {
 	 * For delay 1 to 4, the lamp in front lights on the same tick as behind the
 	 * vanilla repeater, 2 ticks per delay step.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void delayMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		// Delay d on row z = 2(d - 1), rows one apart so neighbouring lamps (solid
@@ -89,7 +89,7 @@ public class RepeaterGameTests {
 	}
 
 	/** Use cycles the delay 1 → 2 → 3 → 4 → 1; a player who may not build changes nothing. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void useCyclesTheDelay(GameTestHelper h) {
 		floor(h);
 		BlockPos pos = new BlockPos(2, 1, 2);
@@ -112,7 +112,7 @@ public class RepeaterGameTests {
 	}
 
 	/** A powered diode at the side locks a repeater, both ways between Secret and vanilla repeaters. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void sideLockingBothWays(GameTestHelper h) {
 		floor(h);
 		// Row z = 2: a Secret Repeater (x = 3) locked by a powered vanilla repeater at its south side.
@@ -141,7 +141,7 @@ public class RepeaterGameTests {
 	 * input comes on (Secret and vanilla alike), while an unlocked Secret Repeater
 	 * with the same input lights its lamp.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lockedRepeaterHoldsItsOutput(GameTestHelper h) {
 		floor(h);
 		// Rows z = 0 (Secret) and z = 4 (vanilla): repeater x = 3 into a lamp at x = 4, locked from the south.
@@ -174,7 +174,7 @@ public class RepeaterGameTests {
 	}
 
 	/** The other half: locked while on, it stays on when its input goes (an unlocked one turns off). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lockedRepeaterStaysOnWithoutInput(GameTestHelper h) {
 		floor(h);
 		Block[] locked = {SECRET, Blocks.REPEATER};
@@ -212,7 +212,7 @@ public class RepeaterGameTests {
 	}
 
 	/** Placed through the item, it faces as a vanilla repeater does, and is locked at once beside a powered diode. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void placementMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		// Row z = 1: plain placement. Row z = 5: a powered repeater at x + 1 points into the spot's side.
@@ -243,7 +243,7 @@ public class RepeaterGameTests {
 	 * Secret Repeater must take the same shape as at the side of a vanilla one (no
 	 * arm toward it), and wire at its input the same as at a vanilla one's input.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void wireConnectsAsToAVanillaRepeater(GameTestHelper h) {
 		floor(h);
 		// Repeaters at x = 2 (Secret) and x = 6 (vanilla), z = 3, on the x axis; wire at their north side and at their input.
@@ -273,7 +273,7 @@ public class RepeaterGameTests {
 	 * Secret Repeater's side leaves the lamp beyond it off, while the same through
 	 * stone lights the lamp.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void strongPowerDoesNotPassThrough(GameTestHelper h) {
 		floor(h);
 		// Row z = 1: source, repeater, Secret Repeater (on the z axis, so entered from its side), lamp. Row z = 4: stone instead.
@@ -292,7 +292,7 @@ public class RepeaterGameTests {
 	}
 
 	/** A powered repeater powers the lamp in front of it only, not a lamp at its side; the Secret one is not a conductor. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void outputOnlyToTheFront(GameTestHelper h) {
 		floor(h);
 		h.setBlock(3, 1, 2, Blocks.REDSTONE_LAMP);
@@ -315,7 +315,7 @@ public class RepeaterGameTests {
 	}
 
 	/** The Secret Repeater stays when the block under it goes (a vanilla repeater pops). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void staysWhenTheFloorGoes(GameTestHelper h) {
 		floor(h);
 		h.setBlock(2, 1, 2, repeater(SECRET, 1));
@@ -329,7 +329,7 @@ public class RepeaterGameTests {
 		});
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipe(GameTestHelper h) {
 		Optional<ItemStack> made = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.REPEATER);
 		check(h, made.isPresent() && made.get().is(SECRET.asItem()), "Dummy Block + repeater should make the Secret Repeater, got " + made);

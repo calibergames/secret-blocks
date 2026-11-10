@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -58,7 +58,7 @@ public class ConductorGameTests {
 		return conducts;
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void conductorsMatchTheirVanillaTwins(GameTestHelper h) {
 		floor(h);
 		StringBuilder wrong = new StringBuilder();
@@ -84,7 +84,7 @@ public class ConductorGameTests {
 	}
 
 	/** A repeater feeding a Secret Button, Lever or Chest does not light a lamp on its far side; through a Dummy Block it does. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aRepeaterDoesNotPowerThrough(GameTestHelper h) {
 		floor(h);
 		Block[] blocks = {ModBlocks.WOODEN_BUTTON, ModBlocks.SECRET_LEVER, ModBlocks.SECRET_CHEST, ModBlocks.SOLID_BLOCK};

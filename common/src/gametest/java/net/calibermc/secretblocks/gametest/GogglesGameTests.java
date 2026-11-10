@@ -9,7 +9,7 @@ import net.minecraft.core.Holder;
 import net.calibermc.secretblocks.items.SecretGoggles;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -50,13 +50,13 @@ public class GogglesGameTests {
 	}
 
 	/** Worn: about 20% of once-a-second checks cost 1 durability (1,000 checks → about 200). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void wearsOutWhileWorn(GameTestHelper h) {
 		ItemStack stack = goggles();
 		Player player = wearer(h, stack);
 		for (int check = 0; check < 1000; check++) {
 			player.tickCount = check * SecretGoggles.WEAR_INTERVAL_TICKS;
-			stack.inventoryTick(h.getLevel(), player, 39, false);
+			stack.inventoryTick(h.getLevel(), player, EquipmentSlot.HEAD);
 		}
 		int lost = stack.getDamageValue();
 		check(h, lost >= 150 && lost <= 250, "expected about 200 durability lost in 1,000 checks, lost " + lost);
@@ -65,42 +65,42 @@ public class GogglesGameTests {
 	}
 
 	/** Between the once-a-second checks, and when not worn, nothing is lost. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void noWearOffTheSecondOrWhenNotWorn(GameTestHelper h) {
 		ItemStack worn = goggles();
 		Player player = wearer(h, worn);
 		for (int tick = 1; tick < 2000; tick++) {
 			if (tick % SecretGoggles.WEAR_INTERVAL_TICKS != 0) {
 				player.tickCount = tick;
-				worn.inventoryTick(h.getLevel(), player, 39, false);
+				worn.inventoryTick(h.getLevel(), player, EquipmentSlot.HEAD);
 			}
 		}
 		check(h, worn.getDamageValue() == 0, "no wear between checks, lost " + worn.getDamageValue());
 		ItemStack carried = goggles();
 		for (int check = 0; check < 500; check++) {
 			player.tickCount = check * SecretGoggles.WEAR_INTERVAL_TICKS;
-			carried.inventoryTick(h.getLevel(), player, 3, false);
+			carried.inventoryTick(h.getLevel(), player, null);
 		}
 		check(h, carried.getDamageValue() == 0, "goggles carried in the inventory must not wear, lost " + carried.getDamageValue());
 		h.succeed();
 	}
 
 	/** At 0 durability they break and leave the head slot. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void breakAtZero(GameTestHelper h) {
 		ItemStack stack = goggles();
 		stack.setDamageValue(stack.getMaxDamage() - 1);
 		Player player = wearer(h, stack);
 		for (int check = 0; check < 500 && !player.getItemBySlot(EquipmentSlot.HEAD).isEmpty(); check++) {
 			player.tickCount = check * SecretGoggles.WEAR_INTERVAL_TICKS;
-			stack.inventoryTick(h.getLevel(), player, 39, false);
+			stack.inventoryTick(h.getLevel(), player, EquipmentSlot.HEAD);
 		}
 		check(h, player.getItemBySlot(EquipmentSlot.HEAD).isEmpty() || stack.isEmpty(), "the goggles should have broken");
 		h.succeed();
 	}
 
 	/** Helmet slot, no armor value, equipped by using them. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void wornOnTheHeadWithNoArmor(GameTestHelper h) {
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		player.setItemInHand(InteractionHand.MAIN_HAND, goggles());
@@ -113,7 +113,7 @@ public class GogglesGameTests {
 	}
 
 	/** Repair: prismarine shard is the repair item; two worn pairs combine in a crafting grid (the anvil is tested below). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void repairedWithPrismarineOrAnotherPair(GameTestHelper h) {
 		check(h, repairs(goggles(), new ItemStack(Items.PRISMARINE_SHARD)), "prismarine shard repairs them");
 		check(h, !repairs(goggles(), new ItemStack(Items.IRON_INGOT)), "iron does not");
@@ -151,7 +151,7 @@ public class GogglesGameTests {
 	 * Unbreaking and Mending books apply, armour books do not; a prismarine
 	 * shard repairs; two worn pairs combine.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void anvilRules(GameTestHelper h) {
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		check(h, !player.getAbilities().instabuild, "the test player must use survival anvil rules");
@@ -183,7 +183,7 @@ public class GogglesGameTests {
 	 * on every such item, Curse of Vanishing), no armour enchantment does, and
 	 * nothing comes from the enchanting table.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void onlyTheDurabilityEnchantments(GameTestHelper h) {
 		ItemStack stack = goggles();
 		for (ResourceKey<Enchantment> applies : List.of(Enchantments.UNBREAKING, Enchantments.MENDING, Enchantments.VANISHING_CURSE)) {
@@ -201,7 +201,7 @@ public class GogglesGameTests {
 	}
 
 	/** End City treasure: about 10% of chests hold a pair (400 rolls → about 40). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void foundInEndCityTreasure(GameTestHelper h) {
 		LootTable table = h.getLevel().getServer().reloadableRegistries().getLootTable(BuiltInLootTables.END_CITY_TREASURE);
 		int withGoggles = 0;

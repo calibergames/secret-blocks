@@ -27,7 +27,7 @@ final class SecretBlocksForgeClient {
 	}
 
 	static void init(IEventBus modBus) {
-		modBus.addListener((ModelEvent.RegisterGeometryLoaders event) -> ForgeClientRendering.registerLoader(event));
+		modBus.addListener((ModelEvent.ModifyBakingResult event) -> ForgeClientRendering.modifyBakingResult(event));
 		modBus.addListener((ModelEvent.BakingCompleted event) -> ForgeClientRendering.modelsBaked(event));
 		modBus.addListener((RegisterKeyMappingsEvent event) -> event.register(BuilderView.TOGGLE_KEY));
 		modBus.addListener((EntityRenderersEvent.RegisterRenderers event) ->

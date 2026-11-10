@@ -3,7 +3,7 @@ package net.calibermc.secretblocks.gametest;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -50,46 +50,46 @@ public class PlacementGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void dummyBlockCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.SOLID_BLOCK); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void stairsCopyClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.STAIR_BLOCK); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void slabCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.SLAB_BLOCK); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void ghostBlockCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.GHOST_BLOCK); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void oneWayGlassFacesThePlacer(GameTestHelper h) { againstBricks(h, ModBlocks.ONE_WAY_GLASS); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void doorDisguisesBothHalves(GameTestHelper h) { againstBricks(h, ModBlocks.DOOR_BLOCK); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void ironDoorDisguisesBothHalves(GameTestHelper h) { againstBricks(h, ModBlocks.IRON_DOOR_BLOCK); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void trapdoorCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.TRAPDOOR_BLOCK); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void ironTrapdoorCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.IRON_TRAPDOOR_BLOCK); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void woodenButtonCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.WOODEN_BUTTON); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void stoneButtonCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.STONE_BUTTON); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void leverCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.SECRET_LEVER); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void secretRedstoneCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.SECRET_REDSTONE); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void secretChestCopiesClickedBlock(GameTestHelper h) { againstBricks(h, ModBlocks.SECRET_CHEST); }
 
 	/**
@@ -109,13 +109,13 @@ public class PlacementGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void doorBrokenAtTheBottomLeavesNoBlockEntity(GameTestHelper h) { doorBrokenBy(h, ModBlocks.DOOR_BLOCK, false); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void doorBrokenAtTheTopLeavesNoBlockEntity(GameTestHelper h) { doorBrokenBy(h, ModBlocks.DOOR_BLOCK, true); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void ironDoorBrokenAtTheTopLeavesNoBlockEntity(GameTestHelper h) { doorBrokenBy(h, ModBlocks.IRON_DOOR_BLOCK, true); }
 
 	/** P1: a single block placed under a disguised secret block leaves the block above alone. */
@@ -132,17 +132,17 @@ public class PlacementGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void leverLeavesBlockAboveAlone(GameTestHelper h) { underDisguisedBlock(h, ModBlocks.SECRET_LEVER); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void chestLeavesBlockAboveAlone(GameTestHelper h) { underDisguisedBlock(h, ModBlocks.SECRET_CHEST); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void secretRedstoneLeavesBlockAboveAlone(GameTestHelper h) { underDisguisedBlock(h, ModBlocks.SECRET_REDSTONE); }
 
 	/** P3: a block set without a player has no disguise (air on every face, drawn as stone). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void setBlockLeavesNoDisguise(GameTestHelper h) {
 		h.setBlock(PLACED, ModBlocks.SOLID_BLOCK);
 		checkFaces(h, PLACED, Blocks.AIR);
@@ -154,7 +154,7 @@ public class PlacementGameTests {
 	}
 
 	/** P4: One Way Glass placed from the west puts the glass on the west face. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void oneWayGlassFromTheWest(GameTestHelper h) {
 		floor(h);
 		BlockPos target = new BlockPos(5, 1, 3);
@@ -183,25 +183,25 @@ public class PlacementGameTests {
 	}
 
 	/** Sneaking and looking down at the floor: glass on top. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void oneWayGlassSneakingLookingDownGoesOnTop(GameTestHelper h) {
 		oneWayGlassOnTheFloor(h, new Vec3(3.5, 1, 2.5), true, Direction.UP);
 	}
 
 	/** The same look without sneaking keeps the glass on the side facing the player (north of the block). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void oneWayGlassLookingDownWithoutSneakingGoesOnTheSide(GameTestHelper h) {
 		oneWayGlassOnTheFloor(h, new Vec3(3.5, 1, 2.5), false, Direction.NORTH);
 	}
 
 	/** Sneaking but looking more across than down (a far floor block): the side facing the player. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void oneWayGlassSneakingLookingAcrossGoesOnTheSide(GameTestHelper h) {
 		oneWayGlassOnTheFloor(h, new Vec3(3.5, 1, 0.5), true, Direction.NORTH);
 	}
 
 	/** Sneaking and looking up at a ceiling: glass on the bottom. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void oneWayGlassSneakingLookingUpGoesOnTheBottom(GameTestHelper h) {
 		floor(h);
 		BlockPos ceiling = new BlockPos(3, 4, 3);
@@ -225,28 +225,28 @@ public class PlacementGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void bottomSlabGivesStone(GameTestHelper h) {
 		againstNeighbor(h, Blocks.SMOOTH_STONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM),
 				new Vec3(3.5, 1.25, 5.0), Blocks.STONE);
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void fenceGivesStone(GameTestHelper h) {
 		againstNeighbor(h, Blocks.OAK_FENCE.defaultBlockState(), new Vec3(3.5, 1.5, 5.375), Blocks.STONE);
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void glassPaneGivesStone(GameTestHelper h) {
 		againstNeighbor(h, Blocks.GLASS_PANE.defaultBlockState(), new Vec3(3.5, 1.5, 5.4375), Blocks.STONE);
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void glassIsCopied(GameTestHelper h) {
 		againstNeighbor(h, Blocks.GLASS.defaultBlockState(), NORTH_FACE_CENTER, Blocks.GLASS);
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void leavesAreCopied(GameTestHelper h) {
 		againstNeighbor(h, Blocks.OAK_LEAVES.defaultBlockState().setValue(LeavesBlock.PERSISTENT, true),
 				NORTH_FACE_CENTER, Blocks.OAK_LEAVES);

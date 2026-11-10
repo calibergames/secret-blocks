@@ -7,7 +7,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -45,11 +45,11 @@ public class WandGameTests {
 
 	private static String loadedName(ItemStack wand) {
 		CompoundTag tag = ItemData.read(wand);
-		return tag.getCompound(CamouflageWand.DISGUISE).getString("Name");
+		return tag.getCompoundOrEmpty(CamouflageWand.DISGUISE).getStringOr("Name", "");
 	}
 
 	/** Sneak + use on a plain block loads it, state included. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void sneakUseLoadsABlock(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.POLISHED_GRANITE);
@@ -65,7 +65,7 @@ public class WandGameTests {
 	}
 
 	/** On a secret block the wand loads the face that was clicked, not the secret block. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void sneakUseOnASecretBlockLoadsTheClickedFace(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, ModBlocks.SOLID_BLOCK);
@@ -82,7 +82,7 @@ public class WandGameTests {
 	 * item already keeps vanilla from using the block; plain use, where the
 	 * hook going first matters, is tested with the conversions.)
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theRegisteredHookTakesTheClick(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.LEVER.defaultBlockState());
@@ -98,7 +98,7 @@ public class WandGameTests {
 	}
 
 	/** A survival player who is not an operator is refused and nothing changes. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aSurvivalNonOperatorIsRefused(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.POLISHED_GRANITE);
@@ -112,7 +112,7 @@ public class WandGameTests {
 	}
 
 	/** An operator (permission level 2) may use it in survival. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void anOperatorInSurvivalMayUseIt(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.POLISHED_GRANITE);
@@ -123,7 +123,7 @@ public class WandGameTests {
 	}
 
 	/** A secret face that shows no block has nothing to load. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aBlankSecretFaceIsRefused(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, ModBlocks.SOLID_BLOCK);
@@ -139,7 +139,7 @@ public class WandGameTests {
 	}
 
 	/** With another item, or for a spectator, the hook stays out of the way. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theHookPassesOtherwise(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, Blocks.POLISHED_GRANITE);
@@ -156,7 +156,7 @@ public class WandGameTests {
 	}
 
 	/** The stored disguise is checked again when read: unknown blocks, air and secret blocks read as empty. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aTamperedWandReadsAsEmpty(GameTestHelper h) {
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a new wand is empty");

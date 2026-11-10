@@ -8,6 +8,8 @@ import net.minecraft.util.context.ContextMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.world.level.Level;
@@ -72,15 +74,6 @@ final class TestSupport {
 		return results(recipe, level).stream().anyMatch(stack -> stack.is(item));
 	}
 
-	/**
-	 * An 8 x 8 x 8 test area of air, from this test mod's data (the same size
-	 * as Fabric's own empty structure), so every loader runs the tests in the
-	 * same space. The test framework walls each test in with barriers and
-	 * roofs it over too, so a test that builds or shoots above the area sets
-	 * {@code skyAccess}.
-	 */
-	static final String EMPTY_STRUCTURE = "secretblocks_gametest:empty";
-
 	private static final GameProfile PROFILE = new GameProfile(
 			UUID.nameUUIDFromBytes("secretblocks-gametest".getBytes(StandardCharsets.UTF_8)), "sb_gametest");
 
@@ -110,7 +103,7 @@ final class TestSupport {
 		Vec3 d = abs(h, lookAtRel).subtract(eye);
 		float yaw = (float) Math.toDegrees(Math.atan2(-d.x, d.z));
 		float pitch = (float) -Math.toDegrees(Math.atan2(d.y, Math.sqrt(d.x * d.x + d.z * d.z)));
-		player.moveTo(feet.x, feet.y, feet.z, yaw, pitch);
+		player.snapTo(feet.x, feet.y, feet.z, yaw, pitch);
 		// A living entity looks where its head points (getViewVector uses the
 		// head rotation), and moveTo only sets the body rotation.
 		player.setYHeadRot(yaw);
@@ -179,7 +172,7 @@ final class TestSupport {
 	static void nameContainer(BlockEntity container, Component name) {
 		HolderLookup.Provider registries = container.getLevel().registryAccess();
 		CompoundTag data = container.saveCustomOnly(registries);
-		data.putString("CustomName", Component.Serializer.toJson(name, registries));
+		data.put("CustomName", ComponentSerialization.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), name).getOrThrow());
 		container.loadCustomOnly(data, registries);
 	}
 
@@ -188,7 +181,7 @@ final class TestSupport {
 		if (entity instanceof DisguisedBlockEntity secret) {
 			return secret;
 		}
-		h.fail("expected a secret block entity, found " + entity, rel);
+		h.fail(Component.literal("expected a secret block entity, found " + entity), rel);
 		throw new AssertionError("unreachable");
 	}
 
@@ -198,7 +191,7 @@ final class TestSupport {
 		if (entity instanceof SecretChestBlockEntity chest) {
 			return chest;
 		}
-		h.fail("expected a SecretChestBlockEntity, found " + entity, rel);
+		h.fail(Component.literal("expected a SecretChestBlockEntity, found " + entity), rel);
 		throw new AssertionError("unreachable");
 	}
 
@@ -208,7 +201,7 @@ final class TestSupport {
 		if (entity instanceof SecretBlockEntity secret) {
 			return secret;
 		}
-		h.fail("expected a SecretBlockEntity, found " + entity, rel);
+		h.fail(Component.literal("expected a SecretBlockEntity, found " + entity), rel);
 		throw new AssertionError("unreachable");
 	}
 
@@ -244,14 +237,14 @@ final class TestSupport {
 
 	static void check(GameTestHelper h, boolean condition, String message) {
 		if (!condition) {
-			h.fail(message);
+			h.fail(Component.literal(message));
 		}
 	}
 
 	static void checkBlock(GameTestHelper h, BlockPos rel, Block expected) {
 		BlockState actual = h.getBlockState(rel);
 		if (!actual.is(expected)) {
-			h.fail("expected " + expected + " but found " + actual, rel);
+			h.fail(Component.literal("expected " + expected + " but found " + actual), rel);
 		}
 	}
 
@@ -262,7 +255,7 @@ final class TestSupport {
 			Block expected = overrides.getOrDefault(dir, all);
 			BlockState actual = secret.getState(dir);
 			if (!actual.is(expected)) {
-				h.fail(dir + " face: expected " + expected + " but found " + actual, rel);
+				h.fail(Component.literal(dir + " face: expected " + expected + " but found " + actual), rel);
 			}
 		}
 	}

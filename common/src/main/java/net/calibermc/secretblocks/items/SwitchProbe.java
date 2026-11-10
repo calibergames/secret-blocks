@@ -85,14 +85,14 @@ public class SwitchProbe extends Item {
 	}
 
 	private static BlockState getState(ItemStack itemStack) {
-		return NbtUtils.readBlockState(BuiltInRegistries.BLOCK, ItemData.read(itemStack).getCompound("setState"));
+		return NbtUtils.readBlockState(BuiltInRegistries.BLOCK, ItemData.read(itemStack).getCompoundOrEmpty("setState"));
 	}
 
 	private static Direction getDirection(ItemStack itemStack) {
 		CompoundTag tag = ItemData.read(itemStack);
 		Direction tempDir = Direction.NORTH;
 
-		tempDir = Disguise.byName(tag.getString("setDirection"));
+		tempDir = Disguise.byName(tag.getStringOr("setDirection", ""));
 
 		return tempDir;
 	}

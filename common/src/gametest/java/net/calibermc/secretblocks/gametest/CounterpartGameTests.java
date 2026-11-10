@@ -8,7 +8,7 @@ import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -73,7 +73,7 @@ public class CounterpartGameTests {
 	 * that list gives it its render layer and its place in the every-block tests,
 	 * so one left out would lose both without any other test noticing.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everySecretBlockIsInTheBlockList(GameTestHelper h) {
 		List<Block> listed = List.of(ModBlocks.secretBlocksList);
 		int secretBlocks = 0;
@@ -88,7 +88,7 @@ public class CounterpartGameTests {
 	}
 
 	/** Every registered secret block has a counterpart row or is listed as having none. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everySecretBlockIsListed(GameTestHelper h) {
 		List<Block> blocks = modBlocks();
 		check(h, blocks.size() >= 20, "expected the mod's blocks, found " + blocks.size());
@@ -107,7 +107,7 @@ public class CounterpartGameTests {
 	}
 
 	/** States convert with their shared properties: facing, half, hinge, open, power, connections, shape. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void statesKeepTheirProperties(GameTestHelper h) {
 		BlockState door = ModBlocks.IRON_DOOR_BLOCK.defaultBlockState().setValue(DoorBlock.FACING, Direction.EAST)
 				.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER).setValue(DoorBlock.HINGE, DoorHingeSide.RIGHT)
@@ -157,7 +157,7 @@ public class CounterpartGameTests {
 	}
 
 	/** Every secret block's vanilla counterpart leads back to it (so no two rows collide by accident). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everyCounterpartLeadsBack(GameTestHelper h) {
 		int pairs = 0;
 		for (Block block : modBlocks()) {
@@ -177,7 +177,7 @@ public class CounterpartGameTests {
 	}
 
 	/** The wand's direction: exact pairs, whole families (any wood) and blocks with no secret version. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void vanillaBlocksFindTheirSecretVersion(GameTestHelper h) {
 		Object[][] cases = {
 				{Blocks.CHEST, ModBlocks.SECRET_CHEST},
@@ -208,9 +208,9 @@ public class CounterpartGameTests {
 	 * outputs and owners stay on the server). Covers every secret block with a
 	 * block entity, so each new one is checked when it is registered.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everySecretBlockEntitySendsOnlyItsDisguise(GameTestHelper h) {
-		Set<String> allowed = new Disguise().save(new CompoundTag()).getAllKeys();
+		Set<String> allowed = new Disguise().save(new CompoundTag()).keySet();
 		check(h, allowed.contains("northState"), "the disguise keys should include northState, are " + allowed);
 		// A floor, so blocks that need support (Secret Redstone Dust) stay placed.
 		floor(h);
@@ -234,7 +234,7 @@ public class CounterpartGameTests {
 			check(h, packetTag != null, BuiltInRegistries.BLOCK.getKey(block) + " sends no block-entity update packet");
 			for (CompoundTag tag : new CompoundTag[] {update, packetTag}) {
 				check(h, tag.contains("northState"), BuiltInRegistries.BLOCK.getKey(block) + " sends no disguise: " + tag);
-				for (String key : tag.getAllKeys()) {
+				for (String key : tag.keySet()) {
 					check(h, allowed.contains(key), BuiltInRegistries.BLOCK.getKey(block) + " sends '" + key + "' to clients: " + tag);
 				}
 			}

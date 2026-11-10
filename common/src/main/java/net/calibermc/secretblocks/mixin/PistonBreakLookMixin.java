@@ -5,6 +5,7 @@ import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -39,11 +40,12 @@ public abstract class PistonBreakLookMixin {
 		return entity;
 	}
 
-	@ModifyArg(method = "moveBlocks", index = 1,
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addDestroyBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V"))
-	private BlockState secretblocks$burstLook(BlockState state) {
+	/** The burst is the block-break level event, which carries the broken block's state id. */
+	@ModifyArg(method = "moveBlocks", index = 2,
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;levelEvent(ILnet/minecraft/core/BlockPos;I)V"))
+	private int secretblocks$burstLook(int stateId) {
 		BlockState look = secretblocks$breakingLook.get();
 		secretblocks$breakingLook.remove();
-		return look != null && state.getBlock() instanceof SecretBlock ? look : state;
+		return look != null && Block.stateById(stateId).getBlock() instanceof SecretBlock ? Block.getId(look) : stateId;
 	}
 }

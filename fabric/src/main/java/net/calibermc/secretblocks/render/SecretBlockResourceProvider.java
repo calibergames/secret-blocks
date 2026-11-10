@@ -1,21 +1,33 @@
 package net.calibermc.secretblocks.render;
 
-import net.calibermc.secretblocks.SecretBlocks;
+import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
-/** Supplies the secret blocks' shared model ({@code block/camo_block}), which draws each block's disguise. */
+/**
+ * Gives every state of every secret block the disguise model; their block
+ * state files (which name {@code block/camo_block}) are not read.
+ */
 @Environment(EnvType.CLIENT)
 public final class SecretBlockResourceProvider implements ModelLoadingPlugin {
 
-	public static final SecretBlockUnbakedModel CAMO_MODEL = new SecretBlockUnbakedModel();
-	public static final ResourceLocation CAMO_BLOCK = SecretBlocks.id("block/camo_block");
+	private static final BlockStateModel.UnbakedRoot CAMO_MODEL = new SecretBlockUnbakedModel().asRoot();
 
 	@Override
 	public void initialize(Context context) {
-		// No JSON file backs this id: the model is supplied when it is requested.
-		context.modifyModelOnLoad().register((model, load) -> load.id().equals(CAMO_BLOCK) ? CAMO_MODEL : model);
+		for (Block block : BuiltInRegistries.BLOCK) {
+			if (block instanceof SecretBlock) {
+				context.registerBlockStateResolver(block, states -> {
+					for (BlockState state : block.getStateDefinition().getPossibleStates()) {
+						states.setModel(state, CAMO_MODEL);
+					}
+				});
+			}
+		}
 	}
 }

@@ -101,8 +101,7 @@ public class SecretChest extends BaseEntityBlock implements EntityBlock, SecretB
     }
 
     // The contents drop, with a comparator update, in SecretChestBlockEntity.dropStoredItems
-    // (called for every secret block as it is removed, before this); BaseEntityBlock.onRemove
-    // then removes the block entity.
+    // (called from the block entity's preRemoveSideEffects while it still exists).
 
     @Override
     public boolean hasAnalogOutputSignal(BlockState state) {

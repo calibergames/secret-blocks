@@ -1,4 +1,6 @@
 {
 	"parent": "minecraft:block/block",
-	"loader": "secretblocks:camo"
+	"textures": {
+		"particle": "minecraft:block/stone"
+	}
 }

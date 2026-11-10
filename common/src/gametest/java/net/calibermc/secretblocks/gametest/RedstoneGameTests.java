@@ -3,7 +3,7 @@ package net.calibermc.secretblocks.gametest;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -78,7 +78,7 @@ public class RedstoneGameTests {
 	}
 
 	/** A lamp right next to Secret Redstone Dust lights, as it would next to vanilla wire. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lampNextToSecretRedstoneLights(GameTestHelper h) {
 		floor(h);
 		line(h, SECRET_ROW, new Block[] {ModBlocks.SECRET_REDSTONE}, true);
@@ -94,7 +94,7 @@ public class RedstoneGameTests {
 	 * player places the lamp beside it (in 1.2.0 a lamp set beside it in game
 	 * stayed off).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lampPlacedByAPlayerNextToPoweredSecretRedstoneLights(GameTestHelper h) {
 		floor(h);
 		line(h, SECRET_ROW, new Block[] {ModBlocks.SECRET_REDSTONE}, false);
@@ -114,7 +114,7 @@ public class RedstoneGameTests {
 	}
 
 	/** Step by step: a player places the wire between a redstone block and a lamp already there. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void secretRedstonePlacedByAPlayerLightsTheLamp(GameTestHelper h) {
 		floor(h);
 		for (int z : new int[] {SECRET_ROW, CONTROL_ROW}) {
@@ -135,7 +135,7 @@ public class RedstoneGameTests {
 	}
 
 	/** The lamp is set (not placed) after the wire is powered; it ends like the control's. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lampSetNextToPoweredSecretRedstoneMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		line(h, SECRET_ROW, new Block[] {ModBlocks.SECRET_REDSTONE}, false);
@@ -153,7 +153,7 @@ public class RedstoneGameTests {
 	}
 
 	/** Power drops by 1 per wire across a mixed line, exactly as along vanilla wire. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void mixedLineLosesOnePerWire(GameTestHelper h) {
 		floor(h);
 		Block s = ModBlocks.SECRET_REDSTONE;
@@ -168,7 +168,7 @@ public class RedstoneGameTests {
 	}
 
 	/** Removing the source turns the whole mixed line off (no latching). */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void mixedLineTurnsOffWhenSourceRemoved(GameTestHelper h) {
 		floor(h);
 		Block s = ModBlocks.SECRET_REDSTONE;
@@ -192,7 +192,7 @@ public class RedstoneGameTests {
 	}
 
 	/** Like vanilla wire, Secret Redstone Dust is not a redstone conductor (a strongly powered block), though it is a full block. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void notARedstoneConductor(GameTestHelper h) {
 		BlockPos pos = h.absolutePos(new BlockPos(1, 1, 1));
 		check(h, !ModBlocks.SECRET_REDSTONE.defaultBlockState().isRedstoneConductor(h.getLevel(), pos),
@@ -206,7 +206,7 @@ public class RedstoneGameTests {
 	 * line does not point, stays off as it does beside vanilla wire (a
 	 * conductor would pass the repeater's strong power into the lamp).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void lampBesideARepeaterFedLineMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		for (int z : new int[] {SECRET_ROW, CONTROL_ROW}) {
@@ -234,7 +234,7 @@ public class RedstoneGameTests {
 	 * wire's 14). Vanilla reads wire there by its power level; Secret Redstone Dust
 	 * gives the same value through its signal, so no mixin is needed.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void comparatorSideInputMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		// A comparator's FACING is its input side: back input from x = 2, output toward x = 4.
@@ -259,7 +259,7 @@ public class RedstoneGameTests {
 	}
 
 	/** Up a one-block step, vanilla wire and Secret Redstone Dust connect to each other (both ways) as two vanilla wires do. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void stepConnectsLikeVanilla(GameTestHelper h) {
 		floor(h);
 		// Row z: low wire at x = 1, a stone step at x = 2 with a wire on top. Secret Redstone Dust on top (z = 1)
@@ -291,7 +291,7 @@ public class RedstoneGameTests {
 	}
 
 	/** A line of Secret Redstone Dust only: loses 1 per block and turns off when the source goes. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void secretOnlyLine(GameTestHelper h) {
 		floor(h);
 		Block s = ModBlocks.SECRET_REDSTONE;

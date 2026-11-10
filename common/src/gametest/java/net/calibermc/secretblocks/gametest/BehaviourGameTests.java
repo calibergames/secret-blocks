@@ -6,7 +6,7 @@ import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
@@ -43,7 +43,7 @@ public class BehaviourGameTests {
 
 	private static final BlockPos A = new BlockPos(3, 1, 3);
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void doorOpensByHand(GameTestHelper h) {
 		floor(h);
 		BlockState lower = ModBlocks.DOOR_BLOCK.defaultBlockState();
@@ -57,7 +57,7 @@ public class BehaviourGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void trapdoorOpensByHand(GameTestHelper h) {
 		floor(h);
 		h.setBlock(A, ModBlocks.TRAPDOOR_BLOCK.defaultBlockState().setValue(TrapDoorBlock.HALF, Half.BOTTOM));
@@ -68,7 +68,7 @@ public class BehaviourGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void leverLightsLamp(GameTestHelper h) {
 		floor(h);
 		BlockPos lamp = A.east();
@@ -87,14 +87,14 @@ public class BehaviourGameTests {
 		h.succeedWhen(() -> check(h, !h.getBlockState(A).getValue(ButtonBlock.POWERED), "button should release"));
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void woodenButtonPulses(GameTestHelper h) { buttonPulses(h, ModBlocks.WOODEN_BUTTON); }
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void stoneButtonPulses(GameTestHelper h) { buttonPulses(h, ModBlocks.STONE_BUTTON); }
 
 	/** Secret Redstone Dust passes a signal on to vanilla wire, which lights a lamp. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void secretRedstoneFeedsVanillaWire(GameTestHelper h) {
 		floor(h);
 		BlockPos lamp = new BlockPos(4, 1, 3);
@@ -106,7 +106,7 @@ public class BehaviourGameTests {
 	}
 
 	/** A comparator reads the Secret Chest. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void chestDrivesComparator(GameTestHelper h) {
 		floor(h);
 		BlockPos comparator = A.north();
@@ -124,7 +124,7 @@ public class BehaviourGameTests {
 	}
 
 	/** Chest contents survive a save and load of the block entity. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void chestContentsRoundTrip(GameTestHelper h) {
 		h.setBlock(A, ModBlocks.SECRET_CHEST);
 		SecretChestBlockEntity chest = chest(h, A);
@@ -144,7 +144,7 @@ public class BehaviourGameTests {
 		return h.getBlockState(A).getCollisionShape(h.getLevel(), h.absolutePos(A));
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void collisionShapes(GameTestHelper h) {
 		check(h, collision(h, ModBlocks.GHOST_BLOCK.defaultBlockState()).isEmpty(), "Ghost Block has no collision");
 		VoxelShape solid = collision(h, ModBlocks.SOLID_BLOCK.defaultBlockState());
@@ -161,7 +161,7 @@ public class BehaviourGameTests {
 	 * blocks that override {@code onRemove} without calling super (the
 	 * observer does) would otherwise leave an orphaned block entity behind.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void breakingRemovesTheBlockEntity(GameTestHelper h) {
 		floor(h);
 		StringBuilder leftBehind = new StringBuilder();
@@ -189,7 +189,7 @@ public class BehaviourGameTests {
 	 * removal, so an {@code onRemove} that ignores which block replaces it
 	 * would delete the block entity.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void stateChangesKeepTheDisguise(GameTestHelper h) {
 		floor(h);
 		StringBuilder lost = new StringBuilder();
@@ -218,7 +218,7 @@ public class BehaviourGameTests {
 	}
 
 	/** A Secret Stairs' shape changes when a stair is placed beside it; its disguise stays. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void stairsKeepDisguiseWhenShapeChanges(GameTestHelper h) {
 		floor(h);
 		h.setBlock(A, ModBlocks.STAIR_BLOCK.defaultBlockState().setValue(StairBlock.FACING, Direction.NORTH));
@@ -239,7 +239,7 @@ public class BehaviourGameTests {
 	 * {@code ServerPlayerGameMode.destroyBlock}) leaves air, no block entity,
 	 * and the block's item (nothing at all for a block with no item).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void survivalPlayerBreaksEverySecretBlockCleanly(GameTestHelper h) {
 		floor(h);
 		net.minecraft.server.level.ServerPlayer player = player(h, new net.minecraft.world.phys.Vec3(3.5, 1, 0.5), new net.minecraft.world.phys.Vec3(3.5, 1.5, 3.5));
@@ -277,9 +277,9 @@ public class BehaviourGameTests {
 	 * found in an old test world) gets a fresh disguise block
 	 * entity the first time server code asks for it (vanilla creates missing
 	 * block entities on access), so probes and placement still work on it.
-	 * The client draws such a block as stone (SecretBlockBakedModel).
+	 * The client draws such a block as stone (the disguise model's fallback).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void missingBlockEntityIsRecreatedOnAccess(GameTestHelper h) {
 		floor(h);
 		StringBuilder problems = new StringBuilder();
@@ -302,7 +302,7 @@ public class BehaviourGameTests {
 	}
 
 	/** A double Secret Slab drops two slabs, as a double oak slab does; a single one drops one. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aDoubleSlabDropsTwo(GameTestHelper h) {
 		floor(h);
 		BlockPos slab = new BlockPos(1, 1, 1);
@@ -324,7 +324,7 @@ public class BehaviourGameTests {
 	 * half of a side a top slab, and a second slab makes a double. Each
 	 * collides as that half (the disguise is drawn as a full block).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void slabsTakeTheHalfYouClick(GameTestHelper h) {
 		floor(h);
 		h.setBlock(new BlockPos(4, 1, 2), Blocks.STONE);

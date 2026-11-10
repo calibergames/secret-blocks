@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 /**
  * Forge's block renderer passes every quad an alpha of 1 and ignores the
- * alpha in its vertex colours, so a faded disguise quad ({@link FadedQuad})
+ * alpha in its vertex colours, so a faded disguise quad (see {@link FadedQuad})
  * would be drawn opaque. Its own alpha is applied here; every other quad is
  * drawn as before.
  */
@@ -21,6 +21,6 @@ public abstract class FadedQuadAlphaMixin {
 			target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;putBulkData(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lnet/minecraft/client/renderer/block/model/BakedQuad;[FFFFF[IIZ)V"))
 	private float secretblocks$fadedAlpha(PoseStack.Pose pose, BakedQuad quad, float[] brightness, float red, float green, float blue,
 			float alpha, int[] lights, int overlay, boolean readColor) {
-		return quad instanceof FadedQuad faded ? alpha * faded.alpha() : alpha;
+		return alpha * FadedQuad.alpha(quad);
 	}
 }

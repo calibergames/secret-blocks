@@ -2,10 +2,11 @@ package net.calibermc.secretblocks.gametest;
 
 import net.calibermc.secretblocks.blocks.entity.SecretComparatorBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
@@ -56,7 +57,7 @@ public class ComparatorGameTests {
 		if (entity instanceof ComparatorBlockEntity comparator) {
 			return comparator.getOutputSignal();
 		}
-		h.fail("expected a comparator block entity, found " + entity, new BlockPos(x, y, z));
+		h.fail(Component.literal("expected a comparator block entity, found " + entity), new BlockPos(x, y, z));
 		throw new AssertionError("unreachable");
 	}
 
@@ -75,7 +76,7 @@ public class ComparatorGameTests {
 	}
 
 	/** A chest behind it, empty, part full and full: the same output as a vanilla comparator (0, 6, 15). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void chestFillLevelsMatchVanilla(GameTestHelper h) {
 		floor(h);
 		// Level k on y = 1 + 2k: chest x = 1, comparator x = 2; Secret on z = 1, vanilla on z = 5 (on a stone, it needs a floor).
@@ -141,23 +142,23 @@ public class ComparatorGameTests {
 		});
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void compareAndSubtractWithVanillaWireAtTheSide(GameTestHelper h) {
 		modesWithSideInput(h, Blocks.REDSTONE_WIRE);
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void compareAndSubtractWithSecretDustAtTheSide(GameTestHelper h) {
 		modesWithSideInput(h, ModBlocks.SECRET_REDSTONE);
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void compareAndSubtractWithSecretWireAtTheSide(GameTestHelper h) {
 		modesWithSideInput(h, ModBlocks.SECRET_REDSTONE_WIRE);
 	}
 
 	/** Use toggles compare ↔ subtract and keeps the disguise; a player who may not build changes nothing. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void useTogglesTheMode(GameTestHelper h) {
 		floor(h);
 		BlockPos pos = new BlockPos(2, 1, 2);
@@ -184,7 +185,7 @@ public class ComparatorGameTests {
 	 * placed raises its output, directly behind it and through a solid block,
 	 * as for a vanilla comparator.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void containerChangeUpdatesIt(GameTestHelper h) {
 		floor(h);
 		// z = 1: chest, Secret Comparator. z = 3: chest, stone, Secret Comparator. z = 5: chest, vanilla. z = 7: chest, stone, vanilla.
@@ -219,7 +220,7 @@ public class ComparatorGameTests {
 	 * after the comparator was placed reads 15, for a Secret Comparator as for a
 	 * vanilla one.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void readsASecretChestFilledLater(GameTestHelper h) {
 		floor(h);
 		// z = 1: Secret Chest, Secret Comparator. z = 4: Secret Chest, vanilla comparator.
@@ -247,7 +248,7 @@ public class ComparatorGameTests {
 	 * breaks) and stone (which it pushes). Breaking is tested with the other
 	 * redstone in {@code PushableGameTests}.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void pistonsMayExtendIntoItAsVanilla(GameTestHelper h) {
 		floor(h);
 		Block[] blocks = {SECRET, Blocks.COMPARATOR, Blocks.STONE};
@@ -262,7 +263,7 @@ public class ComparatorGameTests {
 	}
 
 	/** An item frame on the far side of a solid block behind it: rotation 3 reads 4, as for a vanilla comparator. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void itemFrameThroughABlock(GameTestHelper h) {
 		floor(h);
 		// Comparator x = 4, stone x = 3, the frame hangs on the stone's west face at x = 2. Secret z = 1, vanilla z = 5.
@@ -293,7 +294,7 @@ public class ComparatorGameTests {
 	}
 
 	/** A powered comparator at a repeater's side locks it, Secret and vanilla in both combinations. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void locksARepeaterAtItsSide(GameTestHelper h) {
 		floor(h);
 		// Row z = 0: a Secret Comparator locks a vanilla repeater. Row z = 4: a vanilla comparator locks a Secret Repeater.
@@ -319,7 +320,7 @@ public class ComparatorGameTests {
 	 * powered repeater pointing into its side leaves the lamp beyond it off,
 	 * while the same through stone lights the lamp.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void outputToTheFrontAndNotAConductor(GameTestHelper h) {
 		floor(h);
 		// z = 0: source, comparator, lamp in front; a lamp at its side on z = 1. Secret x = 0..2, vanilla x = 4..6.
@@ -354,7 +355,7 @@ public class ComparatorGameTests {
 	}
 
 	/** Wire beside it takes the same shape as beside a vanilla comparator, at its side and at its input. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void wireConnectsAsToAVanillaComparator(GameTestHelper h) {
 		floor(h);
 		Block[] blocks = {SECRET, Blocks.COMPARATOR};
@@ -380,7 +381,7 @@ public class ComparatorGameTests {
 	}
 
 	/** Placed through the item, it faces as a vanilla comparator does, in compare mode. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void placementMatchesVanilla(GameTestHelper h) {
 		floor(h);
 		place(h, SECRET.asItem(), new Vec3(1.5, 1, 4.9), new BlockPos(1, 0, 3), Direction.UP, new Vec3(1.5, 1.0, 3.5));
@@ -400,7 +401,7 @@ public class ComparatorGameTests {
 	}
 
 	/** It stays when the block under it goes (a vanilla comparator pops). */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void staysWhenTheFloorGoes(GameTestHelper h) {
 		floor(h);
 		h.setBlock(2, 1, 2, comparator(SECRET, ComparatorMode.COMPARE));
@@ -418,7 +419,7 @@ public class ComparatorGameTests {
 	 * Saved data: its own block-entity id, the output signal and the disguise,
 	 * all read back by a fresh block entity. Clients get the disguise only.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void savesItsOutputAndDisguise(GameTestHelper h) {
 		floor(h);
 		BlockPos pos = new BlockPos(2, 1, 2);
@@ -429,9 +430,9 @@ public class ComparatorGameTests {
 			check(h, output(h, 2, 1, 2) == 15, "the Secret Comparator behind a redstone block should read 15, reads " + output(h, 2, 1, 2));
 			BlockEntity entity = blockEntityAt(h, pos);
 			CompoundTag saved = entity.saveWithFullMetadata(h.getLevel().registryAccess());
-			check(h, "secretblocks:secret_comparator".equals(saved.getString("id")), "saved id should be secretblocks:secret_comparator, is " + saved.getString("id"));
+			check(h, "secretblocks:secret_comparator".equals(saved.getStringOr("id", "")), "saved id should be secretblocks:secret_comparator, is " + saved.getStringOr("id", ""));
 			check(h, BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(entity.getType()).toString().equals("secretblocks:secret_comparator"), "its type should be ours, is " + BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(entity.getType()));
-			check(h, saved.getInt("OutputSignal") == 15, "the saved data should hold OutputSignal 15: " + saved);
+			check(h, saved.getIntOr("OutputSignal", 0) == 15, "the saved data should hold OutputSignal 15: " + saved);
 			check(h, saved.contains("northState"), "the saved data should hold the disguise: " + saved);
 			BlockEntity loaded = BlockEntity.loadStatic(h.absolutePos(pos), h.getBlockState(pos), saved, h.getLevel().registryAccess());
 			check(h, loaded instanceof SecretComparatorBlockEntity, "the saved data should load as a Secret Comparator block entity, got " + loaded);
@@ -444,7 +445,7 @@ public class ComparatorGameTests {
 		});
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipe(GameTestHelper h) {
 		Optional<ItemStack> made = craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.COMPARATOR);
 		check(h, made.isPresent() && made.get().is(SECRET.asItem()), "Dummy Block + comparator should make the Secret Comparator, got " + made);

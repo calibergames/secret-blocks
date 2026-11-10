@@ -1,6 +1,8 @@
 package net.calibermc.secretblocks.items;
 
 import net.calibermc.secretblocks.SecretBlocks;
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
@@ -14,7 +16,6 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.Equippable;
-import net.minecraft.world.level.Level;
 
 /**
  * Secret Goggles: worn in the helmet slot, no armor value. While worn, secret
@@ -61,8 +62,8 @@ public class SecretGoggles extends Item {
 	 * slot indices overlap). Server only.
 	 */
 	@Override
-	public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
-		if (!level.isClientSide() && entity instanceof LivingEntity wearer
+	public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
+		if (entity instanceof LivingEntity wearer
 				&& wearer.getItemBySlot(EquipmentSlot.HEAD) == stack
 				&& wearer.tickCount % WEAR_INTERVAL_TICKS == 0
 				&& level.getRandom().nextFloat() < WEAR_CHANCE) {

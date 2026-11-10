@@ -124,7 +124,7 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 
 	@Inject(method = "loadAdditional", at = @At("TAIL"))
 	private void secretblocks$load(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
-		secretblocks$setCarried(tag.contains(SECRETBLOCKS_CARRIED, CompoundTag.TAG_COMPOUND) ? tag.getCompound(SECRETBLOCKS_CARRIED) : null);
+		secretblocks$setCarried(tag.get(SECRETBLOCKS_CARRIED) instanceof CompoundTag ? tag.getCompoundOrEmpty(SECRETBLOCKS_CARRIED) : null);
 	}
 
 	/** The block placed at the end of the move gets the carried block entity data (disguise, stuck items). */

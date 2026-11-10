@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.blockentity.PistonHeadRenderer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -25,19 +26,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PistonHeadRenderer.class)
 public abstract class PistonHeadRendererMixin {
 
-	@Inject(method = "render(Lnet/minecraft/world/level/block/piston/PistonMovingBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V",
+	@Inject(method = "render(Lnet/minecraft/world/level/block/piston/PistonMovingBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/world/phys/Vec3;)V",
 			at = @At("HEAD"))
-	private void secretblocks$begin(PistonMovingBlockEntity moving, float partialTick, PoseStack poses, MultiBufferSource buffers, int light, int overlay, CallbackInfo ci) {
+	private void secretblocks$begin(PistonMovingBlockEntity moving, float partialTick, PoseStack poses, MultiBufferSource buffers, int light, int overlay,
+			Vec3 camera, CallbackInfo ci) {
 		MovingDisguise.begin(moving);
 	}
 
-	@Inject(method = "render(Lnet/minecraft/world/level/block/piston/PistonMovingBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V",
+	@Inject(method = "render(Lnet/minecraft/world/level/block/piston/PistonMovingBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/world/phys/Vec3;)V",
 			at = @At("RETURN"))
-	private void secretblocks$end(PistonMovingBlockEntity moving, float partialTick, PoseStack poses, MultiBufferSource buffers, int light, int overlay, CallbackInfo ci) {
+	private void secretblocks$end(PistonMovingBlockEntity moving, float partialTick, PoseStack poses, MultiBufferSource buffers, int light, int overlay,
+			Vec3 camera, CallbackInfo ci) {
 		MovingDisguise.end();
 	}
 
-	@Redirect(method = "render(Lnet/minecraft/world/level/block/piston/PistonMovingBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V",
+	@Redirect(method = "render(Lnet/minecraft/world/level/block/piston/PistonMovingBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/world/phys/Vec3;)V",
 			require = 2, at = @At(value = "FIELD", target = "Lnet/minecraft/world/level/block/Blocks;PISTON_HEAD:Lnet/minecraft/world/level/block/Block;"))
 	private Block secretblocks$head() {
 		PistonMovingBlockEntity moving = MovingDisguise.moving();

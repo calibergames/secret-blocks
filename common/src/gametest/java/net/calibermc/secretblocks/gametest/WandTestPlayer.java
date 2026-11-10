@@ -52,7 +52,7 @@ final class WandTestPlayer extends ServerPlayer {
 	static WandTestPlayer at(GameTestHelper h, Vec3 feetRel, boolean creative, int permission, boolean sneaking) {
 		WandTestPlayer player = new WandTestPlayer(h.getLevel(), creative, permission);
 		Vec3 feet = TestSupport.abs(h, feetRel);
-		player.moveTo(feet.x, feet.y, feet.z, 0, 0);
+		player.snapTo(feet.x, feet.y, feet.z, 0, 0);
 		player.setShiftKeyDown(sneaking);
 		return player;
 	}

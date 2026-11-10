@@ -2,7 +2,8 @@ package net.calibermc.secretblocks.gametest;
 
 import net.calibermc.secretblocks.blocks.entity.LegacyData;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponentExactPredicate;
+import net.minecraft.advancements.critereon.DataComponentMatchers;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.RandomizableContainer;
@@ -18,7 +19,7 @@ import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -146,7 +147,7 @@ public class WandConversionGameTests {
 	}
 
 	/** Every row both ways: the secret block with the state and the disguise on every face, then back to the same vanilla state. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void everyPairConvertsBothWays(GameTestHelper h) {
 		floor(h);
 		Set<Block> covered = PAIRS.values().stream().collect(Collectors.toSet());
@@ -202,7 +203,7 @@ public class WandConversionGameTests {
 	}
 
 	/** A block of another kind than the usual counterpart is remembered and comes back exactly. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theOriginalBlockComesBack(GameTestHelper h) {
 		floor(h);
 		StringBuilder problems = new StringBuilder();
@@ -246,7 +247,7 @@ public class WandConversionGameTests {
 	}
 
 	/** A chest turned secret with a glass look lets light through, and keeps its contents. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aGlassLookConversionLetsLightThrough(GameTestHelper h) {
 		floor(h);
 		place(h, Blocks.CHEST.defaultBlockState());
@@ -261,14 +262,14 @@ public class WandConversionGameTests {
 	}
 
 	/** The original is saved with the block, and stays on the server. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theOriginalIsSavedButNotSentToClients(GameTestHelper h) {
 		floor(h);
 		place(h, Blocks.SPRUCE_DOOR.defaultBlockState());
 		convert(h, op(h), wand(GRANITE));
 		BlockEntity entity = blockEntityAt(h, TARGET);
 		CompoundTag saved = entity.saveWithFullMetadata(h.getLevel().registryAccess());
-		check(h, "minecraft:spruce_door".equals(saved.getString(Disguise.ORIGINAL)), "the original should be saved, got " + saved);
+		check(h, "minecraft:spruce_door".equals(saved.getStringOr(Disguise.ORIGINAL, "")), "the original should be saved, got " + saved);
 		var loaded = (DisguisedBlockEntity) BlockEntity.loadStatic(h.absolutePos(TARGET), h.getBlockState(TARGET), saved, h.getLevel().registryAccess());
 		check(h, loaded.getOriginal() == Blocks.SPRUCE_DOOR, "the original should load back");
 		check(h, !entity.getUpdateTag(h.getLevel().registryAccess()).contains(Disguise.ORIGINAL), "clients must not get the original");
@@ -295,7 +296,7 @@ public class WandConversionGameTests {
 	}
 
 	/** Contents, custom name and lock go along both ways, and no item is dropped or doubled. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void containersKeepContentsNameAndLock(GameTestHelper h) {
 		floor(h);
 		StringBuilder problems = new StringBuilder();
@@ -317,8 +318,8 @@ public class WandConversionGameTests {
 				problems.append(label).append(" secret: ").append(secret instanceof Container c ? sameItems(reference, c) : secret).append("; ");
 			}
 			CompoundTag secretData = secret.saveWithoutMetadata(h.getLevel().registryAccess());
-			if (!secretData.getString("CustomName").contains("Stash") || !lockedWithKey(h, secretData)) {
-				problems.append(label).append(" secret name/lock: ").append(secretData.getString("CustomName")).append(" / ")
+			if (!secretData.getStringOr("CustomName", "").contains("Stash") || !lockedWithKey(h, secretData)) {
+				problems.append(label).append(" secret name/lock: ").append(secretData.getStringOr("CustomName", "")).append(" / ")
 						.append(secretData.get(LockCode.TAG_LOCK)).append("; ");
 			}
 			convert(h, op(h), wand(GRANITE));
@@ -341,8 +342,8 @@ public class WandConversionGameTests {
 	/** Locks {@code container} so that only an item named "key" opens it. */
 	private static void lockWithKey(GameTestHelper h, BlockEntity container) {
 		CompoundTag data = container.saveWithoutMetadata(h.getLevel().registryAccess());
-		new LockCode(ItemPredicate.Builder.item().hasComponents(DataComponentPredicate.builder()
-				.expect(DataComponents.CUSTOM_NAME, Component.literal("key")).build()).build())
+		new LockCode(ItemPredicate.Builder.item().withComponents(DataComponentMatchers.Builder.components()
+				.exact(DataComponentExactPredicate.expect(DataComponents.CUSTOM_NAME, Component.literal("key"))).build()).build())
 				.addToTag(data, h.getLevel().registryAccess());
 		container.loadWithComponents(data, h.getLevel().registryAccess());
 	}
@@ -358,7 +359,7 @@ public class WandConversionGameTests {
 	 * A lock saved before 1.21.2 (a {@code Lock} name, not an item predicate) still locks
 	 * the secret containers once loaded, as vanilla's own containers are upgraded.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void anOlderLockStillLocks(GameTestHelper h) {
 		floor(h);
 		StringBuilder problems = new StringBuilder();
@@ -384,7 +385,7 @@ public class WandConversionGameTests {
 	private static final int MINECRAFT_1_21_1 = 3955;
 
 	/** A Secret Chest shows its custom name as the title, takes a renamed item's name, and keeps a lock. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aSecretChestHasANameAndALock(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, ModBlocks.SECRET_CHEST);
@@ -403,7 +404,7 @@ public class WandConversionGameTests {
 		check(h, player.containerMenu == player.inventoryMenu, "the locked chest must not open");
 		player.setItemInHand(InteractionHand.MAIN_HAND, named(new ItemStack(Items.TRIPWIRE_HOOK), Component.literal("key")));
 		check(h, BaseContainerBlockEntity.canUnlock(player, chest.getLockKey(), Component.empty()), "the key should open it");
-		check(h, chest.getUpdateTag(h.getLevel().registryAccess()).getAllKeys().stream().noneMatch(k -> k.equals(LockCode.TAG_LOCK) || k.equals("CustomName")),
+		check(h, chest.getUpdateTag(h.getLevel().registryAccess()).keySet().stream().noneMatch(k -> k.equals(LockCode.TAG_LOCK) || k.equals("CustomName")),
 				"clients must not get the lock or the name");
 		// Mined, it drops a chest item with the name, as vanilla's does.
 		List<ItemStack> drops = Block.getDrops(state, h.getLevel(), h.absolutePos(TARGET), chest);
@@ -413,7 +414,7 @@ public class WandConversionGameTests {
 	}
 
 	/** A pressed button or a powered plate keeps its release after converting (its pending tick moves with it). */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 100)
+	@GameTest(maxTicks = 100)
 	public void pendingTicksCarryOver(GameTestHelper h) {
 		floor(h);
 		BlockPos plate = TARGET.east(2);
@@ -445,7 +446,7 @@ public class WandConversionGameTests {
 	}
 
 	/** A door half without its other half is refused; its neighbour is not touched. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aLoneDoorHalfIsRefused(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET.above(), Blocks.STONE);
@@ -458,7 +459,7 @@ public class WandConversionGameTests {
 	}
 
 	/** Converted redstone works out its connections again: a six-sided Secret Redstone Wire becomes joined-up wire. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void convertedWireConnects(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET.east(), Blocks.REDSTONE_WIRE);
@@ -476,7 +477,7 @@ public class WandConversionGameTests {
 	}
 
 	/** Items stuck in a plain secret block (put there by a hopper before 2.0.0) drop when it turns vanilla; none are lost. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void stuckItemsDropWhenTurningVanilla(GameTestHelper h) {
 		floor(h);
 		h.setBlock(TARGET, ModBlocks.SECRET_LEVER.defaultBlockState().setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR));
@@ -496,7 +497,7 @@ public class WandConversionGameTests {
 	}
 
 	/** The remembered original moves with the block when a piston pushes it. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 60)
+	@GameTest(maxTicks = 60)
 	public void theOriginalMovesWithAPush(GameTestHelper h) {
 		floor(h);
 		place(h, Blocks.STONE_BRICK_STAIRS.defaultBlockState());
@@ -511,7 +512,7 @@ public class WandConversionGameTests {
 	}
 
 	/** Plain use reaches the wand before the block: a lever converts instead of flipping, a chest instead of opening. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void plainUseGoesBeforeTheBlock(GameTestHelper h) {
 		floor(h);
 		place(h, Blocks.LEVER.defaultBlockState().setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR));
@@ -528,7 +529,7 @@ public class WandConversionGameTests {
 	}
 
 	/** Turning a secret block back needs no disguise; making one does. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void anEmptyWandOnlyTurnsBlocksBack(GameTestHelper h) {
 		floor(h);
 		place(h, Blocks.OAK_DOOR.defaultBlockState());
@@ -559,7 +560,7 @@ public class WandConversionGameTests {
 		h.setBlock(TARGET, Blocks.AIR);
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void blocksThatCannotBeConvertedAreRefused(GameTestHelper h) {
 		floor(h);
 		refused(h, op(h), Blocks.STONE.defaultBlockState(), "no_counterpart", true);
@@ -582,7 +583,7 @@ public class WandConversionGameTests {
 		h.succeed();
 	}
 
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void playersWhoMayNotConvertAreRefused(GameTestHelper h) {
 		floor(h);
 		BlockState lever = Blocks.LEVER.defaultBlockState().setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR);
@@ -604,7 +605,7 @@ public class WandConversionGameTests {
 	}
 
 	/** A block in an unloaded chunk is refused without loading it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void anUnloadedChunkIsRefused(GameTestHelper h) {
 		BlockPos far = h.absolutePos(TARGET).offset(1_000_000, 0, 1_000_000);
 		check(h, !h.getLevel().isLoaded(far), "the far block should not be loaded");

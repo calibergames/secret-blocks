@@ -1,6 +1,7 @@
 package net.calibermc.secretblocks.gametest;
 
 import com.mojang.math.Axis;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.io.IOException;
@@ -18,8 +19,7 @@ import net.calibermc.secretblocks.blocks.WallTorchLever;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestAssertException;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -88,7 +88,7 @@ public class TorchLeverGameTests {
 	 * strongly powered, so a lamp beyond that stays off. Use again turns all of
 	 * it off. A vanilla floor lever beside it does the same.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void floorTorchLeverTogglesLikeALever(GameTestHelper h) {
 		floor(h);
 		// Support stone (2, 1, z), the switch on it at (2, 2, z). Lamp A (3, 2, z) beside the switch, lamp B (2, 1, z + 1)
@@ -135,7 +135,7 @@ public class TorchLeverGameTests {
 	 * power into the block it hangs on) and a lamp beside itself; a vanilla wall
 	 * lever does the same.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void wallTorchLeverPowersItsWall(GameTestHelper h) {
 		floor(h);
 		// Wall stone (3, 1, z); the switch at (4, 1, z) facing east; lamp A (2, 1, z) behind the wall; lamp B (4, 1, z + 1) beside the switch.
@@ -164,7 +164,7 @@ public class TorchLeverGameTests {
 	}
 
 	/** Signal 15 on every side when on, strong power only toward the block it is fixed to; nothing when off. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void signalsLikeALever(GameTestHelper h) {
 		BlockPos pos = h.absolutePos(new BlockPos(2, 1, 2));
 		BlockState[][] pairs = {
@@ -192,7 +192,7 @@ public class TorchLeverGameTests {
 	 * shape as a vanilla torch while off (on, the outline follows the tilt),
 	 * and no block entity.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void looksAndBreaksLikeATorch(GameTestHelper h) {
 		floor(h);
 		BlockPos pos = new BlockPos(2, 1, 2);
@@ -271,7 +271,7 @@ public class TorchLeverGameTests {
 	 * It pops off when its floor or wall block goes, dropping one Torch Lever,
 	 * and a lamp it was lighting goes out. A vanilla torch beside it pops too.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void popsOffWhenItsSupportGoes(GameTestHelper h) {
 		floor(h);
 		// Floor form on stone (2, 1, 1) with a lamp beside it; wall form on stone (2, 1, 5), hanging east, with a lamp above it.
@@ -313,7 +313,7 @@ public class TorchLeverGameTests {
 	 * On top of a straight wall it raises the wall's post, as a vanilla torch
 	 * does (the wall reads the minecraft:wall_post_override tag).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aWallRaisesItsPostUnderIt(GameTestHelper h) {
 		floor(h);
 		// Three wall pieces in a row along x at z = 1, 3, 5; the middle one is straight (no post) unless something on it asks.
@@ -337,7 +337,7 @@ public class TorchLeverGameTests {
 	 * Broken while on: the block it was fixed to stops being powered, so a lamp
 	 * beside that block goes out (floor and wall), as with a vanilla lever.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void brokenWhileOnTurnsItsSupportOff(GameTestHelper h) {
 		floor(h);
 		// Floor form: stone (2, 1, z), switch (2, 2, z), lamp (2, 1, z + 1) beside the stone. Torch Lever z = 0, lever z = 3.
@@ -374,7 +374,7 @@ public class TorchLeverGameTests {
 	 * own: on top of a block the floor form, on a wall face the wall form with
 	 * the same facing.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void theItemPlacesFloorAndWallForms(GameTestHelper h) {
 		floor(h);
 		// Floor: clicked on top of the floor block. Torch Lever x = 1, vanilla torch x = 5.
@@ -407,7 +407,7 @@ public class TorchLeverGameTests {
 	 * state) loads facing east, so it still leans the way it did; and it turns
 	 * with a structure.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void anOldFloorTorchLeverLoadsFacingEast(GameTestHelper h) {
 		CompoundTag saved = new CompoundTag();
 		saved.putString("Name", "secretblocks:torch_lever");
@@ -424,7 +424,7 @@ public class TorchLeverGameTests {
 	}
 
 	/** Torch + lever makes it; breaking either form drops one Torch Lever. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void recipeAndDrops(GameTestHelper h) {
 		floor(h);
 		Optional<ItemStack> made = craft(h, Items.TORCH, Items.LEVER);
@@ -449,7 +449,7 @@ public class TorchLeverGameTests {
 	 * our tilted ones, and those model files exist. (The picture itself is a
 	 * client check.)
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void onStatesUseTheTiltedModels(GameTestHelper h) {
 		String[][] forms = {
 				{"torch_lever", "minecraft:block/torch", "secretblocks:block/torch_lever_on"},
@@ -499,7 +499,7 @@ public class TorchLeverGameTests {
 			check(h, in != null, path + " should exist");
 			return GsonHelper.parse(new InputStreamReader(in, StandardCharsets.UTF_8));
 		} catch (IOException e) {
-			throw new GameTestAssertException(path + " could not be read: " + e);
+			throw h.assertionException(Component.literal(path + " could not be read: " + e));
 		}
 	}
 }

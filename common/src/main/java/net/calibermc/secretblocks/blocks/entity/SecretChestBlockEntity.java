@@ -8,8 +8,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.world.Containers;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.Nameable;
@@ -107,7 +109,8 @@ public class SecretChestBlockEntity extends SecretBlockEntity implements Impleme
 	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.saveAdditional(tag, registries);
 		if (customName != null) {
-			tag.putString("CustomName", Component.Serializer.toJson(customName, registries));
+			tag.put("CustomName", ComponentSerialization.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), customName)
+					.getOrThrow());
 		}
 		lockKey.addToTag(tag, registries);
 	}
@@ -115,7 +118,7 @@ public class SecretChestBlockEntity extends SecretBlockEntity implements Impleme
 	@Override
 	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadAdditional(tag, registries);
-		customName = tag.contains("CustomName", 8) ? parseCustomNameSafe(tag.getString("CustomName"), registries) : null;
+		customName = parseCustomNameSafe(tag.get("CustomName"), registries);
 		lockKey = LockCode.fromTag(tag, registries);
 	}
 

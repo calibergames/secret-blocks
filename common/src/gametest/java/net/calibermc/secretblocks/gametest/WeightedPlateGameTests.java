@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.blocks.WeightedPressurePlate;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.calibermc.secretblocks.gametest.support.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -63,7 +63,7 @@ public class WeightedPlateGameTests {
 	 * twin: the same signal, and vanilla's value. Stations are two blocks
 	 * apart, so items on different plates never merge either.
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void droppedItemsGiveTheVanillaSignal(GameTestHelper h) {
 		floor(h);
 		int[] counts = {1, 5, 15, 20};
@@ -97,7 +97,7 @@ public class WeightedPlateGameTests {
 	}
 
 	/** Mobs and players count; it releases once they are gone. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 200)
+	@GameTest(maxTicks = 200)
 	public void mobsAndPlayersCountAndItReleases(GameTestHelper h) {
 		floor(h);
 		BlockPos pigPlate = PLATE.west(2);
@@ -107,7 +107,7 @@ public class WeightedPlateGameTests {
 		var pig = h.spawnWithNoFreeWill(EntityType.PIG, pigPlate.above());
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		Vec3 feet = abs(h, Vec3.atBottomCenterOf(playerPlate.above()).add(0, 0.5, 0));
-		player.moveTo(feet.x, feet.y, feet.z, 0, 0);
+		player.snapTo(feet.x, feet.y, feet.z, 0, 0);
 		h.getLevel().addFreshEntity(player);
 		h.runAfterDelay(30, () -> {
 			check(h, power(h, pigPlate) == 1, "a pig on the light plate gives 1, got " + power(h, pigPlate));
@@ -126,7 +126,7 @@ public class WeightedPlateGameTests {
 	 * the block under it is not powered through (a lamp beside that block,
 	 * placed after the press and given an update, stays off).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 120)
+	@GameTest(maxTicks = 120)
 	public void weakPowerOnly(GameTestHelper h) {
 		floor(h);
 		BlockPos plate = PLATE.above();
@@ -149,7 +149,7 @@ public class WeightedPlateGameTests {
 	}
 
 	/** Pressing changes the block state; the disguise placed with it stays. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 120)
+	@GameTest(maxTicks = 120)
 	public void keepsItsDisguiseWhenPressed(GameTestHelper h) {
 		floor(h);
 		h.setBlock(PLATE.north(), Blocks.BRICKS);
@@ -163,7 +163,7 @@ public class WeightedPlateGameTests {
 	}
 
 	/** While pressed it counts again every 10 ticks: more items raise the signal. */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 160)
+	@GameTest(maxTicks = 160)
 	public void countsAgainWhilePressed(GameTestHelper h) {
 		floor(h);
 		h.setBlock(PLATE, ModBlocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
@@ -183,7 +183,7 @@ public class WeightedPlateGameTests {
 	 * power does not pass through it (the Secret Pressure Plate and Player
 	 * Pressure Plate too, since 2.0.0).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void notARedstoneConductor(GameTestHelper h) {
 		floor(h);
 		for (Block block : new Block[] {ModBlocks.LIGHT_WEIGHTED_PRESSURE_PLATE, ModBlocks.HEAVY_WEIGHTED_PRESSURE_PLATE,
@@ -212,7 +212,7 @@ public class WeightedPlateGameTests {
 	}
 
 	/** A piston breaks it, as it breaks the vanilla plate beside it. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void aPistonBreaksItAsVanilla(GameTestHelper h) {
 		floor(h);
 		Block[] plates = {ModBlocks.LIGHT_WEIGHTED_PRESSURE_PLATE, Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE,
@@ -240,7 +240,7 @@ public class WeightedPlateGameTests {
 	}
 
 	/** Dummy Block + the vanilla plate. */
-	@GameTest(template = EMPTY_STRUCTURE)
+	@GameTest
 	public void craftedFromADummyBlockAndTheVanillaPlate(GameTestHelper h) {
 		check(h, craft(h, ModBlocks.SOLID_BLOCK.asItem(), Items.LIGHT_WEIGHTED_PRESSURE_PLATE)
 						.map(s -> s.is(ModBlocks.LIGHT_WEIGHTED_PRESSURE_PLATE.asItem())).orElse(false),

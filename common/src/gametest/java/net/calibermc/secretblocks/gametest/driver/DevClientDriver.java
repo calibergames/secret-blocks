@@ -81,10 +81,7 @@ import java.util.List;
  *   wearing the goggles, or stop forcing it;</li>
  *   <li>{@code shot <name>}: save the game's own screenshot of the last
  *   frame as {@code run/screenshots/<name>.png} (read from the framebuffer,
- *   so it works when the desktop cannot be captured);</li>
- *   <li>{@code render <item id> <size> <name>}: draw the item as the
- *   inventory does into an off-screen buffer and save it, with a transparent
- *   background, as {@code run/icons/<name>.png}.</li>
+ *   so it works when the desktop cannot be captured).</li>
  * </ul>
  */
 public class DevClientDriver {
@@ -242,7 +239,7 @@ public class DevClientDriver {
 				report("sprint " + a[1]);
 			}
 			case "select" -> {
-				mc.player.getInventory().selected = Integer.parseInt(a[1]);
+				mc.player.getInventory().setSelectedSlot(Integer.parseInt(a[1]));
 				report("select " + a[1]);
 			}
 			case "sneak" -> {
@@ -352,7 +349,6 @@ public class DevClientDriver {
 			}
 			case "shot" -> Screenshot.grab(mc.gameDirectory, a[1] + ".png", mc.getMainRenderTarget(),
 					message -> report("shot " + a[1] + " -> " + message.getString()));
-			case "render" -> renderIcon(mc, a[1], Integer.parseInt(a[2]), a[3]);
 			case "quit" -> {
 				// The pause screen's "Save and Quit to Title" (PauseScreen.onDisconnect).
 				boolean local = mc.isLocalServer();
@@ -423,73 +419,6 @@ public class DevClientDriver {
 		double perCall = entities.isEmpty() ? 0 : (double) elapsed / ((long) rounds * entities.size());
 		report(String.format(java.util.Locale.ROOT, "bench at %s entities=%d rounds=%d flush=%s ns_per_call=%.1f ms_per_frame=%.3f builder=%s",
 				centre.toShortString(), entities.size(), rounds, flush, perCall, perCall * entities.size() / 1e6, net.calibermc.secretblocks.render.BuilderView.isActive()));
-	}
-
-	/**
-	 * {@code render <item id> <size> <name>}: draw the item exactly as the
-	 * inventory does (the game's own GUI item renderer, 3D blocks included)
-	 * into an off-screen {@code size}×{@code size} buffer with a transparent
-	 * background, saved as {@code icons/<name>.png} in the game directory.
-	 * The projection and model-view are set up as {@code GameRenderer} does
-	 * for the GUI, with 16 units across the whole buffer. {@code name} may
-	 * hold sub-folders but must stay inside {@code icons/}; an unknown item
-	 * id or a size outside 1–4096 is refused. Translucent pixels come out
-	 * with premultiplied colour (one pass over a transparent background).
-	 */
-	private void renderIcon(Minecraft mc, String itemId, int size, String name) {
-		var id = net.minecraft.resources.ResourceLocation.tryParse(itemId);
-		if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
-			report("render " + itemId + " failed: no such item");
-			return;
-		}
-		if (size < 1 || size > 4096) {
-			report("render " + itemId + " failed: size " + size + " is outside 1-4096");
-			return;
-		}
-		Path icons = mc.gameDirectory.toPath().resolve("icons").toAbsolutePath().normalize();
-		Path out = icons.resolve(name + ".png").normalize();
-		if (!out.startsWith(icons)) {
-			report("render " + itemId + " failed: '" + name + "' leaves the icons folder");
-			return;
-		}
-		var stack = new net.minecraft.world.item.ItemStack(BuiltInRegistries.ITEM.getValue(id));
-		var target = new com.mojang.blaze3d.pipeline.TextureTarget(size, size, true);
-		try {
-			target.setClearColor(0, 0, 0, 0);
-			target.clear();
-			target.bindWrite(true);
-			com.mojang.blaze3d.systems.RenderSystem.backupProjectionMatrix();
-			var modelView = com.mojang.blaze3d.systems.RenderSystem.getModelViewStack();
-			modelView.pushMatrix();
-			try {
-				com.mojang.blaze3d.systems.RenderSystem.setProjectionMatrix(
-						new org.joml.Matrix4f().setOrtho(0, 16, 16, 0, 1000, 3000),
-						com.mojang.blaze3d.ProjectionType.ORTHOGRAPHIC);
-				modelView.identity();
-				modelView.translate(0, 0, -2000);
-				var graphics = new net.minecraft.client.gui.GuiGraphics(mc, mc.renderBuffers().bufferSource());
-				graphics.renderItem(stack, 0, 0);
-				graphics.flush();
-				try (var image = new com.mojang.blaze3d.platform.NativeImage(size, size, false)) {
-					com.mojang.blaze3d.systems.RenderSystem.bindTexture(target.getColorTextureId());
-					image.downloadTexture(0, false);
-					image.flipY();
-					Files.createDirectories(out.getParent());
-					image.writeToFile(out);
-				}
-				report("render " + itemId + " " + size + " -> " + out);
-			} finally {
-				// Undone only once they were set up, so a failure above cannot be masked here.
-				modelView.popMatrix();
-				com.mojang.blaze3d.systems.RenderSystem.restoreProjectionMatrix();
-			}
-		} catch (IOException e) {
-			report("render " + itemId + " failed: " + e);
-		} finally {
-			target.unbindWrite();
-			mc.getMainRenderTarget().bindWrite(true);
-			target.destroyBuffers();
-		}
 	}
 
 	private void continueBreaking(Minecraft mc) {

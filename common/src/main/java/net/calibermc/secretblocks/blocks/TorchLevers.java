@@ -70,8 +70,8 @@ final class TorchLevers {
 	}
 
 	/** Removed while on: the neighbours must hear that the signal is gone. */
-	static void removed(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved, Direction away) {
-		if (!moved && !state.is(newState.getBlock()) && state.getValue(POWERED)) {
+	static void removed(BlockState state, Level level, BlockPos pos, boolean moved, Direction away) {
+		if (!moved && state.getValue(POWERED)) {
 			updateNeighbours(state, level, pos, away);
 		}
 	}
