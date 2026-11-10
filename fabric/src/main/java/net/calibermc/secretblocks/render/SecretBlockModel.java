@@ -49,6 +49,11 @@ public class SecretBlockModel implements BlockStateModel {
 	@Override
 	public void emitQuads(QuadEmitter emitter, BlockAndTintGetter blockView, BlockPos pos, BlockState state, RandomSource random,
 			Predicate<@Nullable Direction> cullTest) {
+		MovingDisguise.during(blockView, () -> emit(emitter, blockView, pos, state, random, cullTest));
+	}
+
+	private static void emit(QuadEmitter emitter, BlockAndTintGetter blockView, BlockPos pos, BlockState state, RandomSource random,
+			Predicate<@Nullable Direction> cullTest) {
 		// Drawn as part of a piston move: the disguise the move carries (there is no block entity during it;
 		// a move that carries none draws as the fallback, never another block's disguise).
 		Disguise disguise = MovingDisguise.current();

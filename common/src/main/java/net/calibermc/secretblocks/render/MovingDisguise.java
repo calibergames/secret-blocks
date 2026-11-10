@@ -2,11 +2,13 @@ package net.calibermc.secretblocks.render;
 
 import net.calibermc.secretblocks.blocks.entity.Disguise;
 import net.calibermc.secretblocks.blocks.entity.PistonCarry;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The moving block being drawn right now ({@code PistonHeadRendererMixin}),
+ * The piston move being drawn right now ({@code PistonHeadRendererMixin},
+ * {@code MovingBlockDrawMixin}),
  * so that a secret block drawn as part of a move wears the disguise the move
  * carries ({@link PistonCarry}) instead of looking up a block entity that is
  * not there during the move.
@@ -18,12 +20,35 @@ public final class MovingDisguise {
 	private MovingDisguise() {
 	}
 
-	public static void begin(PistonMovingBlockEntity moving) {
+	/** Starts drawing {@code moving}; {@code null} draws no move. */
+	public static void begin(@Nullable PistonMovingBlockEntity moving) {
 		CURRENT.set(moving);
 	}
 
 	public static void end() {
 		CURRENT.remove();
+	}
+
+	/**
+	 * Runs {@code draw} with the piston move {@code level} shows as the one
+	 * being drawn, when {@code level} is a moving block's render state that
+	 * carries one ({@link MovingBlockSource}): a renderer that draws moving
+	 * blocks itself (Fabric API's) hands the state to the model as its level.
+	 * Otherwise runs it as it is.
+	 */
+	public static void during(BlockAndTintGetter level, Runnable draw) {
+		PistonMovingBlockEntity moving = level instanceof MovingBlockSource source ? source.secretblocks$moving() : null;
+		PistonMovingBlockEntity outer = CURRENT.get();
+		if (moving == null || moving == outer) {
+			draw.run();
+			return;
+		}
+		CURRENT.set(moving);
+		try {
+			draw.run();
+		} finally {
+			CURRENT.set(outer);
+		}
 	}
 
 	@Nullable

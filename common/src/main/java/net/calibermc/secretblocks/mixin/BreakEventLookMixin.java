@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.blocks.DisguiseLook;
 import net.minecraft.client.renderer.LevelEventHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.Level;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,7 +22,7 @@ public abstract class BreakEventLookMixin {
 
 	@Shadow
 	@Final
-	private Level level;
+	private ClientLevel level;
 
 	@ModifyVariable(method = "levelEvent", at = @At("STORE"))
 	private BlockState secretblocks$breakLook(BlockState state, int type, BlockPos pos, int data) {

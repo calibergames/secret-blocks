@@ -31,7 +31,7 @@ public abstract class IndigoCullingMixin {
 	@Shadow
 	public BlockPos blockPos;
 
-	@Redirect(method = "shouldDrawFace", at = @At(value = "INVOKE", remap = true,
+	@Redirect(method = "shouldDrawSide", at = @At(value = "INVOKE", remap = true,
 			target = "Lnet/minecraft/world/level/block/Block;shouldRenderFace(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"))
 	private boolean secretblocks$drawFace(BlockState self, BlockState neighbour, Direction side) {
 		Boolean draw = SecretCulling.drawFace(self, blockView, blockPos, side, blockPos.relative(side));

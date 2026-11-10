@@ -41,7 +41,7 @@ More in [Tools](https://github.com/calibergames/secret-blocks/wiki/Tools).
 
 - **Fabric or Quilt** (the `fabric` download): Minecraft 1.21.11,
   Fabric Loader 0.17.3 or later (or Quilt Loader; tested with 0.30.1),
-  and [Fabric API](https://modrinth.com/mod/fabric-api) 0.139.5 or later.
+  and [Fabric API](https://modrinth.com/mod/fabric-api) 0.140.0 or later.
 - **NeoForge** (the `neoforge` download): Minecraft 1.21.11, NeoForge
   21.11.42 or later.
 - **Forge** (the `forge` download): Minecraft 1.21.11, Forge 61.2.0 or later.

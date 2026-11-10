@@ -26,7 +26,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static net.calibermc.secretblocks.gametest.TestSupport.*;
@@ -68,11 +69,25 @@ public class DaylightDetectorGameTests {
 	 * anyway.
 	 */
 	private static void whenSkyLit(GameTestHelper h, int delay, Runnable check, BlockPos... open) {
+		Map<BlockPos, Integer> light = new HashMap<>();
+		for (BlockPos pos : open) {
+			light.put(pos, 15);
+		}
+		whenSkyLight(h, delay, check, light);
+	}
+
+	/**
+	 * As {@link #whenSkyLit}, waiting for the sky light given for each cell:
+	 * also for a cell under a block, whose light the engine lowers only after
+	 * the block is placed.
+	 */
+	private static void whenSkyLight(GameTestHelper h, int delay, Runnable check, Map<BlockPos, Integer> light) {
 		long start = h.getTick();
 		long[] litAt = {-1};
 		h.startSequence().thenWaitUntil(() -> {
 			long now = h.getTick();
-			if (litAt[0] < 0 && Arrays.stream(open).allMatch(p -> h.getLevel().getBrightness(LightLayer.SKY, h.absolutePos(p)) == 15)) {
+			if (litAt[0] < 0 && light.entrySet().stream()
+					.allMatch(e -> h.getLevel().getBrightness(LightLayer.SKY, h.absolutePos(e.getKey())) == e.getValue())) {
 				litAt[0] = now;
 			}
 			boolean updated = litAt[0] >= 0 && now > litAt[0] + DETECTOR_UPDATE;
@@ -182,12 +197,15 @@ public class DaylightDetectorGameTests {
 		}
 		h.setBlock(7, 1, 3, Blocks.DAYLIGHT_DETECTOR);
 		h.setBlock(7, 2, 3, Blocks.STONE);
-		// The cells the five upper detectors open onto, under the open sky.
-		BlockPos[] lit = new BlockPos[spots.length - 1];
-		for (int i = 0; i < lit.length; i++) {
-			lit[i] = spots[i].relative(open[i]);
+		// The cells the five upper detectors open onto, under the open sky (15), and the two under a block
+		// (14): the one the detector open below reads, and the vanilla detector's own.
+		Map<BlockPos, Integer> light = new HashMap<>();
+		for (int i = 0; i < spots.length - 1; i++) {
+			light.put(spots[i].relative(open[i]), 15);
 		}
-		whenSkyLit(h, 45, () -> {
+		light.put(spots[spots.length - 1].below(), 14);
+		light.put(new BlockPos(7, 1, 3), 14);
+		whenSkyLight(h, 45, () -> {
 			for (int i = 0; i < spots.length; i++) {
 				int got = h.getBlockState(spots[i]).getValue(DaylightDetectorBlock.POWER);
 				if (open[i] == Direction.DOWN) {
@@ -198,7 +216,7 @@ public class DaylightDetectorGameTests {
 			}
 			check(h, power(h, 7, 1, 3) == 14, "for comparison: a vanilla detector under a block gives 14 at noon, gives " + power(h, 7, 1, 3));
 			h.succeed();
-		}, lit);
+		}, light);
 	}
 
 	/**

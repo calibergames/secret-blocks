@@ -8,7 +8,7 @@ Secret Blocks for Minecraft 1.21.11, with the same blocks and tools as
 - **Three downloads:**
   - `secret-blocks-fabric-1.21.11-2.1.2.jar` for Fabric and Quilt. It needs
     Fabric Loader 0.17.3 or later (or Quilt Loader; tested with 0.30.1) and
-    Fabric API 0.139.5 or later.
+    Fabric API 0.140.0 or later.
   - `secret-blocks-neoforge-1.21.11-2.1.2.jar` for NeoForge 21.11.42 or later.
   - `secret-blocks-forge-1.21.11-2.1.2.jar` for Forge 61.2.0 or later.
 - **Worlds from 1.21.1 upgrade** with their secret blocks, disguises,
