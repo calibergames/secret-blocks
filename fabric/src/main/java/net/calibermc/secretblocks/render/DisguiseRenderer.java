@@ -9,7 +9,6 @@ import net.calibermc.secretblocks.blocks.TrapdoorBlock;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.color.block.BlockColors;
@@ -24,6 +23,7 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import net.calibermc.secretblocks.blocks.entity.Disguise;
 import net.calibermc.secretblocks.platform.Services;
@@ -48,9 +48,9 @@ public final class DisguiseRenderer {
 	private DisguiseRenderer() {
 	}
 
-	public static void render(Disguise disguise, BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<net.minecraft.util.RandomSource> randomSupplier, RenderContext context) {
+	public static void render(Disguise disguise, QuadEmitter emitter, BlockAndTintGetter blockView, BlockState state, BlockPos pos,
+			Supplier<net.minecraft.util.RandomSource> randomSupplier, Predicate<Direction> cullTest) {
 
-		QuadEmitter emitter = context.getEmitter();
 		boolean builder = BuilderView.isActive();
 		boolean joinsAbove = builder && DoorHalves.joinsAbove(blockView, pos, state);
 		boolean joinsBelow = builder && DoorHalves.joinsBelow(blockView, pos, state);
@@ -92,9 +92,9 @@ public final class DisguiseRenderer {
 			if (ghost) {
 				// Under a shader pack or on Sodium: the faded block as a translucent ghost face (see BuilderView#shaderPack).
 				emitShape(emitter, state, direction);
-				emitter.spriteBake(0, BuilderView.ghostSprite(), MutableQuadView.BAKE_LOCK_UV);
-				emitter.colorIndex(-1);
-				emitter.spriteColor(0, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
+				emitter.spriteBake(BuilderView.ghostSprite(), MutableQuadView.BAKE_LOCK_UV);
+				emitter.tintIndex(-1);
+				emitter.color(0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
 				emitter.material(FabricMaterials.fade());
 				emitter.emit();
 			}
@@ -105,7 +105,7 @@ public final class DisguiseRenderer {
 			boolean whole = !ghost && tempRotation == 0 && tempDirection == direction
 					&& !(state.getBlock() instanceof DoorBlock) && !(state.getBlock() instanceof TrapdoorBlock);
 			if (whole) {
-				emitWhole(context, emitter, fullModel, abqList, tempState, blockView, pos, randomSupplier, direction, layer, builder);
+				emitWhole(emitter, cullTest, fullModel, abqList, tempState, blockView, pos, randomSupplier, direction, layer, builder);
 			}
 
 			for (BakedQuad quad : ghost || whole ? List.<BakedQuad>of() : abqList) {
@@ -114,7 +114,7 @@ public final class DisguiseRenderer {
 
 				emitShape(emitter, state, direction);
 
-				emitter.spriteBake(0, quadSprite, 4);
+				emitter.spriteBake(quadSprite, 4);
 
 				rotateAndFlip(emitter, tempRotation, direction);
 
@@ -127,8 +127,8 @@ public final class DisguiseRenderer {
 					// In the disguise's own pass: stained glass translucent, leaves as the graphics setting has them.
 					emitter.material(layer);
 				}
-				emitter.colorIndex(quad.isTinted() ? 0 : -1);
-				emitter.spriteColor(0, faceColor, faceColor, faceColor, faceColor);
+				emitter.tintIndex(quad.isTinted() ? 0 : -1);
+				emitter.color(faceColor, faceColor, faceColor, faceColor);
 				emitter.emit();
 			}
 
@@ -141,7 +141,7 @@ public final class DisguiseRenderer {
 			}
 		}
 		if (builder) {
-			emitRealBlock(state, blockView, pos, randomSupplier, context);
+			emitRealBlock(state, blockView, pos, randomSupplier, emitter);
 		}
 	}
 
@@ -158,11 +158,10 @@ public final class DisguiseRenderer {
 	 * block's own, which crashed on redstone wire's multipart model.
 	 */
 	private static void emitRealBlock(BlockState state, BlockAndTintGetter blockView, BlockPos pos,
-			Supplier<net.minecraft.util.RandomSource> randomSupplier, RenderContext context) {
+			Supplier<net.minecraft.util.RandomSource> randomSupplier, QuadEmitter emitter) {
 		DisguiseShapes.realStateOf(state).ifPresent(vanilla -> {
 			BlockColors colors = Minecraft.getInstance().getBlockColors();
 			BakedModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(vanilla);
-			QuadEmitter emitter = context.getEmitter();
 			RenderMaterial material = FabricMaterials.real(model.useAmbientOcclusion());
 			for (int index = 0; index <= Direction.values().length; index++) {
 				Direction face = index < Direction.values().length ? Direction.values()[index] : null;
@@ -173,8 +172,8 @@ public final class DisguiseRenderer {
 					}
 					if (quad.isTinted()) {
 						int tint = 0xFF00_0000 | colors.getColor(vanilla, blockView, pos, quad.getTintIndex());
-						emitter.spriteColor(0, tint, tint, tint, tint);
-						emitter.colorIndex(-1);
+						emitter.color(tint, tint, tint, tint);
+						emitter.tintIndex(-1);
 					}
 					emitter.emit();
 				}
@@ -197,13 +196,13 @@ public final class DisguiseRenderer {
 	 * look's, and the material is the look's pass (or the Builder's Goggles'
 	 * fade).
 	 */
-	private static void emitWhole(RenderContext context, QuadEmitter emitter, BakedModel model, List<BakedQuad> quads, BlockState look,
+	private static void emitWhole(QuadEmitter emitter, Predicate<Direction> cullTest, BakedModel model, List<BakedQuad> quads, BlockState look,
 			BlockAndTintGetter blockView, BlockPos pos, Supplier<net.minecraft.util.RandomSource> randomSupplier, Direction direction,
 			@org.jetbrains.annotations.Nullable RenderMaterial layer, boolean builder) {
 		// Every baked model is a FabricBakedModel; a plain vanilla one is its adapter.
 		FabricBakedModel fabric = (FabricBakedModel) model;
 		if (!fabric.isVanillaAdapter()) {
-			context.pushTransform(quad -> {
+			emitter.pushTransform(quad -> {
 				Direction side = quad.cullFace() != null ? quad.cullFace() : quad.lightFace();
 				if (side != direction) {
 					return false;
@@ -212,9 +211,9 @@ public final class DisguiseRenderer {
 				return true;
 			});
 			try {
-				fabric.emitBlockQuads(new LookView(blockView, direction), look, pos, randomSupplier, context);
+				fabric.emitBlockQuads(emitter, new LookView(blockView, direction), look, pos, randomSupplier, cullTest);
 			} finally {
-				context.popTransform();
+				emitter.popTransform();
 			}
 		} else {
 			for (BakedQuad quad : quads) {
@@ -228,17 +227,17 @@ public final class DisguiseRenderer {
 	private static void finishWhole(MutableQuadView quad, BlockState look, BlockAndTintGetter blockView, BlockPos pos,
 			@org.jetbrains.annotations.Nullable RenderMaterial layer, boolean builder) {
 		int tint = 0xFFFF_FFFF;
-		if (quad.colorIndex() != -1) {
-			tint = 0xFF00_0000 | Minecraft.getInstance().getBlockColors().getColor(look, blockView, pos, quad.colorIndex());
-			quad.colorIndex(-1);
+		if (quad.tintIndex() != -1) {
+			tint = 0xFF00_0000 | Minecraft.getInstance().getBlockColors().getColor(look, blockView, pos, quad.tintIndex());
+			quad.tintIndex(-1);
 		}
 		for (int i = 0; i < 4; i++) {
-			int color = multiply(quad.spriteColor(i, 0), tint);
+			int color = multiply(quad.color(i), tint);
 			if (builder) {
 				// Faded, so the real block drawn below shows through.
 				color = (color & 0x00FF_FFFF) | (BuilderView.DISGUISE_ALPHA << 24);
 			}
-			quad.spriteColor(i, 0, color);
+			quad.color(i, color);
 		}
 		if (builder) {
 			quad.material(FabricMaterials.fade());
@@ -266,12 +265,12 @@ public final class DisguiseRenderer {
 		float[] u = new float[4];
 		float[] v = new float[4];
 		for (int i = 0; i < 4; i++) {
-			u[i] = emitter.spriteU(i, 0);
-			v[i] = emitter.spriteV(i, 0);
+			u[i] = emitter.u(i);
+			v[i] = emitter.v(i);
 		}
 		int[] order = DisguiseShapes.uvOrder(rotation, dir);
 		for (int i = 0; i < 4; i++) {
-			emitter.sprite(i, 0, u[order[i]], v[order[i]]);
+			emitter.uv(i, u[order[i]], v[order[i]]);
 		}
 	}
 
@@ -289,9 +288,9 @@ public final class DisguiseRenderer {
 		for (int i = 0; i < 4; i++) {
 			emitter.pos(i, emitter.x(i) + dx, emitter.y(i) + dy, emitter.z(i) + dz);
 		}
-		emitter.spriteBake(0, GogglesView.overlaySprite(), 4);
-		emitter.colorIndex(-1);
-		emitter.spriteColor(0, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
+		emitter.spriteBake(GogglesView.overlaySprite(), 4);
+		emitter.tintIndex(-1);
+		emitter.color(0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
 		emitter.material(FabricMaterials.overlay());
 		emitter.emit();
 	}
@@ -333,9 +332,9 @@ public final class DisguiseRenderer {
 			// Lifted off the face, but hidden with it where a neighbour covers it.
 			emitter.cullFace(face);
 		}
-		emitter.spriteBake(0, BuilderView.outlineSprite(), MutableQuadView.BAKE_LOCK_UV);
-		emitter.colorIndex(-1);
-		emitter.spriteColor(0, OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR);
+		emitter.spriteBake(BuilderView.outlineSprite(), MutableQuadView.BAKE_LOCK_UV);
+		emitter.tintIndex(-1);
+		emitter.color(OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR);
 		emitter.material(FabricMaterials.outline());
 		emitter.emit();
 	}

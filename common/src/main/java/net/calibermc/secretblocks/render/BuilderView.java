@@ -7,10 +7,10 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.inventory.InventoryMenu;
 
 import java.util.function.BooleanSupplier;
 
@@ -82,8 +82,8 @@ public final class BuilderView {
 			return;
 		}
 		// Refreshed every tick so a resource reload (new atlas) is picked up.
-		outlineSprite = mc.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(OUTLINE_SPRITE);
-		ghostSprite = mc.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(GHOST_SPRITE);
+		outlineSprite = mc.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(OUTLINE_SPRITE);
+		ghostSprite = mc.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(GHOST_SPRITE);
 		boolean packNow = ShaderPacks.inUse();
 		if (packNow != shaderPack) {
 			shaderPack = packNow;

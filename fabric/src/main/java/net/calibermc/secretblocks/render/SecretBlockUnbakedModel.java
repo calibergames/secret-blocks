@@ -2,11 +2,9 @@ package net.calibermc.secretblocks.render;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import java.util.function.Function;
-
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.block.model.TextureSlots;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
@@ -27,7 +25,8 @@ public class SecretBlockUnbakedModel implements UnbakedModel {
 	 * The disguise brings its own models when drawn.
 	 */
 	@Override
-	public BakedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer) {
+	public BakedModel bake(TextureSlots textures, ModelBaker baker, ModelState rotationContainer, boolean ambientOcclusion,
+			boolean lightLikeBlock, ItemTransforms transforms) {
 		return new SecretBlockBakedModel(baker.bake(DEFAULT_BLOCK_MODEL, rotationContainer).getTransforms());
 	}
 

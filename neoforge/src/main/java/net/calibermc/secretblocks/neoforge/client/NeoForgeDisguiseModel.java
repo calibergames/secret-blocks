@@ -147,11 +147,6 @@ final class NeoForgeDisguiseModel implements IDynamicBakedModel {
 	}
 
 	@Override
-	public boolean isCustomRenderer() {
-		return false;
-	}
-
-	@Override
 	public TextureAtlasSprite getParticleIcon() {
 		return Minecraft.getInstance().getBlockRenderer().getBlockModel(Blocks.STONE.defaultBlockState()).getParticleIcon();
 	}

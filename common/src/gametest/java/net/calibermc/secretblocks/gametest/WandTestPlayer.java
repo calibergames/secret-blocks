@@ -68,7 +68,7 @@ final class WandTestPlayer extends ServerPlayer {
 	}
 
 	@Override
-	protected int getPermissionLevel() {
+	public int getPermissionLevel() {
 		return permission;
 	}
 

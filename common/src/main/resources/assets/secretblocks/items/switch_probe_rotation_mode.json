@@ -1,0 +1,6 @@
+{
+	"model": {
+		"type": "minecraft:model",
+		"model": "secretblocks:item/switch_probe_rotation_mode"
+	}
+}

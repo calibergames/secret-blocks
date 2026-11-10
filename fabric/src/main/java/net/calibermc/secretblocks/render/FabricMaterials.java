@@ -2,9 +2,10 @@ package net.calibermc.secretblocks.render;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
+import net.fabricmc.fabric.api.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.util.TriState;
 
 /**
  * The Fabric Renderer API materials of the Builder's Goggles' view and the
@@ -25,25 +26,36 @@ public final class FabricMaterials {
 
 	/** The Builder's Goggles' materials; whether the view can be drawn (it cannot without a renderer). */
 	public static boolean ensureBuilderView() {
-		if (fade == null && RendererAccess.INSTANCE.hasRenderer()) {
-			real = RendererAccess.INSTANCE.getRenderer().materialFinder().find();
-			realFlat = RendererAccess.INSTANCE.getRenderer().materialFinder().disableAo(0, true).find();
-			outline = RendererAccess.INSTANCE.getRenderer().materialFinder().blendMode(0, BlendMode.SOLID)
-					.emissive(0, true).disableDiffuse(0, true).disableAo(0, true).find();
-			fade = RendererAccess.INSTANCE.getRenderer().materialFinder().blendMode(0, BlendMode.TRANSLUCENT).find();
+		Renderer renderer;
+		if (fade == null && (renderer = renderer()) != null) {
+			real = renderer.materialFinder().find();
+			realFlat = renderer.materialFinder().ambientOcclusion(TriState.FALSE).find();
+			outline = renderer.materialFinder().blendMode(BlendMode.SOLID)
+					.emissive(true).disableDiffuse(true).ambientOcclusion(TriState.FALSE).find();
+			fade = renderer.materialFinder().blendMode(BlendMode.TRANSLUCENT).find();
 		}
 		return fade != null;
 	}
 
 	/** The Secret Goggles' overlay material, tried each client tick until a renderer is up. */
 	public static void ensureOverlay() {
-		if (overlay == null && RendererAccess.INSTANCE.hasRenderer()) {
-			overlay = RendererAccess.INSTANCE.getRenderer().materialFinder()
-					.blendMode(0, BlendMode.TRANSLUCENT)
-					.emissive(0, true)
-					.disableDiffuse(0, true)
-					.disableAo(0, true)
+		Renderer renderer;
+		if (overlay == null && (renderer = renderer()) != null) {
+			overlay = renderer.materialFinder()
+					.blendMode(BlendMode.TRANSLUCENT)
+					.emissive(true)
+					.disableDiffuse(true)
+					.ambientOcclusion(TriState.FALSE)
 					.find();
+		}
+	}
+
+	/** The active Renderer API implementation, or null before one is registered. */
+	static Renderer renderer() {
+		try {
+			return Renderer.get();
+		} catch (UnsupportedOperationException noneYet) {
+			return null;
 		}
 	}
 

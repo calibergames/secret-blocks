@@ -21,6 +21,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -56,8 +57,8 @@ public class BuildersGogglesGameTests {
 				&& goggles().getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY).modifiers().isEmpty(),
 				"no modifiers, got " + goggles().get(DataComponents.ATTRIBUTE_MODIFIERS));
 		check(h, player.getArmorValue() == 0, "armor value should be 0, is " + player.getArmorValue());
-		Optional<ResourceLocation> worn = goggles().get(DataComponents.EQUIPPABLE).model();
-		check(h, worn.isPresent() && worn.equals(new ItemStack(ModItems.SECRET_GOGGLES).get(DataComponents.EQUIPPABLE).model()),
+		Optional<ResourceKey<EquipmentAsset>> worn = goggles().get(DataComponents.EQUIPPABLE).assetId();
+		check(h, worn.isPresent() && worn.equals(new ItemStack(ModItems.SECRET_GOGGLES).get(DataComponents.EQUIPPABLE).assetId()),
 				"worn, they should look like the Secret Goggles, got " + worn);
 		h.succeed();
 	}

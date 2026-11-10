@@ -15,6 +15,7 @@ public final class SecretBlockResourceProvider implements ModelLoadingPlugin {
 
 	@Override
 	public void initialize(Context context) {
-		context.resolveModel().register(model -> model.id().equals(CAMO_BLOCK) ? CAMO_MODEL : null);
+		// No JSON file backs this id: the model is supplied when it is requested.
+		context.modifyModelOnLoad().register((model, load) -> load.id().equals(CAMO_BLOCK) ? CAMO_MODEL : model);
 	}
 }

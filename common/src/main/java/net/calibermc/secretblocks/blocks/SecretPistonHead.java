@@ -54,7 +54,7 @@ public class SecretPistonHead extends PistonHeadBlock implements EntityBlock, Se
 
 	/** Pick-block gives the piston it belongs to, as vanilla's head does. */
 	@Override
-	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
 		return new ItemStack(state.getValue(TYPE) == PistonType.STICKY ? ModBlocks.SECRET_STICKY_PISTON : ModBlocks.SECRET_PISTON);
 	}
 }

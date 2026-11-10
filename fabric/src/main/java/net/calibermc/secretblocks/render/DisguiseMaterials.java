@@ -3,7 +3,6 @@ package net.calibermc.secretblocks.render;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -29,7 +28,7 @@ public final class DisguiseMaterials {
 
 	public static void register() {
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
-			if (translucent == null && RendererAccess.INSTANCE.hasRenderer()) {
+			if (translucent == null && FabricMaterials.renderer() != null) {
 				solid = find(BlendMode.SOLID);
 				cutout = find(BlendMode.CUTOUT);
 				cutoutMipped = find(BlendMode.CUTOUT_MIPPED);
@@ -39,7 +38,7 @@ public final class DisguiseMaterials {
 	}
 
 	private static RenderMaterial find(BlendMode mode) {
-		return RendererAccess.INSTANCE.getRenderer().materialFinder().blendMode(0, mode).find();
+		return FabricMaterials.renderer().materialFinder().blendMode(mode).find();
 	}
 
 	/** The material for a disguise face showing {@code disguise}, or null before the first client tick. */

@@ -621,7 +621,7 @@ public class PistonGameTests {
 		h.setBlock(rel, head);
 		check(h, h.getBlockState(rel).isCollisionShapeFullBlock(h.getLevel(), h.absolutePos(rel)), "the head should collide as a full block");
 		check(h, h.getBlockState(rel).getPistonPushReaction() == PushReaction.BLOCK, "pistons should neither push nor break the head, as vanilla's");
-		ItemStack picked = HEAD.getCloneItemStack(h.getLevel(), h.absolutePos(rel), head);
+		ItemStack picked = head.getCloneItemStack(h.getLevel(), h.absolutePos(rel), false);
 		check(h, picked.is(STICKY.asItem()), "pick-block on a sticky head should give the Secret Sticky Piston, gives " + picked);
 		h.getLevel().destroyBlock(h.absolutePos(rel), true);
 		check(h, h.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(h.absolutePos(rel)).inflate(1.5)).isEmpty(), "a broken head on its own should drop nothing");

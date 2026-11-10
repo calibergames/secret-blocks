@@ -2,7 +2,7 @@ package net.calibermc.secretblocks.items;
 
 import net.calibermc.secretblocks.SecretBlocks;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -11,6 +11,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.equipment.EquipmentAsset;
+import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.level.Level;
 
@@ -31,10 +33,11 @@ public class SecretGoggles extends Item {
 
 	/**
 	 * How both pairs of goggles look when worn:
-	 * {@code assets/secretblocks/models/equipment/goggles.json}, which names the texture
+	 * {@code assets/secretblocks/equipment/goggles.json}, which names the texture
 	 * {@code assets/secretblocks/textures/entity/equipment/humanoid/goggles.png}.
 	 */
-	public static final ResourceLocation EQUIPMENT_MODEL = SecretBlocks.id("goggles");
+	public static final ResourceKey<EquipmentAsset> EQUIPMENT_ASSET = ResourceKey.create(EquipmentAssets.ROOT_ID,
+			SecretBlocks.id("goggles"));
 
 	public SecretGoggles(Properties properties) {
 		super(helmet(properties).durability(DURABILITY).repairable(Items.PRISMARINE_SHARD));
@@ -49,7 +52,7 @@ public class SecretGoggles extends Item {
 	static Properties helmet(Properties properties) {
 		return properties.attributes(ItemAttributeModifiers.EMPTY)
 				.component(DataComponents.EQUIPPABLE, Equippable.builder(EquipmentSlot.HEAD)
-						.setEquipSound(SoundEvents.ARMOR_EQUIP_GENERIC).setModel(EQUIPMENT_MODEL).build());
+						.setEquipSound(SoundEvents.ARMOR_EQUIP_GENERIC).setAsset(EQUIPMENT_ASSET).build());
 	}
 
 	/**

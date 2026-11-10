@@ -9,7 +9,7 @@ public final class NeoForgeClientRendering {
 	private NeoForgeClientRendering() {
 	}
 
-	public static void registerLoader(ModelEvent.RegisterGeometryLoaders event) {
+	public static void registerLoader(ModelEvent.RegisterLoaders event) {
 		// The camo_block model names it as secretblocks:camo.
 		event.register(SecretBlocks.id("camo"), CamoGeometry.LOADER);
 	}

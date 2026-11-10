@@ -152,7 +152,7 @@ public class RecipeGameTests {
 			List<Optional<Ingredient>> ingredients = recipe instanceof ShapedRecipe shaped ? shaped.getIngredients()
 					: recipe.placementInfo().ingredients().stream().map(Optional::of).toList();
 			for (int i = 0; i < ingredients.size(); i++) {
-				List<Holder<Item>> accepted = ingredients.get(i).map(Ingredient::items).orElse(List.of());
+				List<Holder<Item>> accepted = ingredients.get(i).map(ingredient -> ingredient.items().toList()).orElse(List.of());
 				check(h, ingredients.get(i).isEmpty() || !accepted.isEmpty(), holder.id() + " ingredient " + i + " accepts no item");
 				grid[(i / width) * 3 + i % width] = accepted.isEmpty() ? ItemStack.EMPTY : new ItemStack(accepted.get(0));
 			}

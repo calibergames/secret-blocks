@@ -4,10 +4,11 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -15,7 +16,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -57,20 +57,6 @@ public class SecretBlockBakedModel implements FabricBakedModel, BakedModel {
 		return true;
 	}
 
-	/**
-	 * True so that a model-wrapping mod leaves this model alone: Continuity
-	 * wraps every block model that is not a custom renderer, and its wrapper
-	 * gives the whole block a single look (the bottom face's) and switches
-	 * off its connected textures inside, so a face whose look differs from the
-	 * bottom face's never connects. Unwrapped, each face is drawn by its
-	 * look's own model (see DisguiseRenderer), which connects as the look
-	 * would. Minecraft reads this only for items, which use their own models.
-	 */
-	@Override
-	public boolean isCustomRenderer() {
-		return true;
-	}
-
 	@Override
 	public TextureAtlasSprite getParticleIcon() {
 		return Minecraft.getInstance().getBlockRenderer().getBlockModel(Blocks.STONE.defaultBlockState()).getParticleIcon();
@@ -95,7 +81,8 @@ public class SecretBlockBakedModel implements FabricBakedModel, BakedModel {
 	private static final Disguise NO_DISGUISE = new Disguise();
 
 	@Override
-	public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<net.minecraft.util.RandomSource> randomSupplier, RenderContext context) {
+	public void emitBlockQuads(QuadEmitter emitter, BlockAndTintGetter blockView, BlockState state, BlockPos pos,
+			Supplier<net.minecraft.util.RandomSource> randomSupplier, Predicate<Direction> cullTest) {
 		// Drawn as part of a piston move: the disguise the move carries (there is no block entity during it;
 		// a move that carries none draws as the fallback, never another block's disguise).
 		Disguise disguise = MovingDisguise.current();
@@ -106,11 +93,11 @@ public class SecretBlockBakedModel implements FabricBakedModel, BakedModel {
 			BlockEntity entity = blockView.getBlockEntity(pos);
 			disguise = entity instanceof DisguisedBlockEntity disguised ? disguised.getDisguise() : NO_DISGUISE;
 		}
-		DisguiseRenderer.render(disguise, blockView, state, pos, randomSupplier, context);
+		DisguiseRenderer.render(disguise, emitter, blockView, state, pos, randomSupplier, cullTest);
 	}
 
 	@Override
-	public void emitItemQuads(ItemStack stack, Supplier<net.minecraft.util.RandomSource> randomSupplier, RenderContext context) {
+	public void emitItemQuads(QuadEmitter emitter, Supplier<net.minecraft.util.RandomSource> randomSupplier) {
 
 	}
 

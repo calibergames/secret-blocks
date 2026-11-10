@@ -97,7 +97,7 @@ public class GateSegmentGameTests {
 		check(h, !BuiltInRegistries.ITEM.containsKey(ResourceLocation.fromNamespaceAndPath("secretblocks", "secret_gate_segment")), "no item should be registered for the segment");
 		BlockPos first = OWNER.east();
 		segment(h, first, h.absolutePos(OWNER));
-		check(h, h.getBlockState(first).getBlock().getCloneItemStack(h.getLevel(), h.absolutePos(first), h.getBlockState(first)).isEmpty(),
+		check(h, h.getBlockState(first).getCloneItemStack(h.getLevel(), h.absolutePos(first), false).isEmpty(),
 				"pick-block should give nothing");
 		h.getLevel().destroyBlock(h.absolutePos(first), true);
 		checkBlock(h, first, Blocks.AIR);

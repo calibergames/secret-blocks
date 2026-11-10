@@ -1,0 +1,6 @@
+{
+	"model": {
+		"type": "minecraft:model",
+		"model": "secretblocks:item/iron_trapdoor_block"
+	}
+}

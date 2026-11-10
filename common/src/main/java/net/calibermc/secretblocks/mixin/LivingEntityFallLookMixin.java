@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Group;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
@@ -31,11 +32,21 @@ public abstract class LivingEntityFallLookMixin extends Entity {
 
 	/**
 	 * Only the particles change: the fall itself still lands on the secret
-	 * block. The block landed on is the one vanilla passes here.
+	 * block. The block landed on is the one vanilla passes here. NeoForge
+	 * builds the particle with its position constructor, the others with
+	 * vanilla's: exactly one of the two applies.
 	 */
-	@ModifyArg(method = "checkFallDamage", index = 1,
+	@Group(name = "secretblocks$landingLook", min = 1, max = 1)
+	@ModifyArg(method = "checkFallDamage", index = 1, require = 0,
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/core/particles/BlockParticleOption;<init>(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;)V"))
 	private BlockState secretblocks$landingLook(BlockState state) {
+		return DisguiseLook.looks(level(), getOnPosLegacy(), state, Direction.UP);
+	}
+
+	@Group(name = "secretblocks$landingLook", min = 1, max = 1)
+	@ModifyArg(method = "checkFallDamage", index = 1, require = 0,
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/core/particles/BlockParticleOption;<init>(Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;)V"))
+	private BlockState secretblocks$landingLookAt(BlockState state) {
 		return DisguiseLook.looks(level(), getOnPosLegacy(), state, Direction.UP);
 	}
 }

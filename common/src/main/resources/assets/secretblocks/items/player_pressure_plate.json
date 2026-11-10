@@ -1,0 +1,6 @@
+{
+	"model": {
+		"type": "minecraft:model",
+		"model": "secretblocks:item/player_pressure_plate"
+	}
+}

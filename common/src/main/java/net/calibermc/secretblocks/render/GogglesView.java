@@ -4,11 +4,11 @@ import net.calibermc.secretblocks.SecretBlocks;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.registry.ModItems;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.SectionPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
@@ -55,7 +55,7 @@ public final class GogglesView {
 			return;
 		}
 		// Refreshed every tick so a resource reload (new atlas) is picked up.
-		overlaySprite = mc.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(OVERLAY_SPRITE);
+		overlaySprite = mc.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(OVERLAY_SPRITE);
 		boolean now = mc.player != null && mc.player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.SECRET_GOGGLES);
 		if (now != wearing) {
 			wearing = now;
