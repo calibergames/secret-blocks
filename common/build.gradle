@@ -14,7 +14,7 @@ neoForge {
 dependencies {
 	compileOnly 'org.spongepowered:mixin:0.8.5'
 	compileOnly 'org.jetbrains:annotations:24.0.1'
-	// The ASM that Minecraft 1.21.3's own dependencies pin (strictly 9.3).
+	// ASM for compiling against Mixin's API (compile only: each loader brings its own).
 	compileOnly 'org.ow2.asm:asm:9.3'
 	compileOnly 'org.ow2.asm:asm-tree:9.3'
 	testImplementation 'org.ow2.asm:asm-tree:9.6'
