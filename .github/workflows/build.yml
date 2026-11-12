@@ -1,6 +1,6 @@
 # Builds the project and runs the tests (JUnit and the game tests) for every
-# push and pull request, on Linux and Windows. Actions are pinned to full
-# commit SHAs.
+# push and pull request, on Linux only: the jars are the same on every OS, so
+# one platform covers them. Actions are pinned to full commit SHAs.
 
 name: build
 on: [pull_request, push]
@@ -13,8 +13,7 @@ jobs:
     strategy:
       matrix:
         java: [17]
-        os: [ubuntu-24.04, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - name: checkout repository
