@@ -120,11 +120,6 @@ dependencies {
 	}
 	modImplementation "net.fabricmc:fabric-loader:${loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
-	// Bundled only to replace an older copy: Quilt Loader 0.30 ships MixinExtras
-	// 0.5.4, which crashes on the remapped @Redirect annotations in this jar
-	// (their `at` is written as an array; 0.5.5 reads both forms). Loaders use
-	// the newest copy present. The mod itself does not use MixinExtras.
-	include "io.github.llamalad7:mixinextras-fabric:${mixinextras_version}"
 }
 
 processResources {
