@@ -71,8 +71,8 @@ public final class GogglesView {
 		Set<Long> sections = new HashSet<>();
 		ChunkPos center = mc.player.chunkPosition();
 		int distance = mc.options.getEffectiveRenderDistance();
-		for (int x = center.x - distance; x <= center.x + distance; x++) {
-			for (int z = center.z - distance; z <= center.z + distance; z++) {
+		for (int x = center.x() - distance; x <= center.x() + distance; x++) {
+			for (int z = center.z() - distance; z <= center.z() + distance; z++) {
 				LevelChunk chunk = mc.level.getChunkSource().getChunk(x, z, ChunkStatus.FULL, false);
 				if (chunk == null) {
 					continue;

@@ -1,5 +1,5 @@
-// The loader-neutral mod, compiled against vanilla Minecraft (Mojang names
-// with Parchment parameter names). Its sources and resources are built into
+// The loader-neutral mod, compiled against vanilla Minecraft (Mojang's own
+// names and parameter names: Minecraft ships unobfuscated from 26.1). Its sources and resources are built into
 // each loader's jar.
 plugins {
 	id 'multiloader-common'
@@ -9,10 +9,6 @@ plugins {
 neoForge {
 	neoFormVersion = neoform_version
 	accessTransformers = files('accesstransformer.cfg')
-	parchment {
-		minecraftVersion = parchment_minecraft
-		mappingsVersion = parchment_mappings
-	}
 }
 
 dependencies {

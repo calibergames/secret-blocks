@@ -6,16 +6,17 @@ import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.blockentity.state.ChestRenderState;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.ChestRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -70,9 +71,9 @@ public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEnti
 		ChestBlockEntity chest = entity.getBlockState().is(ModBlocks.SECRET_TRAPPED_CHEST) ? trappedStandIn : standIn;
 		BlockPos pos = entity.getBlockPos();
 		chestRenderer.extractRenderState(chest, state, partialTick, camera, null);
-		state.blockPos = pos;
-		state.blockState = entity.getBlockState();
-		state.angle = Direction.NORTH.toYRot();
+		// The stand-in has no position: the rest of the state is the Secret Chest's own.
+		BlockEntityRenderState.extractBase(entity, state, null);
+		state.facing = Direction.NORTH;
 		state.lightCoords = seenSideLight(entity.getLevel(), pos, camera);
 	}
 
@@ -101,11 +102,11 @@ public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEnti
 		int sky = 0;
 		for (Direction direction : Direction.values()) {
 			if ((seen & (1 << direction.get3DDataValue())) != 0) {
-				int packed = LevelRenderer.getLightColor(level, neighbour.setWithOffset(pos, direction));
-				block = Math.max(block, LightTexture.block(packed));
-				sky = Math.max(sky, LightTexture.sky(packed));
+				int packed = LevelRenderer.getLightCoords(level, neighbour.setWithOffset(pos, direction));
+				block = Math.max(block, LightCoordsUtil.block(packed));
+				sky = Math.max(sky, LightCoordsUtil.sky(packed));
 			}
 		}
-		return LightTexture.pack(block, sky);
+		return LightCoordsUtil.pack(block, sky);
 	}
 }

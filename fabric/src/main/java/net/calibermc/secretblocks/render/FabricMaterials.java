@@ -2,8 +2,8 @@ package net.calibermc.secretblocks.render;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.Renderer;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
+import net.fabricmc.fabric.api.client.renderer.v1.Renderer;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import org.jetbrains.annotations.Nullable;
@@ -25,21 +25,26 @@ public final class FabricMaterials {
 	/** Translucent (no emissive light), for the faded disguise. */
 	static final Material FADE = layer(ChunkSectionLayer.TRANSLUCENT);
 	/** Solid and full-bright (no shading or ambient occlusion), for the outline. */
-	static final Material OUTLINE = quad -> quad.renderLayer(ChunkSectionLayer.SOLID).emissive(true).diffuseShade(false)
+	static final Material OUTLINE = quad -> quad.chunkLayer(ChunkSectionLayer.SOLID).emissive(true).diffuseShade(false)
 			.ambientOcclusion(TriState.FALSE);
 	/** Translucent and full-bright (emissive, no shading or ambient occlusion), for the overlay. */
-	static final Material OVERLAY = quad -> quad.renderLayer(ChunkSectionLayer.TRANSLUCENT).emissive(true).diffuseShade(false)
+	static final Material OVERLAY = quad -> quad.chunkLayer(ChunkSectionLayer.TRANSLUCENT).emissive(true).diffuseShade(false)
 			.ambientOcclusion(TriState.FALSE);
 	private static final Material REAL = layer(null);
-	private static final Material REAL_FLAT = quad -> quad.renderLayer(null).emissive(false).diffuseShade(true)
+	private static final Material REAL_FLAT = quad -> quad.emissive(false).diffuseShade(true)
 			.ambientOcclusion(TriState.FALSE);
 
 	private FabricMaterials() {
 	}
 
-	/** In {@code layer} (the block's own for {@code null}), lit and shaded as usual. */
+	/** In {@code layer} (the quad's own, from its texture, for {@code null}), lit and shaded as usual. */
 	static Material layer(@Nullable ChunkSectionLayer layer) {
-		return quad -> quad.renderLayer(layer).emissive(false).diffuseShade(true).ambientOcclusion(TriState.DEFAULT);
+		return quad -> {
+			if (layer != null) {
+				quad.chunkLayer(layer);
+			}
+			quad.emissive(false).diffuseShade(true).ambientOcclusion(TriState.DEFAULT);
+		};
 	}
 
 	/** The Builder's Goggles' view can be drawn only with a Renderer API implementation. */

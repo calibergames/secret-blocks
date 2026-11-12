@@ -5,21 +5,21 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.calibermc.secretblocks.blocks.DoorBlock;
 import net.calibermc.secretblocks.blocks.TrapdoorBlock;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableQuadView;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.client.color.block.BlockColors;
-import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import java.util.List;
@@ -80,19 +80,16 @@ public final class DisguiseRenderer {
 			}
 			FabricMaterials.Material layer = builder ? null : DisguiseMaterials.forDisguise(tempState);
 
-			BlockStateModel fullModel = minecraft.getBlockRenderer().getBlockModel(tempState);
+			BlockStateModel fullModel = minecraft.getModelManager().getBlockStateModelSet().get(tempState);
 			random.setSeed(tempState.getSeed(pos));
 			List<BakedQuad> abqList = quadsOf(fullModel, tempDirection, random);
-
-			BlockColors colors = minecraft.getBlockColors();
-			int color = 0xFF00_0000 | colors.getColor(tempState, blockView, pos, 0xFF);
 
 			boolean ghost = builder && (BuilderView.shaderPack() || VERTEX_ALPHA_SHADES)
 					&& BuilderView.ghostSprite() != null && !abqList.isEmpty();
 			if (ghost) {
 				// Under a shader pack or on Sodium: the faded block as a translucent ghost face (see BuilderView#shaderPack).
 				emitShape(emitter, state, direction);
-				emitter.spriteBake(BuilderView.ghostSprite(), MutableQuadView.BAKE_LOCK_UV);
+				bake(emitter, BuilderView.ghostSprite(), MutableQuadView.BAKE_LOCK_UV);
 				emitter.tintIndex(-1);
 				emitter.color(0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
 				FabricMaterials.FADE.applyTo(emitter);
@@ -110,24 +107,26 @@ public final class DisguiseRenderer {
 
 			for (BakedQuad quad : ghost || whole ? List.<BakedQuad>of() : abqList) {
 
-				TextureAtlasSprite quadSprite = quad.sprite();
+				BakedQuad.MaterialInfo info = quad.materialInfo();
 
 				emitShape(emitter, state, direction);
 
-				emitter.spriteBake(quadSprite, 4);
+				bake(emitter, info.sprite(), MutableQuadView.BAKE_LOCK_UV);
+				// The look's own pass for this face (from its texture), as vanilla draws it.
+				emitter.chunkLayer(info.layer());
 
 				rotateAndFlip(emitter, tempRotation, direction);
 
-				int faceColor = quad.isTinted() ? color : 0xFFFF_FFFF;
+				int faceColor = BlockTints.color(tempState, blockView, pos, info.tintIndex());
 				if (builder) {
 					// Faded, so the real block drawn below shows through.
 					faceColor = (faceColor & 0x00FF_FFFF) | (BuilderView.DISGUISE_ALPHA << 24);
 					FabricMaterials.FADE.applyTo(emitter);
 				} else if (layer != null) {
-					// In the disguise's own pass: stained glass translucent, leaves as the graphics setting has them.
+					// Leaves solid where the graphics settings draw them so.
 					layer.applyTo(emitter);
 				}
-				emitter.tintIndex(quad.isTinted() ? 0 : -1);
+				emitter.tintIndex(-1);
 				emitter.color(faceColor, faceColor, faceColor, faceColor);
 				emitter.emit();
 			}
@@ -160,10 +159,11 @@ public final class DisguiseRenderer {
 	private static void emitRealBlock(BlockState state, BlockAndTintGetter blockView, BlockPos pos,
 			RandomSource random, QuadEmitter emitter) {
 		DisguiseShapes.realStateOf(state).ifPresent(vanilla -> {
-			BlockColors colors = Minecraft.getInstance().getBlockColors();
-			BlockStateModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(vanilla);
+			BlockStateModel model = Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(vanilla);
 			random.setSeed(vanilla.getSeed(pos));
-			for (BlockModelPart part : model.collectParts(random)) {
+			List<BlockStateModelPart> parts = new java.util.ArrayList<>();
+			model.collectParts(random, parts);
+			for (BlockStateModelPart part : parts) {
 				FabricMaterials.Material material = FabricMaterials.real(part.useAmbientOcclusion());
 				for (int index = 0; index <= Direction.values().length; index++) {
 					Direction face = index < Direction.values().length ? Direction.values()[index] : null;
@@ -174,8 +174,8 @@ public final class DisguiseRenderer {
 						for (int i = 0; i < 4; i++) {
 							emitter.pos(i, shrink(emitter.x(i)), shrink(emitter.y(i)), shrink(emitter.z(i)));
 						}
-						if (quad.isTinted()) {
-							int tint = 0xFF00_0000 | colors.getColor(vanilla, blockView, pos, quad.tintIndex());
+						if (quad.materialInfo().isTinted()) {
+							int tint = BlockTints.color(vanilla, blockView, pos, quad.materialInfo().tintIndex());
 							emitter.color(tint, tint, tint, tint);
 							emitter.tintIndex(-1);
 						}
@@ -222,7 +222,9 @@ public final class DisguiseRenderer {
 	/** A model's quads on one side (or none), from every part it draws. */
 	private static List<BakedQuad> quadsOf(BlockStateModel model, @org.jetbrains.annotations.Nullable Direction side, RandomSource random) {
 		List<BakedQuad> quads = new java.util.ArrayList<>();
-		for (BlockModelPart part : model.collectParts(random)) {
+		List<BlockStateModelPart> parts = new java.util.ArrayList<>();
+		model.collectParts(random, parts);
+		for (BlockStateModelPart part : parts) {
 			quads.addAll(part.getQuads(side));
 		}
 		return quads;
@@ -232,7 +234,7 @@ public final class DisguiseRenderer {
 			@org.jetbrains.annotations.Nullable FabricMaterials.Material layer, boolean builder) {
 		int tint = 0xFFFF_FFFF;
 		if (quad.tintIndex() != -1) {
-			tint = 0xFF00_0000 | Minecraft.getInstance().getBlockColors().getColor(look, blockView, pos, quad.tintIndex());
+			tint = BlockTints.color(look, blockView, pos, quad.tintIndex());
 			quad.tintIndex(-1);
 		}
 		for (int i = 0; i < 4; i++) {
@@ -258,6 +260,11 @@ public final class DisguiseRenderer {
 			result |= channel << shift;
 		}
 		return result;
+	}
+
+	/** Textures the quad with {@code sprite} (its pass from the texture; the caller may change it). */
+	private static void bake(QuadEmitter emitter, TextureAtlasSprite sprite, int flags) {
+		emitter.materialBake(new Material.Baked(sprite, false), flags);
 	}
 
 	private static void emitShape(QuadEmitter emitter, BlockState state, Direction direction) {
@@ -292,7 +299,7 @@ public final class DisguiseRenderer {
 		for (int i = 0; i < 4; i++) {
 			emitter.pos(i, emitter.x(i) + dx, emitter.y(i) + dy, emitter.z(i) + dz);
 		}
-		emitter.spriteBake(GogglesView.overlaySprite(), 4);
+		bake(emitter, GogglesView.overlaySprite(), MutableQuadView.BAKE_LOCK_UV);
 		emitter.tintIndex(-1);
 		emitter.color(0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF, 0xFFFF_FFFF);
 		FabricMaterials.OVERLAY.applyTo(emitter);
@@ -336,7 +343,7 @@ public final class DisguiseRenderer {
 			// Lifted off the face, but hidden with it where a neighbour covers it.
 			emitter.cullFace(face);
 		}
-		emitter.spriteBake(BuilderView.outlineSprite(), MutableQuadView.BAKE_LOCK_UV);
+		bake(emitter, BuilderView.outlineSprite(), MutableQuadView.BAKE_LOCK_UV);
 		emitter.tintIndex(-1);
 		emitter.color(OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR, OUTLINE_COLOR);
 		FabricMaterials.OUTLINE.applyTo(emitter);

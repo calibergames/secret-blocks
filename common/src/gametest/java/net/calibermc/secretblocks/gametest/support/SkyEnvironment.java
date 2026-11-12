@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Unit;
 
 /**
  * A test environment that sets the time of day and the weather for its batch,
@@ -13,7 +14,7 @@ import net.minecraft.server.level.ServerLevel;
  * starts in the last one's sky or fading rain. Each environment is its own
  * entry, so environments with the same sky (the isolation ones) stay apart.
  */
-public final class SkyEnvironment implements TestEnvironmentDefinition {
+public final class SkyEnvironment implements TestEnvironmentDefinition<Unit> {
 
 	private final int time;
 	private final boolean rain;
@@ -37,12 +38,13 @@ public final class SkyEnvironment implements TestEnvironmentDefinition {
 	).apply(instance, SkyEnvironment::new));
 
 	@Override
-	public void setup(ServerLevel level) {
+	public Unit setup(ServerLevel level) {
 		apply(level, time, rain);
+		return Unit.INSTANCE;
 	}
 
 	@Override
-	public void teardown(ServerLevel level) {
+	public void teardown(ServerLevel level, Unit unused) {
 		apply(level, TestEnvironments.NOON.time(), TestEnvironments.NOON.rain());
 	}
 
@@ -52,8 +54,8 @@ public final class SkyEnvironment implements TestEnvironmentDefinition {
 	}
 
 	private static void apply(ServerLevel level, long dayTime, boolean rain) {
-		level.setDayTime(dayTime);
-		level.setWeatherParameters(rain ? 0 : 100000, rain ? 100000 : 0, rain, false);
+		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), dayTime);
+		level.getServer().setWeatherParameters(rain ? 0 : 100000, rain ? 100000 : 0, rain, false);
 		level.setRainLevel(rain ? 1.0F : 0.0F);
 	}
 }

@@ -6,7 +6,7 @@ import net.calibermc.secretblocks.items.CamouflageWand;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 
@@ -27,8 +27,8 @@ public class SecretBlocksFabric implements ModInitializer {
 		// Each secret block in a chunk is checked as it loads (reading the chunk
 		// itself: asking the level for a chunk while it loads would wait on it
 		// forever) and put right after the tick, when the chunk may change.
-		ServerChunkEvents.CHUNK_LOAD.register(Opacity::checkChunk);
-		ServerTickEvents.END_WORLD_TICK.register(Opacity::putRight);
-		ServerWorldEvents.UNLOAD.register((server, level) -> Opacity.forget(level));
+		ServerChunkEvents.CHUNK_LOAD.register((level, chunk, generated) -> Opacity.checkChunk(level, chunk));
+		ServerTickEvents.END_LEVEL_TICK.register(Opacity::putRight);
+		ServerLevelEvents.UNLOAD.register((server, level) -> Opacity.forget(level));
 	}
 }

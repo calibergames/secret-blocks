@@ -53,8 +53,11 @@ public class DisguiseLookGameTests {
 	private static final Block[] LOOKS = {Blocks.STONE, Blocks.DIRT, Blocks.OBSIDIAN, Blocks.GLASS, Blocks.OAK_PLANKS,
 			Blocks.IRON_BLOCK, Blocks.SAND, Blocks.WHITE_WOOL};
 
-	private static final ItemStack[] TOOLS = {ItemStack.EMPTY, new ItemStack(Items.WOODEN_PICKAXE),
-			new ItemStack(Items.DIAMOND_PICKAXE), new ItemStack(Items.DIAMOND_SHOVEL), new ItemStack(Items.DIAMOND_AXE)};
+	/** Item stacks can only be made once a world has loaded, so the tools are made as a test runs. */
+	private static ItemStack[] tools() {
+		return new ItemStack[] {ItemStack.EMPTY, new ItemStack(Items.WOODEN_PICKAXE),
+				new ItemStack(Items.DIAMOND_PICKAXE), new ItemStack(Items.DIAMOND_SHOVEL), new ItemStack(Items.DIAMOND_AXE)};
+	}
 
 	private static Map<Direction, BlockState> all(BlockState state) {
 		Map<Direction, BlockState> faces = new EnumMap<>(Direction.class);
@@ -106,7 +109,7 @@ public class DisguiseLookGameTests {
 			for (Block look : LOOKS) {
 				secret.setDisguise(all(look.defaultBlockState()));
 				h.setBlock(VANILLA, look);
-				for (ItemStack tool : TOOLS) {
+				for (ItemStack tool : tools()) {
 					ServerPlayer player = miner(h, Direction.NORTH, tool);
 					float mine = progress(h, player, SECRET);
 					float theirs = progress(h, player, VANILLA);
@@ -234,7 +237,7 @@ public class DisguiseLookGameTests {
 		h.setBlock(VANILLA, Blocks.STONE);
 		for (Block look : new Block[] {Blocks.BEDROCK, Blocks.BARRIER, Blocks.END_PORTAL_FRAME}) {
 			secret(h, SECRET).setDisguise(all(look.defaultBlockState()));
-			for (ItemStack tool : TOOLS) {
+			for (ItemStack tool : tools()) {
 				ServerPlayer player = miner(h, Direction.NORTH, tool);
 				float mine = progress(h, player, SECRET);
 				check(h, mine > 0 && mine == progress(h, player, VANILLA), look + " with " + tool + " should mine as stone, got " + mine);

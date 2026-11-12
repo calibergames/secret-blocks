@@ -6,20 +6,18 @@ import net.calibermc.secretblocks.render.BuilderView;
 import net.calibermc.secretblocks.render.GogglesView;
 import net.calibermc.secretblocks.render.MovingDisguise;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import java.util.Collection;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.client.model.data.ModelProperty;
 import org.jetbrains.annotations.NotNull;
@@ -55,19 +53,12 @@ final class ForgeDisguiseModel implements BlockStateModel {
 		return data.derive().with(QUADS, DisguiseQuads.build(disguise, level, state, pos, RandomSource.create())).build();
 	}
 
-	@Override
-	public @NotNull Collection<ChunkSectionLayer> getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
-		// With no model data (a piston move, drawn by Forge with empty data), the layers of the quads drawn then.
-		DisguiseQuads quads = data.get(QUADS);
-		return (quads != null ? quads : withoutModelData(state)).layers();
-	}
-
 	/**
-	 * The disguise's quads in one layer. With no model data (a piston move,
-	 * drawn by Forge with empty data), the quads drawn then.
+	 * The disguise's quads, each in its own layer. With no model data (a
+	 * piston move, drawn by Forge with empty data), the quads drawn then.
 	 */
 	@Override
-	public void collectParts(RandomSource random, List<BlockModelPart> dest, ModelData data, @Nullable ChunkSectionLayer renderType) {
+	public void collectParts(RandomSource random, List<BlockStateModelPart> dest, ModelData data) {
 		DisguiseQuads quads = data.get(QUADS);
 		if (quads == null) {
 			PistonMovingBlockEntity moving = MovingDisguise.moving();
@@ -76,20 +67,20 @@ final class ForgeDisguiseModel implements BlockStateModel {
 			}
 			quads = withoutModelData(moving.getMovedState());
 		}
-		dest.add(new Layer(quads, renderType));
+		dest.add(new Part(quads));
 	}
 
-	/** Not drawn through the plain path: every block render asks with model data and a layer. */
+	/** Not drawn through the plain path: every block render asks with model data. */
 	@Override
-	public void collectParts(RandomSource random, List<BlockModelPart> dest) {
+	public void collectParts(RandomSource random, List<BlockStateModelPart> dest) {
 	}
 
-	/** One layer of a disguise's quads (every layer, for {@code null}). */
-	private record Layer(DisguiseQuads quads, @Nullable ChunkSectionLayer layer) implements BlockModelPart {
+	/** A disguise's quads. */
+	private record Part(DisguiseQuads quads) implements BlockStateModelPart {
 
 		@Override
 		public List<BakedQuad> getQuads(@Nullable Direction side) {
-			return quads.quads(layer, side);
+			return quads.quads(side);
 		}
 
 		@Override
@@ -98,8 +89,13 @@ final class ForgeDisguiseModel implements BlockStateModel {
 		}
 
 		@Override
-		public TextureAtlasSprite particleIcon() {
+		public Material.Baked particleMaterial() {
 			return stone();
+		}
+
+		@Override
+		public int materialFlags() {
+			return quads.translucent() ? BakedQuad.FLAG_TRANSLUCENT : 0;
 		}
 	}
 
@@ -110,7 +106,7 @@ final class ForgeDisguiseModel implements BlockStateModel {
 	 */
 	private static DisguiseQuads withoutModelData(BlockState state) {
 		PistonMovingBlockEntity moving = MovingDisguise.moving();
-		// Forge asks for the layers, then each layer's quads side by side: built once per block and view.
+		// Built once per block and view while the move is drawn.
 		Unbuilt key = new Unbuilt(state, moving, BuilderView.isActive(), GogglesView.isWearing(), bakes);
 		Built last = LAST.get();
 		if (last != null && last.key().equals(key)) {
@@ -159,11 +155,16 @@ final class ForgeDisguiseModel implements BlockStateModel {
 	}
 
 	@Override
-	public TextureAtlasSprite particleIcon() {
+	public Material.Baked particleMaterial() {
 		return stone();
 	}
 
-	private static TextureAtlasSprite stone() {
-		return Minecraft.getInstance().getBlockRenderer().getBlockModel(Blocks.STONE.defaultBlockState()).particleIcon();
+	@Override
+	public int materialFlags() {
+		return 0;
+	}
+
+	private static Material.Baked stone() {
+		return Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(Blocks.STONE.defaultBlockState()).particleMaterial();
 	}
 }

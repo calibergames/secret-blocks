@@ -1,7 +1,7 @@
 package net.calibermc.secretblocks.fabric;
 
 import net.calibermc.secretblocks.platform.PlatformHelper;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -22,6 +22,6 @@ public class FabricPlatformHelper implements PlatformHelper {
 
 	@Override
 	public CreativeModeTab.Builder creativeTab() {
-		return FabricItemGroup.builder();
+		return FabricCreativeModeTab.builder();
 	}
 }

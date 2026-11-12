@@ -202,7 +202,7 @@ public class ObserverGameTests {
 		grid.setItem(0, new ItemStack(ModBlocks.SOLID_BLOCK));
 		grid.setItem(1, new ItemStack(Items.OBSERVER));
 		Optional<ItemStack> result = h.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
-				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
+				.map(recipe -> recipe.value().assemble(grid.asCraftInput()));
 		Item expected = ModBlocks.SECRET_OBSERVER.asItem();
 		check(h, result.isPresent() && result.get().is(expected), "Dummy Block + observer should craft a Secret Observer, got " + result);
 		h.succeed();

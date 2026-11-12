@@ -28,7 +28,7 @@ public abstract class OpacityBehaviourMixin {
 		}
 	}
 
-	@Inject(method = "getLightBlock", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "getLightDampening", at = @At("HEAD"), cancellable = true)
 	private void secretblocks$lightBlock(BlockState state, CallbackInfoReturnable<Integer> cir) {
 		if (Opacity.seeThrough(state)) {
 			cir.setReturnValue(0);

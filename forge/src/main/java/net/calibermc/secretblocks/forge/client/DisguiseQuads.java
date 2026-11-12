@@ -10,40 +10,38 @@ import net.calibermc.secretblocks.render.DoorHalves;
 import net.calibermc.secretblocks.render.FaceQuads;
 import net.calibermc.secretblocks.render.GogglesView;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.block.BlockColors;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.calibermc.secretblocks.render.BlockTints;
 import net.minecraft.client.model.geom.builders.UVPair;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
- * A secret block's disguise as baked quads, sorted by render layer and cull
- * face, for the Forge model. The same faces as the Fabric renderer
+ * A secret block's disguise as baked quads, sorted by cull face, each in its
+ * own render layer, for the Forge model. The same faces as the Fabric renderer
  * draws: each face shows its look (the look's own quads where the face shows
  * it as it is, else the look's texture fitted to the face and turned by its
- * rotation), tinted and in the look's layer; the Secret Goggles' overlay; and
+ * rotation), tinted and in its texture's layer; the Secret Goggles' overlay; and
  * in the Builder's Goggles' view the faded look, an outline and the real
  * block inside. Face shapes come from {@link DisguiseShapes}, corners and
  * texture coordinates from {@link FaceQuads} (as the Fabric Renderer API lays
@@ -61,45 +59,36 @@ final class DisguiseQuads {
 	/** No turn at all (the overlay, the outline and the ghost face): not even rotation 0's corner order. */
 	private static final int UNTURNED = -1;
 
-	/** Quads by layer, then by cull face (index 6: none). */
-	private final Map<ChunkSectionLayer, List<List<BakedQuad>>> byLayer = new LinkedHashMap<>();
+	/** Quads by cull face (index 6: none). */
+	private final List<List<BakedQuad>> byFace = new ArrayList<>(7);
+	private boolean translucent;
 
 	private DisguiseQuads() {
-	}
-
-	Set<ChunkSectionLayer> layers() {
-		return byLayer.keySet();
-	}
-
-	/** The quads for one layer (or all, for {@code null}) on one cull face (or none). */
-	List<BakedQuad> quads(@Nullable ChunkSectionLayer layer, @Nullable Direction side) {
-		int index = side == null ? 6 : side.get3DDataValue();
-		if (layer != null) {
-			List<List<BakedQuad>> lists = byLayer.get(layer);
-			return lists == null ? List.of() : lists.get(index);
+		for (int i = 0; i < 7; i++) {
+			byFace.add(new ArrayList<>());
 		}
-		List<BakedQuad> all = new ArrayList<>();
-		for (List<List<BakedQuad>> lists : byLayer.values()) {
-			all.addAll(lists.get(index));
-		}
-		return all;
 	}
 
-	private void add(ChunkSectionLayer layer, @Nullable Direction cullFace, BakedQuad quad) {
-		byLayer.computeIfAbsent(layer, key -> {
-			List<List<BakedQuad>> lists = new ArrayList<>(7);
-			for (int i = 0; i < 7; i++) {
-				lists.add(new ArrayList<>());
-			}
-			return lists;
-		}).get(cullFace == null ? 6 : cullFace.get3DDataValue()).add(quad);
+	/** The quads on one cull face (or none). */
+	List<BakedQuad> quads(@Nullable Direction side) {
+		return byFace.get(side == null ? 6 : side.get3DDataValue());
+	}
+
+	/** Whether any quad is drawn in the translucent layer. */
+	boolean translucent() {
+		return translucent;
+	}
+
+	private void add(@Nullable Direction cullFace, BakedQuad quad) {
+		translucent |= quad.materialInfo().layer().translucent();
+		byFace.get(cullFace == null ? 6 : cullFace.get3DDataValue()).add(quad);
 	}
 
 	/** Builds a disguise's quads; {@code level} may be null (no tints from the world). */
 	static DisguiseQuads build(Disguise disguise, @Nullable BlockAndTintGetter level, BlockState state, BlockPos pos, RandomSource random) {
 		DisguiseQuads out = new DisguiseQuads();
 		Minecraft minecraft = Minecraft.getInstance();
-		BlockColors colors = minecraft.getBlockColors();
+		boolean cutoutLeaves = minecraft.options.cutoutLeaves().get();
 		boolean builder = BuilderView.isActive();
 		boolean joinsAbove = builder && level != null && DoorHalves.joinsAbove(level, pos, state);
 		boolean joinsBelow = builder && level != null && DoorHalves.joinsBelow(level, pos, state);
@@ -122,13 +111,13 @@ final class DisguiseQuads {
 			if (level != null && !DisguiseLook.showsItself(look, level, pos, lookSide)) {
 				look = Blocks.STONE.defaultBlockState();
 			}
-			// In the look's own layer: stained glass translucent, leaves as the graphics setting has them.
-			ChunkSectionLayer layer = ItemBlockRenderTypes.getChunkRenderType(look);
+			// Leaves solid where the graphics settings draw them so; otherwise each face in its texture's layer.
+			ChunkSectionLayer forced = builder ? ChunkSectionLayer.TRANSLUCENT
+					: ModelBlockRenderer.forceOpaque(cutoutLeaves, look) ? ChunkSectionLayer.SOLID : null;
 
-			BlockStateModel lookModel = minecraft.getBlockRenderer().getBlockModel(look);
+			BlockStateModel lookModel = minecraft.getModelManager().getBlockStateModelSet().get(look);
 			random.setSeed(look.getSeed(pos));
-			List<BakedQuad> lookQuads = quadsOf(lookModel.collectParts(random), lookSide);
-			int color = 0xFF00_0000 | colors.getColor(look, level, pos, 0xFF);
+			List<BakedQuad> lookQuads = quadsOf(lookModel, lookSide, random);
 
 			TextureAtlasSprite ghostSprite = BuilderView.ghostSprite();
 			boolean ghost = builder && BuilderView.shaderPack() && ghostSprite != null && !lookQuads.isEmpty();
@@ -145,32 +134,30 @@ final class DisguiseQuads {
 			if (whole) {
 				// With the look's own model data here, a connected-texture model
 				// (Fusion, for one) works out its connections as for the look itself.
-				// Each layer the look's model draws in, with its quads for that layer.
-				Map<ChunkSectionLayer, List<BakedQuad>> wholeQuads = new LinkedHashMap<>();
+				List<BakedQuad> wholeQuads = lookQuads;
 				if (level != null) {
 					ModelData lookData = lookModel.getModelData(level, pos, look, ModelData.EMPTY);
 					random.setSeed(look.getSeed(pos));
-					for (ChunkSectionLayer lookLayer : lookModel.getRenderTypes(look, random, lookData)) {
-						random.setSeed(look.getSeed(pos));
-						wholeQuads.put(lookLayer, quadsOf(lookModel.collectParts(random, lookData, lookLayer), lookSide));
+					List<BlockStateModelPart> parts = new ArrayList<>();
+					lookModel.collectParts(random, parts, lookData);
+					wholeQuads = new ArrayList<>();
+					for (BlockStateModelPart part : parts) {
+						wholeQuads.addAll(part.getQuads(lookSide));
 					}
-				} else {
-					wholeQuads.put(layer, lookQuads);
 				}
-				for (Map.Entry<ChunkSectionLayer, List<BakedQuad>> entry : wholeQuads.entrySet()) {
-					for (BakedQuad quad : entry.getValue()) {
-						int tint = quad.isTinted() ? 0xFF00_0000 | colors.getColor(look, level, pos, quad.tintIndex()) : WHITE;
-						out.add(builder ? ChunkSectionLayer.TRANSLUCENT : entry.getKey(), direction, recolored(quad, tint, builder));
-					}
+				for (BakedQuad quad : wholeQuads) {
+					int tint = BlockTints.color(look, level, pos, quad.materialInfo().tintIndex());
+					out.add(direction, recolored(quad, tint, builder, forced));
 				}
 			} else if (!ghost) {
 				for (BakedQuad quad : lookQuads) {
-					int faceColor = quad.isTinted() ? color : WHITE;
+					BakedQuad.MaterialInfo info = quad.materialInfo();
+					int faceColor = BlockTints.color(look, level, pos, info.tintIndex());
 					if (builder) {
 						// Faded, so the real block drawn inside shows through.
 						faceColor = (faceColor & 0x00FF_FFFF) | (BuilderView.DISGUISE_ALPHA << 24);
 					}
-					out.shape(state, direction, quad.sprite(), rotation, faceColor, builder ? ChunkSectionLayer.TRANSLUCENT : layer, false);
+					out.shape(state, direction, info.sprite(), rotation, faceColor, forced != null ? forced : info.layer(), false);
 				}
 			}
 
@@ -197,27 +184,29 @@ final class DisguiseQuads {
 	 */
 	private void realBlock(BlockState state, @Nullable BlockAndTintGetter level, BlockPos pos, RandomSource random) {
 		DisguiseShapes.realStateOf(state).ifPresent(vanilla -> {
-			BlockColors colors = Minecraft.getInstance().getBlockColors();
-			BlockStateModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(vanilla);
+			BlockStateModel model = Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(vanilla);
+			random.setSeed(vanilla.getSeed(pos));
+			List<BlockStateModelPart> parts = new ArrayList<>();
+			model.collectParts(random, parts);
 			for (int index = 0; index <= 6; index++) {
 				Direction face = index < 6 ? Direction.from3DDataValue(index) : null;
-				random.setSeed(vanilla.getSeed(pos));
-				for (BlockModelPart part : model.collectParts(random)) {
+				for (BlockStateModelPart part : parts) {
 					for (BakedQuad quad : part.getQuads(face)) {
-						int tint = quad.isTinted() ? 0xFF00_0000 | colors.getColor(vanilla, level, pos, quad.tintIndex()) : WHITE;
-						BakedQuad shrunk = transformed(quad, true, tint, false, part.useAmbientOcclusion() && quad.ambientOcclusion());
-						// In the secret block's own layer, as the Fabric renderer's standard material draws it.
-						add(ChunkSectionLayer.CUTOUT, face, shrunk);
+						int tint = BlockTints.color(vanilla, level, pos, quad.materialInfo().tintIndex());
+						// In the quad's own layer, as the Fabric renderer draws it.
+						add(face, transformed(quad, true, tint, false, null));
 					}
 				}
 			}
 		});
 	}
 
-	/** The quads on one side (or none) of every part given. */
-	private static List<BakedQuad> quadsOf(List<BlockModelPart> parts, @Nullable Direction side) {
+	/** A model's quads on one side (or none), from every part it draws. */
+	private static List<BakedQuad> quadsOf(BlockStateModel model, @Nullable Direction side, RandomSource random) {
 		List<BakedQuad> quads = new ArrayList<>();
-		for (BlockModelPart part : parts) {
+		List<BlockStateModelPart> parts = new ArrayList<>();
+		model.collectParts(random, parts);
+		for (BlockStateModelPart part : parts) {
 			quads.addAll(part.getQuads(side));
 		}
 		return quads;
@@ -239,7 +228,7 @@ final class DisguiseQuads {
 		DisguiseShapes.shape(state, direction, (face, left, bottom, right, top, depth) -> {
 			Square square = Square.of(face, left, bottom, right, top, depth);
 			square.offset(dx, dy, dz);
-			add(ChunkSectionLayer.TRANSLUCENT, square.cullFace, square.bake(sprite, UNTURNED, WHITE, true));
+			add(square.cullFace, square.bake(sprite, UNTURNED, WHITE, ChunkSectionLayer.TRANSLUCENT, true));
 		});
 	}
 
@@ -273,38 +262,48 @@ final class DisguiseQuads {
 			// Lifted off the face, but hidden with it where a neighbour covers it.
 			square.cullFace = face;
 		}
-		add(ChunkSectionLayer.SOLID, square.cullFace, square.bake(sprite, UNTURNED, OUTLINE_COLOR, true));
+		add(square.cullFace, square.bake(sprite, UNTURNED, OUTLINE_COLOR, ChunkSectionLayer.SOLID, true));
 	}
 
 	/** One disguise face's shape, textured with {@code sprite} fitted to it and turned by {@code rotation}. */
 	private void shape(BlockState state, Direction direction, TextureAtlasSprite sprite, int rotation, int color, ChunkSectionLayer layer, boolean fullBright) {
 		DisguiseShapes.shape(state, direction, (face, left, bottom, right, top, depth) -> {
 			Square square = Square.of(face, left, bottom, right, top, depth);
-			add(layer, square.cullFace, square.bake(sprite, rotation, color, fullBright));
+			add(square.cullFace, square.bake(sprite, rotation, color, layer, fullBright));
 		});
 	}
 
-	/** A look's own quad, tinted and (in the Builder's view) faded, its tint baked in. */
-	private static BakedQuad recolored(BakedQuad quad, int tint, boolean faded) {
-		return transformed(quad, false, tint, faded, quad.ambientOcclusion());
+	/** A look's own quad, tinted and (in the Builder's view) faded, its tint baked in; in {@code layer} if not null. */
+	private static BakedQuad recolored(BakedQuad quad, int tint, boolean faded, @Nullable ChunkSectionLayer layer) {
+		return transformed(quad, false, tint, faded, layer);
 	}
 
 	/**
 	 * {@code quad} drawn in {@code tint} (an opaque ARGB colour; Forge's quads
 	 * have no colour of their own), faded to the Builder's Goggles' alpha if
-	 * {@code faded}, and shrunk very slightly towards the block's centre if
-	 * {@code shrink}.
+	 * {@code faded}, and shrunk
+	 * very slightly towards the block's centre if {@code shrink}, and moved to
+	 * {@code layer} if not null.
 	 */
-	private static BakedQuad transformed(BakedQuad quad, boolean shrink, int tint, boolean faded, boolean ambientOcclusion) {
+	private static BakedQuad transformed(BakedQuad quad, boolean shrink, int tint, boolean faded, @Nullable ChunkSectionLayer layer) {
 		Vector3fc[] positions = new Vector3fc[4];
 		for (int i = 0; i < 4; i++) {
 			Vector3fc position = quad.position(i);
 			positions[i] = shrink ? new Vector3f(shrink(position.x()), shrink(position.y()), shrink(position.z())) : position;
 		}
+		BakedQuad.MaterialInfo info = quad.materialInfo();
+		ChunkSectionLayer drawn = layer != null ? layer : info.layer();
 		BakedQuad out = new BakedQuad(positions[0], positions[1], positions[2], positions[3],
-				quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), QuadTints.tintIndex(tint, faded),
-				quad.direction(), quad.sprite(), quad.shade(), quad.lightEmission(), ambientOcclusion);
+				quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), quad.direction(),
+				material(info.sprite(), drawn, QuadTints.tintIndex(tint, faded), info.shade(), info.lightEmission()));
 		return faded ? FadedQuad.faded(out, BuilderView.DISGUISE_ALPHA) : out;
+	}
+
+	/** A quad's material, drawn in {@code layer}, its colour in {@code tintIndex} ({@link QuadTints}). */
+	private static BakedQuad.MaterialInfo material(TextureAtlasSprite sprite, ChunkSectionLayer layer, int tintIndex, boolean shade,
+			int lightEmission) {
+		return new BakedQuad.MaterialInfo(sprite, layer,
+				layer.translucent() ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet(), tintIndex, shade, lightEmission);
 	}
 
 	/** A face rectangle ({@link FaceQuads#square}) baked into a quad with a sprite fitted to it. */
@@ -333,7 +332,7 @@ final class DisguiseQuads {
 			}
 		}
 
-		BakedQuad bake(TextureAtlasSprite sprite, int rotation, int color, boolean fullBright) {
+		BakedQuad bake(TextureAtlasSprite sprite, int rotation, int color, ChunkSectionLayer layer, boolean fullBright) {
 			float[][] uv = new float[4][];
 			for (int i = 0; i < 4; i++) {
 				uv[i] = FaceQuads.lockedUv(face, corners[i]);
@@ -347,10 +346,10 @@ final class DisguiseQuads {
 				packedUv[i] = UVPair.pack(sprite.getU0() + texture[0] * (sprite.getU1() - sprite.getU0()),
 						sprite.getV0() + texture[1] * (sprite.getV1() - sprite.getV0()));
 			}
-			int alpha = color >>> 24;
 			// Full-bright faces give off full light and skip shading and ambient occlusion, as the Fabric materials do.
+			int alpha = color >>> 24;
 			BakedQuad quad = new BakedQuad(positions[0], positions[1], positions[2], positions[3], packedUv[0], packedUv[1], packedUv[2],
-					packedUv[3], QuadTints.tintIndex(color, alpha < 0xFF), face, sprite, !fullBright, fullBright ? 15 : 0, !fullBright);
+					packedUv[3], face, material(sprite, layer, QuadTints.tintIndex(color, alpha < 0xFF), !fullBright, fullBright ? 15 : 0));
 			return alpha < 0xFF ? FadedQuad.faded(quad, alpha) : quad;
 		}
 	}

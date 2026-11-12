@@ -156,20 +156,20 @@ public final class SharedGameTests {
 	}
 
 	/** Adds the environments the tests name to the test environment registry as it loads. */
-	public static void registerEnvironments(WritableRegistry<TestEnvironmentDefinition> registry) {
+	public static void registerEnvironments(WritableRegistry<TestEnvironmentDefinition<?>> registry) {
 		tests().stream().map(test -> test.settings().environment()).distinct().sorted(Comparator.naturalOrder())
 				.forEach(name -> registry.register(ResourceKey.create(Registries.TEST_ENVIRONMENT, id(name)),
 						TestEnvironments.sky(name), RegistrationInfo.BUILT_IN));
 	}
 
 	/** Adds the tests to the test instance registry as it loads, each in its environment. */
-	public static void registerInstances(WritableRegistry<GameTestInstance> registry, HolderGetter<TestEnvironmentDefinition> environments) {
+	public static void registerInstances(WritableRegistry<GameTestInstance> registry, HolderGetter<TestEnvironmentDefinition<?>> environments) {
 		for (Test test : tests()) {
 			GameTest settings = test.settings();
-			Holder<TestEnvironmentDefinition> environment = environments.getOrThrow(
+			Holder<TestEnvironmentDefinition<?>> environment = environments.getOrThrow(
 					ResourceKey.create(Registries.TEST_ENVIRONMENT, id(settings.environment())));
-			TestData<Holder<TestEnvironmentDefinition>> data = new TestData<>(environment, STRUCTURE, settings.maxTicks(), 0, true,
-					net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, settings.skyAccess());
+			TestData<Holder<TestEnvironmentDefinition<?>>> data = new TestData<>(environment, STRUCTURE, settings.maxTicks(), 0, true,
+					net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, settings.skyAccess(), 0);
 			registry.register(ResourceKey.create(Registries.TEST_INSTANCE, test.id()),
 					new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, test.id()), data), RegistrationInfo.BUILT_IN);
 		}

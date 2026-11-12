@@ -2,7 +2,7 @@
 // against vanilla Minecraft; each loader subproject adds its own code and
 // builds its own jar from both.
 plugins {
-	id 'fabric-loom' version '1.18.2' apply false
+	id 'net.fabricmc.fabric-loom' version '1.19.4' apply false
 	id 'net.neoforged.moddev' version '2.0.148' apply false
 	id 'net.minecraftforge.gradle' version '7.0.40' apply false
 }

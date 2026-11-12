@@ -7,7 +7,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -28,7 +28,7 @@ public interface GameTestPlatform {
 	boolean conditionsPass(JsonObject json);
 
 	/** The block's appearance on {@code side} as this loader's API reports it (what connected-texture mods ask). */
-	BlockState appearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side);
+	BlockState appearance(BlockState state, BlockAndLightGetter level, BlockPos pos, Direction side);
 
 	/** Fires this loader's chunk-load event for {@code chunk}, as when it loads from disk. */
 	void chunkLoaded(ServerLevel level, LevelChunk chunk);

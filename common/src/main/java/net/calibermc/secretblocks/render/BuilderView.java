@@ -98,8 +98,8 @@ public final class BuilderView {
 		while (TOGGLE_KEY.consumeClick()) {
 			if (TOGGLE.toggle()) {
 				changed = true;
-				mc.player.displayClientMessage(Component.translatable(TOGGLE.showing()
-						? "message.secretblocks.builder_view.on" : "message.secretblocks.builder_view.off"), true);
+				mc.player.sendOverlayMessage(Component.translatable(TOGGLE.showing()
+						? "message.secretblocks.builder_view.on" : "message.secretblocks.builder_view.off"));
 			}
 		}
 		if (changed) {

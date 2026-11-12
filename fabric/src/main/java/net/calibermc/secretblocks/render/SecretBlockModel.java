@@ -7,15 +7,15 @@ import net.calibermc.secretblocks.blocks.entity.Disguise;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,12 +38,17 @@ public class SecretBlockModel implements BlockStateModel {
 	private static final Disguise NO_DISGUISE = new Disguise();
 
 	@Override
-	public void collectParts(RandomSource random, List<BlockModelPart> parts) {
+	public void collectParts(RandomSource random, List<BlockStateModelPart> parts) {
 	}
 
 	@Override
-	public TextureAtlasSprite particleIcon() {
-		return Minecraft.getInstance().getBlockRenderer().getBlockModel(Blocks.STONE.defaultBlockState()).particleIcon();
+	public Material.Baked particleMaterial() {
+		return Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(Blocks.STONE.defaultBlockState()).particleMaterial();
+	}
+
+	@Override
+	public int materialFlags() {
+		return 0;
 	}
 
 	@Override

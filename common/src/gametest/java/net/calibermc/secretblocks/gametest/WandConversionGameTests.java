@@ -257,7 +257,7 @@ public class WandConversionGameTests {
 		BlockState state = h.getBlockState(TARGET);
 		check(h, state.is(ModBlocks.SECRET_CHEST), "the chest should be secret: " + state);
 		check(h, !state.getValue(net.calibermc.secretblocks.blocks.Opacity.OPAQUE)
-				&& state.getLightBlock() == 0, "it should let light through: " + state);
+				&& state.getLightDampening() == 0, "it should let light through: " + state);
 		check(h, ((net.minecraft.world.Container) blockEntityAt(h, TARGET)).getItem(3).is(Items.DIAMOND), "it should keep its contents");
 		h.succeed();
 	}

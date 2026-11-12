@@ -24,11 +24,11 @@ public abstract class RedstoneWireEvaluatorFamilyMixin {
 	protected RedStoneWireBlock wireBlock;
 
 	@Redirect(method = "getWireSignal",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/world/level/block/Block;)Z"))
-	private boolean secretblocks$isAnyWire(BlockState state, Block block) {
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Ljava/lang/Object;)Z"))
+	private boolean secretblocks$isAnyWire(BlockState state, Object block) {
 		if (block == wireBlock) {
 			return RedstoneWireFamily.isWire(state);
 		}
-		return state.is(block);
+		return state.is((Block) block);
 	}
 }

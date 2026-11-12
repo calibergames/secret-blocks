@@ -40,7 +40,7 @@ public class LightGameTests {
 	}
 
 	private static int lightBlock(GameTestHelper h, BlockPos rel) {
-		return h.getBlockState(rel).getLightBlock();
+		return h.getBlockState(rel).getLightDampening();
 	}
 
 	/**

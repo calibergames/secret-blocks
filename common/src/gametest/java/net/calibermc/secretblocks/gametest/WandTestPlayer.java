@@ -82,7 +82,12 @@ final class WandTestPlayer extends ServerPlayer {
 	}
 
 	@Override
-	public void displayClientMessage(Component message, boolean actionBar) {
+	public void sendOverlayMessage(Component message) {
+		messages.add(message);
+	}
+
+	@Override
+	public void sendSystemMessage(Component message) {
 		messages.add(message);
 	}
 

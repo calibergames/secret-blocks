@@ -49,12 +49,12 @@ public abstract class RedStoneWireFamilyMixin {
 
 	/** "Is this block me?" becomes "is this any wire block?" where vanilla reads or updates neighbouring wires. */
 	@Redirect(method = {"checkCornerChangeAt", "updateIndirectNeighbourShapes"},
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/world/level/block/Block;)Z"))
-	private boolean secretblocks$isAnyWire(BlockState state, Block block) {
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Ljava/lang/Object;)Z"))
+	private boolean secretblocks$isAnyWire(BlockState state, Object block) {
 		if (block == (Object) this) {
 			return RedstoneWireFamily.isWire(state);
 		}
-		return state.is(block);
+		return state.is((Block) block);
 	}
 
 	/**
@@ -70,14 +70,14 @@ public abstract class RedStoneWireFamilyMixin {
 	 * where it is.
 	 */
 	@Redirect(method = "shouldConnectTo(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/world/level/block/Block;)Z"))
-	private static boolean secretblocks$connectsToAnyWire(BlockState state, Block block) {
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Ljava/lang/Object;)Z"))
+	private static boolean secretblocks$connectsToAnyWire(BlockState state, Object block) {
 		if (block == Blocks.REDSTONE_WIRE) {
 			return RedstoneWireFamily.isWire(state);
 		}
 		if (block == Blocks.REPEATER) {
-			return state.is(block) || state.getBlock() instanceof SecretRepeater;
+			return state.is((Block) block) || state.getBlock() instanceof SecretRepeater;
 		}
-		return state.is(block);
+		return state.is((Block) block);
 	}
 }

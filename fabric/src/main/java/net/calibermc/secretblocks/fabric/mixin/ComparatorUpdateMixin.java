@@ -24,8 +24,8 @@ public abstract class ComparatorUpdateMixin {
 
 	// Both questions must be redirected: the comparator beside the container and the one a solid block further on.
 	@Redirect(method = "updateNeighbourForOutputSignal", require = 2,
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/world/level/block/Block;)Z"))
-	private boolean secretblocks$isAnyComparator(BlockState state, Block block) {
-		return state.is(block) || (block == Blocks.COMPARATOR && state.getBlock() instanceof SecretComparator);
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Ljava/lang/Object;)Z"))
+	private boolean secretblocks$isAnyComparator(BlockState state, Object block) {
+		return state.is((Block) block) || (block == Blocks.COMPARATOR && state.getBlock() instanceof SecretComparator);
 	}
 }

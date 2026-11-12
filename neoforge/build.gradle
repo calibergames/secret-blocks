@@ -61,10 +61,6 @@ neoForge {
 		version = neoforge_version
 		enabledSourceSets = [sourceSets.main, sourceSets.gametest]
 	}
-	parchment {
-		minecraftVersion = parchment_minecraft
-		mappingsVersion = parchment_mappings
-	}
 	runs {
 		client {
 			client()

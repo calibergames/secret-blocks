@@ -237,7 +237,7 @@ final class TestSupport {
 			grid.setItem(i, stacks[i]);
 		}
 		return h.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
-				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
+				.map(recipe -> recipe.value().assemble(grid.asCraftInput()));
 	}
 
 	/** {@link #craft(GameTestHelper, ItemStack...)} with one of each item. */

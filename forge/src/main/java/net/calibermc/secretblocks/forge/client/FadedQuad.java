@@ -4,12 +4,12 @@ import java.util.Map;
 
 import com.google.common.collect.MapMaker;
 
-import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 
 /**
  * The disguise quads drawn faded (the Builder's Goggles view). Forge's block
  * renderer draws every quad opaque, so their alpha is applied for these quads
- * only ({@code FadedQuadAlphaMixin}). They are known by identity, so no other
+ * only ({@code DisguiseQuadColorMixin}). They are known by identity, so no other
  * quad is drawn differently; their tint index marks them ({@link QuadTints}),
  * so other quads are passed over at once.
  */
@@ -29,7 +29,7 @@ public final class FadedQuad {
 
 	/** How opaque {@code quad} is drawn, from 0 to 1: below 1 only for a faded disguise quad. */
 	public static float alpha(BakedQuad quad) {
-		if (!QuadTints.marksFaded(quad.tintIndex())) {
+		if (!QuadTints.marksFaded(quad.materialInfo().tintIndex())) {
 			return 1.0f;
 		}
 		Float alpha = FADED.get(quad);

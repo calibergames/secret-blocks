@@ -1,11 +1,13 @@
 package net.calibermc.secretblocks.forge.client;
 
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+
 /**
  * Disguise quad colours on Forge. A quad carries no colour of its own: the
  * block renderer colours a quad only through its tint index and the block's
- * colour handler. A disguise quad's tint index holds its colour (red, green
- * and blue), marked so the secret blocks' colour handler ({@link #color})
- * reads it back, and marked again when the quad is drawn faded.
+ * tint sources. A disguise quad's tint index holds its colour (red, green and
+ * blue), marked so the block renderer ({@code DisguiseQuadColorMixin}) applies
+ * it ({@link #argb}), and marked again when the quad is drawn faded.
  */
 public final class QuadTints {
 
@@ -24,9 +26,16 @@ public final class QuadTints {
 		return COLOURED | (faded ? FADED : 0) | (argb & RGB);
 	}
 
-	/** The colour a tint index holds: white for any other tint index. */
-	public static int color(int tintIndex) {
-		return tintIndex != -1 && (tintIndex & COLOURED) != 0 ? 0xFF00_0000 | (tintIndex & RGB) : 0xFFFF_FFFF;
+	/** Whether a quad's tint index holds its colour. */
+	public static boolean holdsColor(int tintIndex) {
+		return tintIndex != -1 && (tintIndex & COLOURED) != 0;
+	}
+
+	/** The colour a disguise quad is drawn in, its alpha below 255 only when it is drawn faded. */
+	public static int argb(BakedQuad quad) {
+		int tintIndex = quad.materialInfo().tintIndex();
+		int alpha = Math.round(FadedQuad.alpha(quad) * 255.0f);
+		return alpha << 24 | (holdsColor(tintIndex) ? tintIndex & RGB : RGB);
 	}
 
 	/** Whether a quad with this tint index may be a faded disguise quad. */

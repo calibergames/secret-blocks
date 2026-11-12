@@ -115,7 +115,7 @@ public class ClamberGameTests {
 		grid.setItem(0, new ItemStack(ModBlocks.GHOST_BLOCK));
 		grid.setItem(1, new ItemStack(Items.LADDER));
 		Optional<ItemStack> result = h.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
-				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
+				.map(recipe -> recipe.value().assemble(grid.asCraftInput()));
 		check(h, result.isPresent() && result.get().is(ModBlocks.SECRET_CLAMBER.asItem()),
 				"Ghost Block + ladder should craft a Secret Clamber, got " + result);
 		h.succeed();

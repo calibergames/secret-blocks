@@ -56,7 +56,6 @@ def gametestMixinConfigs = ['secretblocks_gametest.mixins.json', 'secretblocks_g
 		'secretblocks_gametest.forge.mixins.json']
 
 minecraft {
-	mappings channel: 'official', version: minecraft_version
 	runs {
 		configureEach {
 			// Development runs load the mixin configs from these arguments; the jars' manifests serve production.

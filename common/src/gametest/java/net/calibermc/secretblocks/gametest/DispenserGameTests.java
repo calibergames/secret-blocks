@@ -274,7 +274,7 @@ public class DispenserGameTests {
 		grid.setItem(0, new ItemStack(ModBlocks.SOLID_BLOCK));
 		grid.setItem(1, new ItemStack(Items.DISPENSER));
 		Optional<ItemStack> result = h.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, grid.asCraftInput(), h.getLevel())
-				.map(recipe -> recipe.value().assemble(grid.asCraftInput(), h.getLevel().registryAccess()));
+				.map(recipe -> recipe.value().assemble(grid.asCraftInput()));
 		check(h, result.isPresent() && result.get().is(ModBlocks.SECRET_DISPENSER.asItem()),
 				"Dummy Block + dispenser should craft a Secret Dispenser, got " + result);
 		h.succeed();

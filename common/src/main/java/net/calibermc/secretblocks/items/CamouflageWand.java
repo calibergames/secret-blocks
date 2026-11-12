@@ -76,7 +76,7 @@ public class CamouflageWand extends Item {
 			if (result.reason() != null) {
 				return refuse(player, result.reason());
 			}
-			player.displayClientMessage(Component.translatable(MESSAGES + "converted", result.converted().getName()), true);
+			player.sendOverlayMessage(Component.translatable(MESSAGES + "converted", result.converted().getName()));
 			return InteractionResult.SUCCESS;
 		}
 		if (!mayUse(player)) {
@@ -87,7 +87,7 @@ public class CamouflageWand extends Item {
 			return refuse(player, "nothing_to_load");
 		}
 		ItemData.update(stack, tag -> tag.put(DISGUISE, NbtUtils.writeBlockState(state)));
-		player.displayClientMessage(Component.translatable(MESSAGES + "loaded", state.getBlock().getName()), true);
+		player.sendOverlayMessage(Component.translatable(MESSAGES + "loaded", state.getBlock().getName()));
 		return InteractionResult.SUCCESS;
 	}
 
@@ -136,7 +136,7 @@ public class CamouflageWand extends Item {
 	}
 
 	private static InteractionResult refuse(Player player, String reason) {
-		player.displayClientMessage(Component.translatable(MESSAGES + reason), true);
+		player.sendOverlayMessage(Component.translatable(MESSAGES + reason));
 		return InteractionResult.FAIL;
 	}
 

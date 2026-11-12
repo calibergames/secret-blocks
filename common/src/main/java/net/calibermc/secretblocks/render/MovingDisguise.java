@@ -2,7 +2,7 @@ package net.calibermc.secretblocks.render;
 
 import net.calibermc.secretblocks.blocks.entity.Disguise;
 import net.calibermc.secretblocks.blocks.entity.PistonCarry;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import org.jetbrains.annotations.Nullable;
 

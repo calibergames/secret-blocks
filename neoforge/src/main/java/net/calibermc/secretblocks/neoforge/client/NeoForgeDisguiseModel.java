@@ -7,14 +7,13 @@ import net.calibermc.secretblocks.render.BuilderView;
 import net.calibermc.secretblocks.render.GogglesView;
 import net.calibermc.secretblocks.render.MovingDisguise;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,8 +24,8 @@ import java.util.List;
 
 /**
  * Every secret block's model on NeoForge: its parts come from its disguise
- * ({@link DisguiseQuads}), worked out where the chunk is built, one part per
- * layer the disguise draws in.
+ * ({@link DisguiseQuads}), worked out where the chunk is built, each quad in
+ * its own layer.
  */
 final class NeoForgeDisguiseModel implements DynamicBlockStateModel {
 
@@ -44,33 +43,36 @@ final class NeoForgeDisguiseModel implements DynamicBlockStateModel {
 	}
 
 	@Override
-	public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random, List<BlockModelPart> parts) {
+	public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random, List<BlockStateModelPart> parts) {
 		if (!(state.getBlock() instanceof SecretBlock)) {
 			return;
 		}
 		DisguiseQuads quads = level.getBlockEntity(pos) instanceof DisguisedBlockEntity disguised
 				? DisguiseQuads.build(disguised.getDisguise(), level, state, pos, RandomSource.create())
 				: withoutDisguiseData(state);
-		for (ChunkSectionLayer layer : quads.layers()) {
-			parts.add(new Layer(quads, layer));
-		}
+		parts.add(new Part(quads));
 	}
 
 	@Override
-	public TextureAtlasSprite particleIcon() {
+	public Material.Baked particleMaterial() {
 		return stone();
 	}
 
-	private static TextureAtlasSprite stone() {
-		return Minecraft.getInstance().getBlockRenderer().getBlockModel(Blocks.STONE.defaultBlockState()).particleIcon();
+	@Override
+	public int materialFlags() {
+		return 0;
 	}
 
-	/** One layer of a disguise's quads. */
-	private record Layer(DisguiseQuads quads, ChunkSectionLayer layer) implements BlockModelPart {
+	private static Material.Baked stone() {
+		return Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(Blocks.STONE.defaultBlockState()).particleMaterial();
+	}
+
+	/** A disguise's quads. */
+	private record Part(DisguiseQuads quads) implements BlockStateModelPart {
 
 		@Override
 		public List<BakedQuad> getQuads(@Nullable Direction side) {
-			return quads.quads(layer, side);
+			return quads.quads(side);
 		}
 
 		@Override
@@ -79,13 +81,13 @@ final class NeoForgeDisguiseModel implements DynamicBlockStateModel {
 		}
 
 		@Override
-		public TextureAtlasSprite particleIcon() {
+		public Material.Baked particleMaterial() {
 			return stone();
 		}
 
 		@Override
-		public ChunkSectionLayer getRenderType(BlockState state) {
-			return layer;
+		public int materialFlags() {
+			return quads.translucent() ? BakedQuad.FLAG_TRANSLUCENT : 0;
 		}
 	}
 

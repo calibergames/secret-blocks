@@ -394,7 +394,7 @@ public class DevClientDriver {
 		// block entity (vanilla creates one on main-thread access).
 		BlockEntity entity = level.getChunkAt(pos).getBlockEntity(pos, net.minecraft.world.level.chunk.LevelChunk.EntityCreationType.CHECK);
 		StringBuilder out = new StringBuilder(pos.toShortString()).append(" state=")
-				.append(BuiltInRegistries.BLOCK.getKey(state.getBlock())).append(state.getValues().isEmpty() ? "" : state.getValues().toString())
+				.append(BuiltInRegistries.BLOCK.getKey(state.getBlock())).append(state.isSingletonState() ? "" : state.getValues().map(Object::toString).collect(java.util.stream.Collectors.joining(", ", "{", "}")))
 				.append(" blockEntity=").append(entity == null ? "none" : entity.getClass().getSimpleName());
 		if (entity instanceof DisguisedBlockEntity disguised) {
 			out.append(" north=").append(BuiltInRegistries.BLOCK.getKey(disguised.getState(Direction.NORTH).getBlock()))
