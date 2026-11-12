@@ -39,12 +39,12 @@ More in [Tools](https://github.com/calibergames/secret-blocks/wiki/Tools).
 
 ## Requirements
 
-- **Fabric or Quilt** (the `fabric` download): Minecraft 1.21.11,
-  Fabric Loader 0.17.3 or later (or Quilt Loader 0.30.2 or later),
-  and [Fabric API](https://modrinth.com/mod/fabric-api) 0.140.0 or later.
-- **NeoForge** (the `neoforge` download): Minecraft 1.21.11, NeoForge
-  21.11.42 or later.
-- **Forge** (the `forge` download): Minecraft 1.21.11, Forge 61.2.0 or later.
+- **Fabric or Quilt** (the `fabric` download): Minecraft 26.1.1 or 26.1.2,
+  Fabric Loader 0.19.5 or later (or Quilt Loader 0.30.2 or later),
+  and [Fabric API](https://modrinth.com/mod/fabric-api) 0.145.3 or later.
+- **NeoForge** (the `neoforge` download): Minecraft 26.1.2, NeoForge
+  26.1.2.114 or later.
+- **Forge** (the `forge` download): Minecraft 26.1.2, Forge 64.1.0 or later.
 
 See [Compatibility](https://github.com/calibergames/secret-blocks/wiki/Compatibility) for Sodium, Embeddium, shader packs, connected textures and Carpet.
 

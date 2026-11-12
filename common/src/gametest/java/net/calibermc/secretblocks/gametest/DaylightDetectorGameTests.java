@@ -110,8 +110,14 @@ public class DaylightDetectorGameTests {
 	}
 
 	private static void both(GameTestHelper h, String when, int expected, int secret, int vanilla) {
-		check(h, vanilla == expected, "control, " + when + ": the vanilla detector should give " + expected + ", gives " + vanilla);
-		check(h, secret == expected, when + ": the Secret Daylight Detector should give " + expected + ", gives " + secret);
+		check(h, vanilla == expected, "control, " + when + ": the vanilla detector should give " + expected + ", gives " + vanilla + sky(h));
+		check(h, secret == expected, when + ": the Secret Daylight Detector should give " + expected + ", gives " + secret + sky(h));
+	}
+
+	/** The sky the detectors read, for failure messages. */
+	private static String sky(GameTestHelper h) {
+		var level = h.getLevel();
+		return " (day time " + level.getDefaultClockTime() + ", sky darken " + level.getSkyDarken() + ", rain " + level.getRainLevel(1.0F) + ")";
 	}
 
 	/** Bury the block at (x, y, z): stone on the five sides the floor does not already cover. */
@@ -271,7 +277,8 @@ public class DaylightDetectorGameTests {
 		h.setBlock(pos, SECRET);
 		whenSkyLit(h, 45, () -> {
 			BlockState state = h.getBlockState(pos);
-			check(h, state.getValue(DaylightDetectorBlock.POWER) == 15, "at noon it should be at 15");
+			check(h, state.getValue(DaylightDetectorBlock.POWER) == 15, "at noon it should be at 15, is at "
+					+ state.getValue(DaylightDetectorBlock.POWER) + sky(h));
 			for (Direction direction : Direction.values()) {
 				check(h, state.getSignal(h.getLevel(), h.absolutePos(pos), direction) == 15, "weak power asked from " + direction + " should be 15");
 				check(h, state.getDirectSignal(h.getLevel(), h.absolutePos(pos), direction) == 0, "it must give no strong power (asked from " + direction + ")");
