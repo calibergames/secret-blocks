@@ -217,7 +217,8 @@ public final class DisguiseRenderer {
 			}
 		} else {
 			for (BakedQuad quad : quads) {
-				emitter.fromVanilla(quad, layer, direction);
+				// Indigo needs a material here; finishWhole sets the final one.
+				emitter.fromVanilla(quad, builder ? FabricMaterials.fade() : layer, direction);
 				finishWhole(emitter, look, blockView, pos, layer, builder);
 				emitter.emit();
 			}
