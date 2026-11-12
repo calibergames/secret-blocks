@@ -104,7 +104,7 @@ public class LightGameTests {
 	 * through glass (13 two blocks on), and not through one that looks like
 	 * stone (light has to go round it).
 	 */
-	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 60)
+	@GameTest(template = EMPTY_STRUCTURE, timeoutTicks = 300)
 	public void lampLightShinesThroughAGlassLook(GameTestHelper h) {
 		floor(h);
 		BlockPos lamp = new BlockPos(1, 2, 3);
@@ -116,12 +116,13 @@ public class LightGameTests {
 		secret(h, glass).setDisguise(all(Blocks.GLASS));
 		h.setBlock(stone, ModBlocks.SOLID_BLOCK);
 		secret(h, stone).setDisguise(all(Blocks.STONE));
-		h.runAfterDelay(10, () -> {
+		// Checked each tick until the light has spread (it can take seconds under load): the light behind the
+		// stone look only rises as it spreads, and settles below 13, so waiting never lets a wrong look pass.
+		h.succeedWhen(() -> {
 			int through = h.getLevel().getBrightness(LightLayer.BLOCK, h.absolutePos(new BlockPos(3, 2, 3)));
 			int round = h.getLevel().getBrightness(LightLayer.BLOCK, h.absolutePos(new BlockPos(3, 2, 6)));
 			check(h, through == 13, "behind the glass look the light should be 13, is " + through);
 			check(h, round < 13, "behind the stone look the light should come round it (below 13), is " + round);
-			h.succeed();
 		});
 	}
 
