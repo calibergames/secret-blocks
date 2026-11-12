@@ -44,11 +44,3 @@ True Secret Rooms
 
   This mod began as a port of True Secret Rooms to Minecraft 1.18.2 and has
   since been rewritten.
-
-MixinExtras
-  by LlamaLad7
-  https://github.com/LlamaLad7/MixinExtras
-  Licensed under the MIT License.
-
-  The Fabric jar bundles an unmodified MixinExtras jar (with its licence,
-  LICENSE_MixinExtras) so that loaders shipping an older copy use this one.
