@@ -32,6 +32,9 @@
 		"secretblocks.mixins.json",
 		"secretblocks.fabric.mixins.json"
 	],
+	"breaks": {
+		"quilt_loader": "<0.30.2"
+	},
 	"depends": {
 		"fabricloader": ">=${fabric_loader_min}",
 		"fabric-api": ">=${fabric_api_min}",
