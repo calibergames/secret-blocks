@@ -3,6 +3,7 @@ package net.calibermc.secretblocks.render;
 import net.calibermc.secretblocks.blocks.DisguiseLook;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
 import net.calibermc.secretblocks.blocks.DoorBlock;
+import net.calibermc.secretblocks.blocks.GhostBlock;
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.TrapdoorBlock;
 import net.fabricmc.api.EnvType;
@@ -33,6 +34,9 @@ import org.jetbrains.annotations.Nullable;
  * looks solid too, so a wall of them seen through the glass is one clean
  * window, with no seams between the blocks ({@link SeamRule}).</li>
  * </ul>
+ * Beside a Ghost Block, which can be walked into, every face of another
+ * block towards it is drawn and Ghost Blocks are seen through from inside
+ * ({@link GhostRule}).
  * Beside a Secret Door or Trapdoor (thin panels), or with the Builder's
  * Goggles' view on, faces beside secret blocks are always drawn. Used by
  * vanilla's culling ({@code DrawSideMixin}) and by Sodium's, which does not
@@ -63,6 +67,10 @@ public final class SecretCulling {
 		}
 		if (BuilderView.isActive() || panels(neighbour) || (selfSecret && panels(self))) {
 			return true;
+		}
+		Boolean ghost = GhostRule.drawFace(self.getBlock() instanceof GhostBlock, neighbour.getBlock() instanceof GhostBlock);
+		if (ghost != null) {
+			return ghost;
 		}
 		BlockState theirs = DisguiseLook.shown(level, neighbourPos, side.getOpposite());
 		BlockState mine = selfSecret ? DisguiseLook.shown(level, pos, side) : self;
