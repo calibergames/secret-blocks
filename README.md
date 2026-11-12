@@ -40,7 +40,7 @@ More in [Tools](https://github.com/calibergames/secret-blocks/wiki/Tools).
 ## Requirements
 
 - **Fabric or Quilt** (the `fabric` download): Minecraft 1.20 or 1.20.1,
-  Fabric Loader 0.16.10 or later or Quilt Loader 0.30.1 or later, and
+  Fabric Loader 0.16.10 or later or Quilt Loader 0.30.2 or later, and
   [Fabric API](https://modrinth.com/mod/fabric-api) (on Quilt, Fabric API
   or Quilted Fabric API). With Sodium, you also need
   [Indium](https://modrinth.com/mod/indium).
