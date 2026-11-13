@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.0 (Minecraft 1.19.2, Fabric)
+
+- **Fixed:** standing inside a Ghost Block showed caves and the sky through
+  the blocks around it. From inside you now see the faces of the solid
+  blocks around you, and through neighbouring Ghost Blocks up to the next
+  solid block.
+- Smaller mod icon.
+- Same download, loader and Minecraft version as 2.0.1. Worlds from 2.0.1
+  load unchanged.
+
 ## 2.0.1 (Minecraft 1.19.2, Fabric)
 
 - **One Way Glass walls read as one clean window.** The faces between
