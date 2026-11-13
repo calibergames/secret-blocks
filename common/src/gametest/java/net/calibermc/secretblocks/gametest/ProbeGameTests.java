@@ -15,6 +15,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
@@ -106,6 +108,27 @@ public class ProbeGameTests {
 
 	private static LevelChunk chunk(GameTestHelper h, BlockPos pos) {
 		return h.getLevel().getChunkAt(h.absolutePos(pos));
+	}
+
+	/** A probe loaded before 26.3 stored its block under {@code Name} and {@code Properties}; it still applies it. */
+	@GameTest
+	public void aProbeFromAnOlderVersionStillApplies(GameTestHelper h) {
+		floor(h);
+		h.setBlock(DUMMY, ModBlocks.SOLID_BLOCK);
+		ServerPlayer player = player(h, FEET_NORTH_OF_DUMMY, DUMMY_NORTH);
+		ItemStack probe = new ItemStack(ModItems.SWITCH_PROBE);
+		CompoundTag old = new CompoundTag();
+		old.putString("Name", "minecraft:oak_log");
+		CompoundTag properties = new CompoundTag();
+		properties.putString("axis", "x");
+		old.put("Properties", properties);
+		ItemData.update(probe, tag -> tag.put("setState", old));
+		ItemData.update(probe, tag -> tag.putString("setDirection", "north"));
+		useOn(h, player, probe, DUMMY, Direction.NORTH, DUMMY_NORTH);
+		BlockState north = secret(h, DUMMY).getState(Direction.NORTH);
+		check(h, north.is(Blocks.OAK_LOG) && north.getValue(RotatedPillarBlock.AXIS) == Direction.Axis.X,
+				"the probe should have applied an x-axis oak log, got " + north);
+		h.succeed();
 	}
 
 	/** A probe apply and a rotator turn each flag the chunk for saving. */
