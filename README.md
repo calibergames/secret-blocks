@@ -40,7 +40,7 @@ More in [Tools](https://github.com/calibergames/secret-blocks/wiki/Tools).
 ## Requirements
 
 - **Fabric or Quilt** (the `fabric` download): Minecraft 1.21 or 1.21.1,
-  Fabric Loader 0.16.10 or later or Quilt Loader 0.30.2 or later, and
+  Fabric Loader 0.19.5 or later or Quilt Loader 0.30.2 or later, and
   [Fabric API](https://modrinth.com/mod/fabric-api) 0.100.5 or later.
 - **NeoForge** (the `neoforge` download): Minecraft 1.21 with NeoForge
   21.0.143 or later, or 1.21.1 with NeoForge 21.1.
