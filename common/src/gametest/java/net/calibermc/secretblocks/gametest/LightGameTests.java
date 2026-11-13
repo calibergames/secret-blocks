@@ -54,7 +54,7 @@ public class LightGameTests {
 		h.setBlock(AT, ModBlocks.SOLID_BLOCK);
 		check(h, lightBlock(h, AT) == 15, "with no disguise it should block light, blocks " + lightBlock(h, AT));
 		List<String> problems = new ArrayList<>();
-		for (Block look : new Block[] {Blocks.GLASS, Blocks.RED_STAINED_GLASS, Blocks.ICE, Blocks.OAK_LEAVES, Blocks.STONE, Blocks.TINTED_GLASS}) {
+		for (Block look : new Block[] {Blocks.GLASS, Blocks.STAINED_GLASS.red(), Blocks.ICE, Blocks.OAK_LEAVES, Blocks.STONE, Blocks.TINTED_GLASS}) {
 			secret(h, AT).setDisguise(all(look));
 			boolean through = look != Blocks.STONE && look != Blocks.TINTED_GLASS;
 			boolean solid = h.getBlockState(AT).isSolidRender();

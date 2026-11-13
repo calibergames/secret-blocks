@@ -1,6 +1,7 @@
 package net.calibermc.secretblocks.gametest;
 
 import net.calibermc.secretblocks.blocks.PressurePlate;
+import net.minecraft.world.entity.EntityTypes;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -56,7 +57,7 @@ public class PressurePlateGameTests {
 	@GameTest
 	public void mobPressesPlate(GameTestHelper h) {
 		plate(h, ModBlocks.PRESSURE_PLATE);
-		h.spawnWithNoFreeWill(EntityType.PIG, PLATE.above());
+		h.spawnWithNoFreeWill(EntityTypes.PIG, PLATE.above());
 		h.succeedWhen(() -> {
 			check(h, powered(h), "plate should be pressed");
 			check(h, lit(h, LAMP_BESIDE), "lamp beside the plate should be lit");
@@ -76,7 +77,7 @@ public class PressurePlateGameTests {
 	@GameTest(maxTicks = 200)
 	public void releasesAfterMobLeaves(GameTestHelper h) {
 		plate(h, ModBlocks.PRESSURE_PLATE);
-		Pig pig = h.spawnWithNoFreeWill(EntityType.PIG, PLATE.above());
+		Pig pig = h.spawnWithNoFreeWill(EntityTypes.PIG, PLATE.above());
 		h.runAfterDelay(30, () -> {
 			check(h, powered(h), "plate should be pressed while the pig stands on it");
 			pig.discard();
@@ -98,7 +99,7 @@ public class PressurePlateGameTests {
 		plate(h, ModBlocks.PRESSURE_PLATE);
 		h.setBlock(LAMP_BELOW, Blocks.STONE);
 		BlockPos lampBesideStone = LAMP_BELOW.west();
-		h.spawnWithNoFreeWill(EntityType.PIG, PLATE.above());
+		h.spawnWithNoFreeWill(EntityTypes.PIG, PLATE.above());
 		h.runAfterDelay(30, () -> {
 			check(h, powered(h), "plate should be pressed");
 			h.setBlock(lampBesideStone, Blocks.REDSTONE_LAMP);
@@ -111,7 +112,7 @@ public class PressurePlateGameTests {
 	@GameTest
 	public void playerPlateIgnoresMobsAndItems(GameTestHelper h) {
 		plate(h, ModBlocks.PLAYER_PRESSURE_PLATE);
-		h.spawnWithNoFreeWill(EntityType.PIG, PLATE.above());
+		h.spawnWithNoFreeWill(EntityTypes.PIG, PLATE.above());
 		h.spawnItem(Items.DIAMOND, 3.5f, 2.2f, 3.5f);
 		h.runAfterDelay(40, () -> {
 			check(h, !powered(h), "the player plate must ignore mobs and items");
@@ -175,7 +176,7 @@ public class PressurePlateGameTests {
 		floor(h);
 		h.setBlock(PLATE.north(), Blocks.BRICKS);
 		place(h, ModBlocks.PRESSURE_PLATE.asItem(), new Vec3(3.5, 1, 6.5), PLATE.north(), Direction.SOUTH, new Vec3(3.5, 1.5, 3.0));
-		h.spawnWithNoFreeWill(EntityType.PIG, PLATE.above());
+		h.spawnWithNoFreeWill(EntityTypes.PIG, PLATE.above());
 		h.succeedWhen(() -> {
 			check(h, powered(h), "plate should be pressed");
 			checkFaces(h, PLATE, Blocks.BRICKS);

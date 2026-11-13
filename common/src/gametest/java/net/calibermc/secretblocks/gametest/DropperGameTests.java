@@ -535,7 +535,7 @@ public class DropperGameTests {
 		BlockState secret = h.getBlockState(SECRET_POS);
 		BlockState vanilla = h.getBlockState(VANILLA_POS);
 		BlockPos abs = h.absolutePos(SECRET_POS);
-		check(h, secret.getDestroySpeed(h.getLevel(), abs) == Blocks.WHITE_WOOL.defaultBlockState().getDestroySpeed(h.getLevel(), abs),
+		check(h, secret.getDestroySpeed(h.getLevel(), abs) == Blocks.WOOL.white().defaultBlockState().getDestroySpeed(h.getLevel(), abs),
 				"it should be as hard as wool (0.8), is " + secret.getDestroySpeed(h.getLevel(), abs));
 		check(h, !secret.requiresCorrectToolForDrops(), "it should drop without a tool");
 		check(h, vanilla.isRedstoneConductor(h.getLevel(), h.absolutePos(VANILLA_POS)) && secret.isRedstoneConductor(h.getLevel(), abs), "it should be a conductor, as a vanilla dropper is");

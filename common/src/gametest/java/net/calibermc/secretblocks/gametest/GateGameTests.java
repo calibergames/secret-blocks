@@ -1,6 +1,7 @@
 package net.calibermc.secretblocks.gametest;
 
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityTypes;
 import net.calibermc.secretblocks.blocks.SecretGate;
 import net.calibermc.secretblocks.blocks.SecretGate.Line;
 import net.calibermc.secretblocks.blocks.SecretGate.Spot;
@@ -451,7 +452,7 @@ public class GateGameTests {
 		BlockPos beside = new BlockPos(2, 1, 4);
 		gate(h, first, Direction.EAST, Blocks.BRICKS);
 		gate(h, beside, Direction.UP, Blocks.OAK_PLANKS);
-		ArmorStand stand = EntityType.ARMOR_STAND.create(h.getLevel(), EntitySpawnReason.COMMAND);
+		ArmorStand stand = EntityTypes.ARMOR_STAND.create(h.getLevel(), EntitySpawnReason.COMMAND);
 		Vec3 at = Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(4, 1, 3)));
 		stand.snapTo(at.x, at.y, at.z);
 		h.getLevel().addFreshEntity(stand);
@@ -573,7 +574,7 @@ public class GateGameTests {
 		BlockPos gate = new BlockPos(0, 1, 3);
 		gate(h, gate, Direction.EAST, Blocks.BRICKS);
 		h.setBlock(new BlockPos(6, 1, 3), Blocks.STONE);
-		ArmorStand stand = EntityType.ARMOR_STAND.create(h.getLevel(), EntitySpawnReason.COMMAND);
+		ArmorStand stand = EntityTypes.ARMOR_STAND.create(h.getLevel(), EntitySpawnReason.COMMAND);
 		Vec3 at = Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(3, 1, 3)));
 		stand.snapTo(at.x, at.y, at.z);
 		h.getLevel().addFreshEntity(stand);
@@ -748,7 +749,7 @@ public class GateGameTests {
 		h.setBlock(rel, GATE);
 		BlockState state = h.getBlockState(rel);
 		BlockPos abs = h.absolutePos(rel);
-		check(h, state.getDestroySpeed(h.getLevel(), abs) == Blocks.WHITE_WOOL.defaultBlockState().getDestroySpeed(h.getLevel(), abs),
+		check(h, state.getDestroySpeed(h.getLevel(), abs) == Blocks.WOOL.white().defaultBlockState().getDestroySpeed(h.getLevel(), abs),
 				"it should be as hard as wool (0.8), is " + state.getDestroySpeed(h.getLevel(), abs));
 		check(h, !state.isRedstoneConductor(h.getLevel(), abs) && state.isCollisionShapeFullBlock(h.getLevel(), abs), "it should be a full block and not a conductor");
 		check(h, blockEntityAt(h, rel) instanceof SecretBlockEntity, "it should have the shared block entity");

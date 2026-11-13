@@ -1,6 +1,8 @@
 package net.calibermc.secretblocks.gametest;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.entity.BlockEntityTypes;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.core.registries.Registries;
 import net.calibermc.secretblocks.blocks.entity.SecretSculkSensorBlockEntity;
@@ -212,7 +214,7 @@ public class SculkSensorGameTests {
 		BlockPos vanillaOpen = new BlockPos(4, 1, 1);
 		for (BlockPos pos : new BlockPos[] {secretWalled, vanillaWalled}) {
 			for (Direction side : new Direction[] {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP}) {
-				h.setBlock(pos.relative(side), Blocks.WHITE_WOOL);
+				h.setBlock(pos.relative(side), Blocks.WOOL.white());
 			}
 		}
 		h.setBlock(secretWalled, SECRET);
@@ -335,11 +337,11 @@ public class SculkSensorGameTests {
 		// Sculk Sensor lands a tick sooner.
 		for (int y = 1; y <= 4; y++) {
 			for (int z = 0; z < 8; z++) {
-				h.setBlock(4, y, z, Blocks.WHITE_WOOL);
+				h.setBlock(4, y, z, Blocks.WOOL.white());
 			}
 		}
 		// A warden first: vanilla's step ignores it.
-		Warden warden = EntityType.WARDEN.create(h.getLevel(), EntitySpawnReason.COMMAND);
+		Warden warden = EntityTypes.WARDEN.create(h.getLevel(), EntitySpawnReason.COMMAND);
 		for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
 			BlockState state = h.getBlockState(pos);
 			state.getBlock().stepOn(h.getLevel(), h.absolutePos(pos), state, warden);
@@ -348,7 +350,7 @@ public class SculkSensorGameTests {
 		List<Pig> pigs = new ArrayList<>();
 		h.runAfterDelay(5, () -> {
 			for (BlockPos pos : new BlockPos[] {secret, vanilla}) {
-				Pig pig = EntityType.PIG.create(h.getLevel(), EntitySpawnReason.COMMAND);
+				Pig pig = EntityTypes.PIG.create(h.getLevel(), EntitySpawnReason.COMMAND);
 				Vec3 above = Vec3.atBottomCenterOf(h.absolutePos(pos.above(2)));
 				pig.snapTo(above.x, above.y, above.z);
 				h.getLevel().addFreshEntity(pig);
@@ -496,7 +498,7 @@ public class SculkSensorGameTests {
 		BlockState vanilla = Blocks.SCULK_SENSOR.defaultBlockState();
 		BlockPos abs = h.absolutePos(rel);
 		check(h, vanilla.getLightEmission() == 1 && secret.getLightEmission() == 0, "it should give no light (a vanilla sensor gives 1), gives " + secret.getLightEmission());
-		check(h, secret.getDestroySpeed(h.getLevel(), abs) == Blocks.WHITE_WOOL.defaultBlockState().getDestroySpeed(h.getLevel(), abs),
+		check(h, secret.getDestroySpeed(h.getLevel(), abs) == Blocks.WOOL.white().defaultBlockState().getDestroySpeed(h.getLevel(), abs),
 				"it should be as hard as wool (0.8), is " + secret.getDestroySpeed(h.getLevel(), abs));
 		check(h, !secret.requiresCorrectToolForDrops(), "it should drop without a tool");
 		check(h, !secret.isRedstoneConductor(h.getLevel(), abs), "it should not be a conductor");
@@ -506,7 +508,7 @@ public class SculkSensorGameTests {
 		check(h, secret.isSignalSource() && secret.hasAnalogOutputSignal(), "it should be a signal source that comparators read");
 		check(h, secret.hasBlockEntity(), "it should have a block entity (so pistons cannot move it)");
 		check(h, secret.getTicker(h.getLevel(), ModEntities.SECRET_SCULK_SENSOR) != null, "it should tick its own block entity type");
-		check(h, secret.getTicker(h.getLevel(), BlockEntityType.SCULK_SENSOR) == null, "it should not tick the vanilla type");
+		check(h, secret.getTicker(h.getLevel(), BlockEntityTypes.SCULK_SENSOR) == null, "it should not tick the vanilla type");
 		check(h, blockEntityAt(h, rel) instanceof SecretSculkSensorBlockEntity sensor && sensor.getType() == ModEntities.SECRET_SCULK_SENSOR
 				&& sensor.getType().isValid(secret), "its block entity should be a Secret Sculk Sensor's, of its own type, got " + blockEntityAt(h, rel));
 		h.succeed();

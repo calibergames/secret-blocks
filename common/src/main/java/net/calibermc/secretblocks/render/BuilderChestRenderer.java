@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.blockentity.state.ChestRenderState;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.ChestRenderer;
@@ -102,7 +101,7 @@ public class BuilderChestRenderer implements BlockEntityRenderer<SecretBlockEnti
 		int sky = 0;
 		for (Direction direction : Direction.values()) {
 			if ((seen & (1 << direction.get3DDataValue())) != 0) {
-				int packed = LevelRenderer.getLightCoords(level, neighbour.setWithOffset(pos, direction));
+				int packed = LightCoordsUtil.getLightCoords(level, neighbour.setWithOffset(pos, direction));
 				block = Math.max(block, LightCoordsUtil.block(packed));
 				sky = Math.max(sky, LightCoordsUtil.sky(packed));
 			}

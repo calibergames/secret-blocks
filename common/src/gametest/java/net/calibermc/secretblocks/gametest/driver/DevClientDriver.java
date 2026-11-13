@@ -171,8 +171,8 @@ public class DevClientDriver {
 			waitTicks = Integer.parseInt(next.trim().split("\\s+")[1]);
 			return;
 		}
-		if (next == null || !(next.startsWith("open ") || next.startsWith("connect ")) || mc.getOverlay() != null
-				|| !(mc.screen instanceof net.minecraft.client.gui.screens.TitleScreen)) {
+		if (next == null || !(next.startsWith("open ") || next.startsWith("connect ")) || mc.gui.overlay() != null
+				|| !(mc.gui.screen() instanceof net.minecraft.client.gui.screens.TitleScreen)) {
 			return;
 		}
 		queue.poll();
@@ -181,7 +181,7 @@ public class DevClientDriver {
 			// A malformed address must not crash the client and end the run.
 			try {
 				report("connecting to " + host);
-				net.minecraft.client.gui.screens.ConnectScreen.startConnecting(mc.screen, mc,
+				net.minecraft.client.gui.screens.ConnectScreen.startConnecting(mc.gui.screen(), mc,
 						net.minecraft.client.multiplayer.resolver.ServerAddress.parseString(host),
 						new net.minecraft.client.multiplayer.ServerData("Dedicated", host, net.minecraft.client.multiplayer.ServerData.Type.OTHER), false, null);
 			} catch (RuntimeException e) {
@@ -255,7 +255,7 @@ public class DevClientDriver {
 				var tooltip = stack.getTooltipLines(net.minecraft.world.item.Item.TooltipContext.of(mc.level), mc.player, net.minecraft.world.item.TooltipFlag.Default.NORMAL)
 						.stream().map(net.minecraft.network.chat.Component::getString).toList();
 				report("held client " + BuiltInRegistries.ITEM.getKey(stack.getItem()) + " " + stack.getComponentsPatch() + " tooltip=" + tooltip
-						+ " screen=" + (mc.screen == null ? "none" : mc.screen.getClass().getSimpleName() + " title=" + mc.screen.getTitle().getString()));
+						+ " screen=" + (mc.gui.screen() == null ? "none" : mc.gui.screen().getClass().getSimpleName() + " title=" + mc.gui.screen().getTitle().getString()));
 				var server = mc.getSingleplayerServer();
 				var uuid = mc.player.getUUID();
 				if (server == null) {
@@ -348,10 +348,12 @@ public class DevClientDriver {
 			}
 			case "hud" -> {
 				// F1: hide the HUD and hand for clean screenshots.
-				mc.options.hideGui = a[1].equals("off");
+				if (mc.gui.hud.isHidden() != a[1].equals("off")) {
+					mc.gui.hud.toggle();
+				}
 				report("hud " + a[1]);
 			}
-			case "shot" -> Screenshot.grab(mc.gameDirectory, a[1] + ".png", mc.getMainRenderTarget(), 1,
+			case "shot" -> Screenshot.grab(mc.gameDirectory, a[1] + ".png", mc.gameRenderer.mainRenderTarget(), 1,
 					message -> report("shot " + a[1] + " -> " + message.getString()));
 			case "quit" -> {
 				// The pause screen's "Save and Quit to Title".

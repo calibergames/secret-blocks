@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.2.0 (Minecraft 26.2: Fabric, Quilt, NeoForge, Forge)
+
+Secret Blocks for Minecraft 26.2, with the same blocks and tools as 2.2.0
+for the other versions.
+
+- **Three downloads:**
+  - `secret-blocks-fabric-26.2-2.2.0.jar` for Fabric and Quilt. It needs
+    Fabric Loader 0.19.5 or later (or Quilt Loader 0.30.2 or later) and
+    Fabric API 0.152.0 or later.
+  - `secret-blocks-neoforge-26.2-2.2.0.jar` for NeoForge 26.2.0.90 or later.
+  - `secret-blocks-forge-26.2-2.2.0.jar` for Forge 65.1.0 or later.
+- Java 25, as Minecraft 26.2 needs.
+- **Fixed:** standing inside a Ghost Block showed caves and the sky through
+  the blocks around it. From inside you now see the faces of the solid
+  blocks around you, and through neighbouring Ghost Blocks up to the next
+  solid block.
+- The Fabric jar does not bundle MixinExtras.
+- Smaller mod icon.
+- **Worlds from 1.21.1 upgrade** with their secret blocks, disguises,
+  container contents and locks. Back the world up first, as Minecraft asks.
+- Secret Redstone follows the default redstone rules; worlds with the
+  experimental redstone setting are not supported.
+- Tested with Sodium 0.9.2 on Fabric and NeoForge.
+
 ## 2.2.0 (Minecraft 26.1.1 and 26.1.2: Fabric, Quilt, NeoForge, Forge)
 
 Secret Blocks for Minecraft 26.1.1 and 26.1.2, with the same blocks and

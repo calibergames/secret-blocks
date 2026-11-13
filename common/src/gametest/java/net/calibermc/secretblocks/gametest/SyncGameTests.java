@@ -36,7 +36,7 @@ public class SyncGameTests {
 		faces.put(Direction.NORTH, Blocks.EMERALD_BLOCK.defaultBlockState());
 		faces.put(Direction.SOUTH, Blocks.LAPIS_BLOCK.defaultBlockState());
 		faces.put(Direction.WEST, Blocks.AMETHYST_BLOCK.defaultBlockState());
-		faces.put(Direction.EAST, Blocks.COPPER_BLOCK.defaultBlockState());
+		faces.put(Direction.EAST, Blocks.COPPER_BLOCK.weathering().unaffected().defaultBlockState());
 		return faces;
 	}
 

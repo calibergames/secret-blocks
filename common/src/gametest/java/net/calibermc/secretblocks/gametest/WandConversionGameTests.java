@@ -1,11 +1,12 @@
 package net.calibermc.secretblocks.gametest;
 
 import net.calibermc.secretblocks.blocks.entity.LegacyData;
+import net.minecraft.world.entity.EntityTypes;
 import net.calibermc.secretblocks.blocks.entity.SavedData;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.component.DataComponentExactPredicate;
-import net.minecraft.advancements.criterion.DataComponentMatchers;
-import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.predicates.DataComponentMatchers;
+import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.world.LockCode;
 import net.minecraft.world.RandomizableContainer;
 import net.calibermc.secretblocks.items.ItemData;
@@ -330,7 +331,7 @@ public class WandConversionGameTests {
 					|| !lockedWithKey(h, container.saveWithoutMetadata(h.getLevel().registryAccess()))) {
 				problems.append(label).append(" back: ").append(back instanceof Container c ? sameItems(reference, c) : back).append("; ");
 			}
-			if (!h.getEntities(EntityType.ITEM, TARGET, 6).isEmpty()) {
+			if (!h.getEntities(EntityTypes.ITEM, TARGET, 6).isEmpty()) {
 				problems.append(label).append(": items were dropped; ");
 			}
 			((Container) back).clearContent();
@@ -493,7 +494,7 @@ public class WandConversionGameTests {
 		entity.loadWithComponents(SavedData.input(stuck, h.getLevel().registryAccess()));
 		convert(h, op(h), wand(GRANITE));
 		check(h, h.getBlockState(TARGET).is(Blocks.LEVER), "the lever should turn vanilla: " + h.getBlockState(TARGET));
-		int dropped = h.getEntities(EntityType.ITEM, TARGET, 3).stream().mapToInt(e -> e.getItem().is(Items.DIAMOND) ? e.getItem().getCount() : 0).sum();
+		int dropped = h.getEntities(EntityTypes.ITEM, TARGET, 3).stream().mapToInt(e -> e.getItem().is(Items.DIAMOND) ? e.getItem().getCount() : 0).sum();
 		check(h, dropped == 3, "the three stuck diamonds should drop, found " + dropped);
 		h.succeed();
 	}

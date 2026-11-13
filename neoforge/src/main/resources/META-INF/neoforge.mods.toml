@@ -8,7 +8,7 @@ modId = "secretblocks"
 version = "${version}"
 displayName = "Secret Blocks"
 displayURL = "https://github.com/calibergames/secret-blocks"
-logoFile = "assets/secretblocks/icon.png"
+iconFile = "assets/secretblocks/icon.png"
 authors = "CaliberMC"
 description = '''Hidden blocks that look like the blocks around them.'''
 

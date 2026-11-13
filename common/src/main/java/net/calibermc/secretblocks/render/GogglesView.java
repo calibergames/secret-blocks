@@ -85,7 +85,7 @@ public final class GogglesView {
 			}
 		}
 		for (long section : sections) {
-			mc.levelRenderer.setSectionDirty(SectionPos.x(section), SectionPos.y(section), SectionPos.z(section));
+			mc.levelExtractor.setSectionDirty(SectionPos.x(section), SectionPos.y(section), SectionPos.z(section));
 		}
 	}
 }

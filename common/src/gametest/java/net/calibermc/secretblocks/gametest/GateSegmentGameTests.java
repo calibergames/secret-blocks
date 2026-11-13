@@ -124,7 +124,7 @@ public class GateSegmentGameTests {
 		segment(h, rel, h.absolutePos(OWNER));
 		BlockState state = h.getBlockState(rel);
 		BlockPos abs = h.absolutePos(rel);
-		check(h, state.getDestroySpeed(h.getLevel(), abs) == Blocks.WHITE_WOOL.defaultBlockState().getDestroySpeed(h.getLevel(), abs),
+		check(h, state.getDestroySpeed(h.getLevel(), abs) == Blocks.WOOL.white().defaultBlockState().getDestroySpeed(h.getLevel(), abs),
 				"it should be as hard as wool (0.8), is " + state.getDestroySpeed(h.getLevel(), abs));
 		check(h, !state.isRedstoneConductor(h.getLevel(), abs), "it should not be a conductor");
 		check(h, state.isCollisionShapeFullBlock(h.getLevel(), abs) && state.getLightEmission() == 0, "it should be a full block with no light");

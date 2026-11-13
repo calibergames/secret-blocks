@@ -395,7 +395,7 @@ public class DaylightDetectorGameTests {
 		EntityBlock vanilla = (EntityBlock) Blocks.DAYLIGHT_DETECTOR;
 		ServerLevel nether = h.getLevel().getServer().getLevel(Level.NETHER);
 		check(h, nether != null && !nether.dimensionType().hasSkyLight(), "control: the test server should have a Nether without sky light");
-		check(h, vanilla.getTicker(nether, Blocks.DAYLIGHT_DETECTOR.defaultBlockState(), net.minecraft.world.level.block.entity.BlockEntityType.DAYLIGHT_DETECTOR) == null,
+		check(h, vanilla.getTicker(nether, Blocks.DAYLIGHT_DETECTOR.defaultBlockState(), net.minecraft.world.level.block.entity.BlockEntityTypes.DAYLIGHT_DETECTOR) == null,
 				"control: a vanilla detector has no ticker in the Nether");
 		check(h, secret.getTicker(nether, SECRET.defaultBlockState(), ModEntities.SECRET_BLOCK_ENTITY) == null, "the Secret Daylight Detector must have no ticker in the Nether");
 		check(h, secret.getTicker(h.getLevel(), SECRET.defaultBlockState(), ModEntities.SECRET_BLOCK_ENTITY) != null, "the Secret Daylight Detector should have a ticker in the Overworld");

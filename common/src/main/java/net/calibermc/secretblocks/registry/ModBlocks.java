@@ -32,7 +32,7 @@ public class ModBlocks {
     // mine, how it sounds and how it stands up to a blast follow its look
     // (blocks/DisguiseLook), not these settings.
     public static final Block SOLID_BLOCK = registerBlock("solid_block", SolidBlock::new,
-            BlockBehaviour.Properties.ofLegacyCopy(Blocks.WHITE_WOOL));
+            BlockBehaviour.Properties.ofLegacyCopy(Blocks.WOOL.white()));
 
     public static final Block STAIR_BLOCK = registerBlock("stair_block", p -> new StairBlock(SOLID_BLOCK.defaultBlockState(), p),
             BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK));

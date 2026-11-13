@@ -1,6 +1,7 @@
 package net.calibermc.secretblocks.gametest;
 
 import net.calibermc.secretblocks.blocks.WeightedPressurePlate;
+import net.minecraft.world.entity.EntityTypes;
 import net.calibermc.secretblocks.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -104,7 +105,7 @@ public class WeightedPlateGameTests {
 		BlockPos playerPlate = PLATE.east(2);
 		h.setBlock(pigPlate, ModBlocks.LIGHT_WEIGHTED_PRESSURE_PLATE);
 		h.setBlock(playerPlate, ModBlocks.HEAVY_WEIGHTED_PRESSURE_PLATE);
-		var pig = h.spawnWithNoFreeWill(EntityType.PIG, pigPlate.above());
+		var pig = h.spawnWithNoFreeWill(EntityTypes.PIG, pigPlate.above());
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		Vec3 feet = abs(h, Vec3.atBottomCenterOf(playerPlate.above()).add(0, 0.5, 0));
 		player.snapTo(feet.x, feet.y, feet.z, 0, 0);

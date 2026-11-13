@@ -51,7 +51,7 @@ public class DisguiseLookGameTests {
 	private static final BlockPos VANILLA = new BlockPos(5, 1, 3);
 
 	private static final Block[] LOOKS = {Blocks.STONE, Blocks.DIRT, Blocks.OBSIDIAN, Blocks.GLASS, Blocks.OAK_PLANKS,
-			Blocks.IRON_BLOCK, Blocks.SAND, Blocks.WHITE_WOOL};
+			Blocks.IRON_BLOCK, Blocks.SAND, Blocks.WOOL.white()};
 
 	/** Item stacks can only be made once a world has loaded, so the tools are made as a test runs. */
 	private static ItemStack[] tools() {

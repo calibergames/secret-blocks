@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
+import net.minecraft.world.phys.Vec3;
 import com.mojang.serialization.MapCodec;
 import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.screen.SecretChestScreenHandler;
@@ -60,7 +61,7 @@ public class SecretChest extends BaseEntityBlock implements EntityBlock, SecretB
                 if (chest.getLockKey().canUnlock(player)) {
                     player.openMenu(provider);
                 } else {
-                    BaseContainerBlockEntity.sendChestLockedNotifications(pos.getCenter(), player, provider.getDisplayName());
+                    BaseContainerBlockEntity.sendChestLockedNotifications(Vec3.atCenterOf(pos), player, provider.getDisplayName());
                 }
             }
         }
