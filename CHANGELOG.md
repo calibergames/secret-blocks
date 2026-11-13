@@ -6,8 +6,8 @@
   the blocks around it. From inside you now see the faces of the solid
   blocks around you, and through neighbouring Ghost Blocks up to the next
   solid block.
-- The Fabric jar no longer bundles MixinExtras and needs Quilt Loader 0.30.2
-  or later on Quilt.
+- The Fabric jar no longer bundles MixinExtras. It needs Fabric Loader 0.19.5
+  or later, or Quilt Loader 0.30.2 or later on Quilt.
 - Smaller mod icon.
 - Same downloads and Minecraft version as 2.1.2. Worlds from 2.1.2 load
   unchanged.
