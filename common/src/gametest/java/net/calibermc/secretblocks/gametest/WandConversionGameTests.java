@@ -131,7 +131,7 @@ public class WandConversionGameTests {
 	 * door. Redstone wire takes the connections it would have where it stands.
 	 */
 	private static void place(GameTestHelper h, BlockState state) {
-		if (state.getBlock() instanceof net.minecraft.world.level.block.RedStoneWireBlock) {
+		if (state.getBlock() instanceof net.minecraft.world.level.block.RedstoneWireBlock) {
 			state = Block.updateFromNeighbourShapes(state, h.getLevel(), h.absolutePos(TARGET));
 		}
 		h.setBlock(TARGET, state);

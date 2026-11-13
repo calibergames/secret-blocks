@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -16,6 +17,9 @@ import org.jetbrains.annotations.Nullable;
 @Environment(EnvType.CLIENT)
 public final class FabricMaterials {
 
+	/** Shading for an unshaded quad: as the top face, which is fully lit. */
+	private static final Direction UNSHADED = Direction.UP;
+
 	/** A way of drawing a quad. */
 	@FunctionalInterface
 	public interface Material {
@@ -25,13 +29,13 @@ public final class FabricMaterials {
 	/** Translucent (no emissive light), for the faded disguise. */
 	static final Material FADE = layer(ChunkSectionLayer.TRANSLUCENT);
 	/** Solid and full-bright (no shading or ambient occlusion), for the outline. */
-	static final Material OUTLINE = quad -> quad.chunkLayer(ChunkSectionLayer.SOLID).emissive(true).diffuseShade(false)
+	static final Material OUTLINE = quad -> quad.chunkLayer(ChunkSectionLayer.SOLID).emissive(true).shadeDirectionOverride(UNSHADED)
 			.ambientOcclusion(TriState.FALSE);
 	/** Translucent and full-bright (emissive, no shading or ambient occlusion), for the overlay. */
-	static final Material OVERLAY = quad -> quad.chunkLayer(ChunkSectionLayer.TRANSLUCENT).emissive(true).diffuseShade(false)
+	static final Material OVERLAY = quad -> quad.chunkLayer(ChunkSectionLayer.TRANSLUCENT).emissive(true).shadeDirectionOverride(UNSHADED)
 			.ambientOcclusion(TriState.FALSE);
 	private static final Material REAL = layer(null);
-	private static final Material REAL_FLAT = quad -> quad.emissive(false).diffuseShade(true)
+	private static final Material REAL_FLAT = quad -> quad.emissive(false).shadeDirectionOverride(null)
 			.ambientOcclusion(TriState.FALSE);
 
 	private FabricMaterials() {
@@ -43,7 +47,7 @@ public final class FabricMaterials {
 			if (layer != null) {
 				quad.chunkLayer(layer);
 			}
-			quad.emissive(false).diffuseShade(true).ambientOcclusion(TriState.DEFAULT);
+			quad.emissive(false).shadeDirectionOverride(null).ambientOcclusion(TriState.DEFAULT);
 		};
 	}
 

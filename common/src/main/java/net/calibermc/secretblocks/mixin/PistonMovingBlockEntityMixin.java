@@ -149,7 +149,7 @@ public abstract class PistonMovingBlockEntityMixin implements PistonCarry {
 
 	@Inject(method = "finalTick", require = 1,
 			at = @At(value = "INVOKE", shift = At.Shift.AFTER,
-					target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"))
+					target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
 	private void secretblocks$restoreAfterFinalTick(CallbackInfo ci) {
 		PistonMovingBlockEntity self = (PistonMovingBlockEntity) (Object) this;
 		secretblocks$restore(self.getLevel(), self.getBlockPos(), self);

@@ -46,7 +46,7 @@ public class WeightedPressurePlate extends Block implements EntityBlock, SecretB
 
 	public WeightedPressurePlate(Properties settings, int maxWeight) {
 		// A piston breaks it, as it breaks a vanilla pressure plate.
-		super(settings.pushReaction(PushReaction.DESTROY));
+		super(settings.pushReaction(PushReaction.POPPED));
 		this.maxWeight = maxWeight;
 		registerDefaultState(stateDefinition.any().setValue(POWER, 0));
 	}

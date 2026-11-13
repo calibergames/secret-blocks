@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.RedstoneLampBlock;
@@ -33,7 +33,7 @@ public class RedstoneWireGameTests {
 	private static final Block WIRE = ModBlocks.SECRET_REDSTONE_WIRE;
 
 	private static int power(GameTestHelper h, int x, int y, int z) {
-		return h.getBlockState(new BlockPos(x, y, z)).getValue(RedStoneWireBlock.POWER);
+		return h.getBlockState(new BlockPos(x, y, z)).getValue(RedstoneWireBlock.POWER);
 	}
 
 	private static boolean lit(GameTestHelper h, int x, int y, int z) {

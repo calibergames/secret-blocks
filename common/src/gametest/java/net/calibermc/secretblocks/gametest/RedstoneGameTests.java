@@ -8,7 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.RedstoneLampBlock;
 import net.minecraft.world.level.block.ComparatorBlock;
 import net.minecraft.world.level.block.RepeaterBlock;
@@ -54,7 +54,7 @@ public class RedstoneGameTests {
 	}
 
 	private static int power(GameTestHelper h, BlockPos pos) {
-		return h.getBlockState(pos).getValue(RedStoneWireBlock.POWER);
+		return h.getBlockState(pos).getValue(RedstoneWireBlock.POWER);
 	}
 
 	private static boolean lit(GameTestHelper h, BlockPos pos) {
@@ -273,8 +273,8 @@ public class RedstoneGameTests {
 			h.setBlock(new BlockPos(0, 1, z), Blocks.REDSTONE_BLOCK);
 		}
 		h.runAfterDelay(5, () -> {
-			var low = RedStoneWireBlock.PROPERTY_BY_DIRECTION.get(Direction.EAST);
-			var high = RedStoneWireBlock.PROPERTY_BY_DIRECTION.get(Direction.WEST);
+			var low = RedstoneWireBlock.PROPERTY_BY_DIRECTION.get(Direction.EAST);
+			var high = RedstoneWireBlock.PROPERTY_BY_DIRECTION.get(Direction.WEST);
 			check(h, h.getBlockState(new BlockPos(1, 1, 5)).getValue(low) == RedstoneSide.UP, "control: the low wire should run up the step");
 			check(h, h.getBlockState(new BlockPos(2, 2, 5)).getValue(high) == RedstoneSide.SIDE, "control: the high wire should connect down");
 			check(h, h.getBlockState(new BlockPos(1, 1, 1)).getValue(low) == RedstoneSide.UP, "vanilla wire should run up to Secret Redstone Dust on the step");

@@ -1,5 +1,6 @@
 package net.calibermc.secretblocks.gametest;
 
+import net.calibermc.secretblocks.blocks.entity.LegacyData;
 import net.calibermc.secretblocks.blocks.entity.SavedData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -28,6 +29,7 @@ import net.minecraft.nbt.TagParser;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 import static net.calibermc.secretblocks.gametest.TestSupport.*;
 
@@ -73,13 +75,20 @@ public class NbtGameTests {
 	/**
 	 * Load {@code snbt} into a fresh block entity, check the API view, save, and
 	 * require identical NBT for every key but the stored items (upgraded to the
-	 * new item format, checked by the caller).
+	 * new item format, checked by the caller); block states are compared with
+	 * this version's key names.
 	 */
 	private static SecretBlockEntity roundTrip(GameTestHelper h, Block block, String snbt) {
 		CompoundTag input = parse(h, snbt);
 		h.setBlock(A, block);
 		SecretBlockEntity be = plain(h, A);
 		be.loadWithComponents(SavedData.input(input, h.getLevel().registryAccess()));
+		// The block states are saved again with this version's key names.
+		input = input.copy();
+		for (Direction dir : Direction.values()) {
+			String key = dir.getName() + "State";
+			input.put(key, LegacyData.blockStateKeys(input.getCompoundOrEmpty(key)));
+		}
 		for (Direction dir : Direction.values()) {
 			String name = dir.getName();
 			check(h, be.getState(dir) == NbtUtils.readBlockState(BuiltInRegistries.BLOCK, input.getCompoundOrEmpty(name + "State")), name + "State read back wrong: " + be.getState(dir));
@@ -96,6 +105,24 @@ public class NbtGameTests {
 			check(h, before.equals(after), "key " + key + " changed on save: " + before + " -> " + after);
 		}
 		return be;
+	}
+
+	/**
+	 * A command that merges a face state written the way versions before 26.3
+	 * wrote it ({@code Name}, {@code Properties}) into a current disguise still
+	 * sets that face, as {@code /data merge block} did there.
+	 */
+	@GameTest
+	public void aStateMergedWithOldKeyNamesStillDisguises(GameTestHelper h) {
+		h.setBlock(A, ModBlocks.SOLID_BLOCK);
+		SecretBlockEntity be = plain(h, A);
+		CompoundTag data = be.saveWithoutMetadata(h.getLevel().registryAccess());
+		data.merge(parse(h, "{northState:{Name:\"minecraft:oak_log\",Properties:{axis:\"z\"}}}"));
+		be.loadWithComponents(SavedData.input(data, h.getLevel().registryAccess()));
+		BlockState north = be.getState(Direction.NORTH);
+		check(h, north.is(Blocks.OAK_LOG) && north.getValue(RotatedPillarBlock.AXIS) == Direction.Axis.Z,
+				"the north face should be a z-axis oak log, is " + north);
+		h.succeed();
 	}
 
 	@GameTest

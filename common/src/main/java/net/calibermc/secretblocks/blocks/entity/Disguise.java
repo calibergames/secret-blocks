@@ -134,7 +134,8 @@ public final class Disguise {
 		for (Direction face : FACES) {
 			String name = face.getName();
 			if (tag.contains(name + "State")) {
-				states.put(face, NbtUtils.readBlockState(BuiltInRegistries.BLOCK, tag.getCompoundOrEmpty(name + "State")));
+				// A command can merge a state written as versions before 26.3 wrote it into current data.
+				states.put(face, NbtUtils.readBlockState(BuiltInRegistries.BLOCK, LegacyData.blockStateKeys(tag.getCompoundOrEmpty(name + "State"))));
 			}
 			if (tag.contains(name + "Direction")) {
 				directions.put(face, byName(tag.getStringOr(name + "Direction", "")));

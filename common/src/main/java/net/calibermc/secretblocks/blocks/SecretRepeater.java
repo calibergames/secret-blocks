@@ -33,7 +33,7 @@ public class SecretRepeater extends RepeaterBlock implements EntityBlock, Secret
 
 	public SecretRepeater(Properties settings) {
 		// A piston breaks it, as it breaks a vanilla repeater.
-		super(settings.pushReaction(PushReaction.DESTROY));
+		super(settings.pushReaction(PushReaction.POPPED));
 	}
 
 	@Override

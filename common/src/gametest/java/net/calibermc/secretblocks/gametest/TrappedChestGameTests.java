@@ -19,7 +19,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComparatorBlock;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.RedstoneLampBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -119,7 +119,7 @@ public class TrappedChestGameTests {
 	}
 
 	private static int wire(GameTestHelper h, int x, int y, int z) {
-		return h.getBlockState(new BlockPos(x, y, z)).getValue(RedStoneWireBlock.POWER);
+		return h.getBlockState(new BlockPos(x, y, z)).getValue(RedstoneWireBlock.POWER);
 	}
 
 	private static void both(GameTestHelper h, String when, int expected, int secret, int vanilla) {

@@ -3,6 +3,7 @@ package net.calibermc.secretblocks.mixin;
 import net.calibermc.secretblocks.blocks.DisguiseLook;
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -11,6 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A player breaking a secret block hears and sees the look of the face they
@@ -20,9 +22,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Block.class)
 public abstract class DisguiseBreakEffectMixin {
 
-	@Inject(method = "spawnDestroyParticles", at = @At("HEAD"), cancellable = true)
-	private void secretblocks$disguiseBreak(Level level, Player player, BlockPos pos, BlockState state, CallbackInfo ci) {
-		if (state.getBlock() instanceof SecretBlock) {
+	@Inject(method = "spawnDestroyByEntityParticles", at = @At("HEAD"), cancellable = true)
+	private void secretblocks$disguiseBreak(Level level, @Nullable Entity entity, BlockPos pos, BlockState state, CallbackInfo ci) {
+		if (entity instanceof Player player && state.getBlock() instanceof SecretBlock) {
 			level.levelEvent(player, 2001, pos, Block.getId(DisguiseLook.shown(level, pos, DisguiseLook.faceFor(player, pos))));
 			ci.cancel();
 		}

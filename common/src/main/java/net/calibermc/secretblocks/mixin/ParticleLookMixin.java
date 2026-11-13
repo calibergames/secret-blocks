@@ -5,10 +5,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Group;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 /**
@@ -19,18 +17,9 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(ClientLevel.class)
 public abstract class ParticleLookMixin {
 
-	/** The chips, where the level reads the block being hit (NeoForge reads it in its overload with the hit). */
-	@Group(name = "secretblocks$crackLook", min = 1, max = 1)
-	@ModifyVariable(method = "addBreakingBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)V", require = 0,
-			at = @At("STORE"))
-	private BlockState secretblocks$crackLook(BlockState state, BlockPos pos, Direction side) {
-		return DisguiseLook.looks((ClientLevel) (Object) this, pos, state, side);
-	}
-
-	@Group(name = "secretblocks$crackLook", min = 1, max = 1)
-	@ModifyVariable(method = "addBreakingBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/world/phys/HitResult;)V",
-			require = 0, at = @At("STORE"))
-	private BlockState secretblocks$crackLookWithHit(BlockState state, BlockPos pos, Direction side, HitResult hit) {
+	/** The chips (and the hit sound with them), where the level reads the block being hit. */
+	@ModifyVariable(method = "addBreakingBlockEffects(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Z)V", at = @At("STORE"))
+	private BlockState secretblocks$crackLook(BlockState state, BlockPos pos, Direction side, boolean playSound) {
 		return DisguiseLook.looks((ClientLevel) (Object) this, pos, state, side);
 	}
 

@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -220,7 +220,7 @@ public final class WandConversion {
 	private static void neighbourUpdates(Level level, BlockPos pos, BlockState before) {
 		for (BlockPos part : parts(pos, before)) {
 			BlockState now = level.getBlockState(part);
-			if (now.getBlock() instanceof RedStoneWireBlock) {
+			if (now.getBlock() instanceof RedstoneWireBlock) {
 				BlockState connected = Block.updateFromNeighbourShapes(now, level, part);
 				if (connected.is(now.getBlock()) && connected != now) {
 					level.setBlock(part, connected, Block.UPDATE_CLIENTS);

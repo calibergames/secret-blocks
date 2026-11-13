@@ -168,7 +168,7 @@ public final class SharedGameTests {
 			GameTest settings = test.settings();
 			Holder<TestEnvironmentDefinition<?>> environment = environments.getOrThrow(
 					ResourceKey.create(Registries.TEST_ENVIRONMENT, id(settings.environment())));
-			TestData<Holder<TestEnvironmentDefinition<?>>> data = new TestData<>(environment, STRUCTURE, settings.maxTicks(), 0, true,
+			TestData<Holder<TestEnvironmentDefinition<?>>> data = new TestData<>(environment, net.minecraft.world.level.Level.OVERWORLD, STRUCTURE, settings.maxTicks(), 0, true,
 					net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, settings.skyAccess(), 0);
 			registry.register(ResourceKey.create(Registries.TEST_INSTANCE, test.id()),
 					new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, test.id()), data), RegistrationInfo.BUILT_IN);

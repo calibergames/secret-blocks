@@ -1,7 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
 import net.minecraft.world.phys.Vec3;
-import com.mojang.serialization.MapCodec;
 import net.calibermc.secretblocks.blocks.entity.SecretChestBlockEntity;
 import net.calibermc.secretblocks.screen.SecretChestScreenHandler;
 import net.minecraft.core.BlockPos;
@@ -31,13 +30,6 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class SecretChest extends BaseEntityBlock implements EntityBlock, SecretBlock {
-
-    public static final MapCodec<SecretChest> CODEC = simpleCodec(SecretChest::new);
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     public SecretChest(Properties settings) {
         super(settings);

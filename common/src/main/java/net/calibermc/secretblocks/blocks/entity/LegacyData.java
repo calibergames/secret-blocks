@@ -80,6 +80,29 @@ public final class LegacyData {
 	}
 
 	/**
+	 * A block state tag with the key names this version reads ({@code id} and
+	 * {@code properties}): {@code tag} itself when it has no {@code Name}, else a
+	 * copy with {@code Name} and {@code Properties}, as versions before 26.3 wrote
+	 * them, renamed. For data the game's fixers do not reach: an item's, which
+	 * has no {@link #VERSION}, and a state a command merges into current data.
+	 * Such a merge leaves both names in the tag; the old ones are what the
+	 * command wrote, so they replace the new ones.
+	 */
+	public static CompoundTag blockStateKeys(CompoundTag tag) {
+		if (!tag.contains("Name")) {
+			return tag;
+		}
+		CompoundTag renamed = tag.copy();
+		renamed.put("id", renamed.get("Name"));
+		renamed.remove("Name");
+		if (renamed.get("Properties") != null) {
+			renamed.put("properties", renamed.get("Properties"));
+			renamed.remove("Properties");
+		}
+		return renamed;
+	}
+
+	/**
 	 * Brings the vanilla parts of a secret container's data up to date, in
 	 * place: {@code tag} is run through the fixers of the vanilla block entity
 	 * {@code vanillaId} it stands in for ({@code minecraft:chest},

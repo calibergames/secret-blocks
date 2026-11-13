@@ -48,7 +48,7 @@ public class ModBlocks {
 
     // Doors break when a piston pushes them, as vanilla's.
     public static final Block DOOR_BLOCK = registerBlock("door_block", p -> new DoorBlock(p, BlockSetType.OAK),
-            BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).pushReaction(PushReaction.DESTROY));
+            BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK).pushReaction(PushReaction.POPPED));
 
     // Iron door and trapdoor: vanilla iron settings but for the tool needed to
     // drop (a secret block always drops; mining time, sounds and blast
@@ -57,7 +57,7 @@ public class ModBlocks {
     // Our DoorBlock/TrapdoorBlock classes keep the disguised panel rendering
     // (the unused IronDoorBlock extends vanilla's door and would draw a full cube).
     public static final Block IRON_DOOR_BLOCK = registerBlock("iron_door_block", p -> new DoorBlock(p, BlockSetType.IRON),
-            BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(5.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.DESTROY));
+            BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(5.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.POPPED));
 
     public static final Block TRAPDOOR_BLOCK = registerBlock("trapdoor_block", p -> new TrapdoorBlock(p, BlockSetType.OAK),
             BlockBehaviour.Properties.ofLegacyCopy(SOLID_BLOCK));

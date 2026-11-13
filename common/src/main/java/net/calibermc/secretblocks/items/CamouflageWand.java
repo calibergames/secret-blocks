@@ -2,6 +2,7 @@ package net.calibermc.secretblocks.items;
 
 import net.calibermc.secretblocks.blocks.SecretBlock;
 import net.calibermc.secretblocks.blocks.entity.DisguisedBlockEntity;
+import net.calibermc.secretblocks.blocks.entity.LegacyData;
 import net.calibermc.secretblocks.registry.ModItems;
 import java.util.function.Consumer;
 import net.minecraft.server.permissions.Permissions;
@@ -126,9 +127,9 @@ public class CamouflageWand extends Item {
 		if (!(tag.get(DISGUISE) instanceof CompoundTag)) {
 			return Optional.empty();
 		}
-		CompoundTag disguise = tag.getCompoundOrEmpty(DISGUISE);
+		CompoundTag disguise = LegacyData.blockStateKeys(tag.getCompoundOrEmpty(DISGUISE));
 		// readBlockState throws on a malformed id; an unknown but well-formed one reads as air.
-		if (!(disguise.get("Name") instanceof StringTag) || Identifier.tryParse(disguise.getStringOr("Name", "")) == null) {
+		if (!(disguise.get("id") instanceof StringTag) || Identifier.tryParse(disguise.getStringOr("id", "")) == null) {
 			return Optional.empty();
 		}
 		BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, disguise);

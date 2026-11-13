@@ -9,11 +9,9 @@
 					"name": "secretblocks:light_weighted_pressure_plate"
 				}
 			],
-			"conditions": [
-				{
-					"condition": "minecraft:survives_explosion"
-				}
-			]
+			"condition": {
+				"type": "minecraft:survives_explosion"
+			}
 		}
 	]
 }

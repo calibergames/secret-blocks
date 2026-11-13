@@ -22,7 +22,7 @@ public class SecretLever extends net.minecraft.world.level.block.LeverBlock impl
 
     public SecretLever(Properties settings) {
         // A piston breaks it, as it breaks a vanilla lever.
-        super(settings.pushReaction(PushReaction.DESTROY));
+        super(settings.pushReaction(PushReaction.POPPED));
     }
 
 //    private static final VoxelShape SHAPE = VoxelShapes.cuboid(0.0d, 0.0d, 0.0d, 1.0d, 1.0d, 1.0d);

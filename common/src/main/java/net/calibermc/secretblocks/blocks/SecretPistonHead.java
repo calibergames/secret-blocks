@@ -28,7 +28,7 @@ public class SecretPistonHead extends PistonHeadBlock implements EntityBlock, Se
 	public SecretPistonHead(Properties settings) {
 		// Pistons can neither push nor break it, as vanilla's head (although many secret
 		// blocks can be pushed).
-		super(settings.pushReaction(PushReaction.BLOCK));
+		super(settings.pushReaction(PushReaction.IMMOVEABLE));
 	}
 
 	@Override

@@ -20,11 +20,13 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class LevelDestroyBlockMixin {
 
 	@Redirect(method = "destroyBlock(Lnet/minecraft/core/BlockPos;ZLnet/minecraft/world/entity/Entity;I)Z",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;getId(Lnet/minecraft/world/level/block/state/BlockState;)I"))
-	private int secretblocks$disguiseBreak(BlockState state, BlockPos pos, boolean dropBlock, @Nullable Entity entity) {
-		if (state.getBlock() instanceof SecretBlock) {
-			return Block.getId(DisguiseLook.shown((Level) (Object) this, pos, DisguiseLook.faceFor(entity, pos)));
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;spawnDestroyParticles(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V"))
+	private void secretblocks$disguiseBreak(Block block, Level level, BlockPos pos, BlockState state,
+			BlockPos destroyed, boolean dropBlock, @Nullable Entity entity) {
+		if (block instanceof SecretBlock) {
+			level.levelEvent(2001, pos, Block.getId(DisguiseLook.shown(level, pos, DisguiseLook.faceFor(entity, pos))));
+		} else {
+			block.spawnDestroyParticles(level, pos, state);
 		}
-		return Block.getId(state);
 	}
 }

@@ -59,7 +59,7 @@ public abstract class TestRegistriesMixin implements RegistryLoadContext {
 				SharedGameTests.registerEnvironments((WritableRegistry<TestEnvironmentDefinition<?>>) registry);
 			} else if (registry.key().equals(Registries.TEST_INSTANCE)) {
 				SharedGameTests.registerInstances((WritableRegistry<GameTestInstance>) registry,
-						context.<TestEnvironmentDefinition<?>>lookup(Registries.TEST_ENVIRONMENT).orElseThrow().getter());
+						context.<TestEnvironmentDefinition<?>>lookup(Registries.TEST_ENVIRONMENT).orElseThrow());
 			}
 		}
 	}

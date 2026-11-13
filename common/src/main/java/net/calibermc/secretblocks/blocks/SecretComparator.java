@@ -35,7 +35,7 @@ public class SecretComparator extends ComparatorBlock implements SecretBlock {
 
 	public SecretComparator(Properties settings) {
 		// A piston breaks it, as it breaks a vanilla comparator.
-		super(settings.pushReaction(PushReaction.DESTROY));
+		super(settings.pushReaction(PushReaction.POPPED));
 	}
 
 	@Override

@@ -24,7 +24,7 @@ public class StoneButton extends net.minecraft.world.level.block.ButtonBlock imp
     public StoneButton(Properties settings) {
         // A piston breaks it, as it breaks a vanilla button. Pressed for as long as
         // a vanilla stone button, with its sounds; arrows do not press it.
-        super(BlockSetType.STONE, 20, settings.pushReaction(PushReaction.DESTROY));
+        super(BlockSetType.STONE, 20, settings.pushReaction(PushReaction.POPPED));
     }
 
     @Override

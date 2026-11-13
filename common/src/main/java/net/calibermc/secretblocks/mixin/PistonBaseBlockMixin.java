@@ -77,14 +77,14 @@ public abstract class PistonBaseBlockMixin {
 		} else if (piston) {
 			cir.setReturnValue(!state.getValue(PistonBaseBlock.EXTENDED));
 		} else if (state.getDestroySpeed(level, pos) == -1.0F) {
-			// Vanilla's guards, kept although no pushable secret block is unbreakable or reacts other than NORMAL today.
+			// Vanilla's guards, kept although no pushable secret block is unbreakable or reacts other than PUSH_PULL today.
 			cir.setReturnValue(false);
 		} else {
 			// Vanilla's push reactions, without its refusal of blocks with a block entity.
 			cir.setReturnValue(switch (state.getPistonPushReaction()) {
-				case BLOCK -> false;
-				case DESTROY -> allowDestroy;
-				case PUSH_ONLY -> direction == pistonFacing;
+				case IMMOVEABLE -> false;
+				case POPPED -> allowDestroy;
+				case PUSH -> direction == pistonFacing;
 				default -> true;
 			});
 		}

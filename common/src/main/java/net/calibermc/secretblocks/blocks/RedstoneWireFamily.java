@@ -1,6 +1,6 @@
 package net.calibermc.secretblocks.blocks;
 
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -26,7 +26,7 @@ public final class RedstoneWireFamily {
 
 	/** Is this any wire block (vanilla redstone wire, Secret Redstone Dust or Secret Redstone Wire)? */
 	public static boolean isWire(BlockState state) {
-		return state.getBlock() instanceof RedStoneWireBlock || state.getBlock() instanceof SecretRedstoneWire;
+		return state.getBlock() instanceof RedstoneWireBlock || state.getBlock() instanceof SecretRedstoneWire;
 	}
 
 	private RedstoneWireFamily() {

@@ -25,7 +25,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.ObserverBlock;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.RepeaterBlock;
 import net.minecraft.world.level.block.SculkSensorBlock;
 import net.minecraft.world.level.block.SlabBlock;
@@ -112,8 +112,8 @@ public class CounterpartGameTests {
 		BlockState door = ModBlocks.IRON_DOOR_BLOCK.defaultBlockState().setValue(DoorBlock.FACING, Direction.EAST)
 				.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER).setValue(DoorBlock.HINGE, DoorHingeSide.RIGHT)
 				.setValue(DoorBlock.OPEN, true);
-		BlockState wire = ModBlocks.SECRET_REDSTONE.defaultBlockState().setValue(RedStoneWireBlock.POWER, 7)
-				.setValue(RedStoneWireBlock.EAST, RedstoneSide.UP).setValue(RedStoneWireBlock.WEST, RedstoneSide.SIDE);
+		BlockState wire = ModBlocks.SECRET_REDSTONE.defaultBlockState().setValue(RedstoneWireBlock.POWER, 7)
+				.setValue(RedstoneWireBlock.EAST, RedstoneSide.UP).setValue(RedstoneWireBlock.WEST, RedstoneSide.SIDE);
 		BlockState stairs = ModBlocks.STAIR_BLOCK.defaultBlockState().setValue(StairBlock.FACING, Direction.SOUTH)
 				.setValue(StairBlock.HALF, Half.TOP).setValue(StairBlock.SHAPE, StairsShape.OUTER_LEFT);
 		BlockState slab = ModBlocks.SLAB_BLOCK.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
@@ -149,9 +149,9 @@ public class CounterpartGameTests {
 		check(h, Counterparts.vanillaStateOf(door).orElseThrow().is(Blocks.IRON_DOOR), "the Secret Iron Door is an iron door");
 		check(h, Counterparts.vanillaStateOf(wire).orElseThrow().is(Blocks.REDSTONE_WIRE), "Secret Redstone Dust is redstone wire");
 		// The Wire converts one way only (redstone wire converts back to the Dust); its power is kept.
-		BlockState sixSided = ModBlocks.SECRET_REDSTONE_WIRE.defaultBlockState().setValue(RedStoneWireBlock.POWER, 7);
+		BlockState sixSided = ModBlocks.SECRET_REDSTONE_WIRE.defaultBlockState().setValue(RedstoneWireBlock.POWER, 7);
 		BlockState asVanilla = Counterparts.vanillaStateOf(sixSided).orElseThrow();
-		check(h, asVanilla.is(Blocks.REDSTONE_WIRE) && asVanilla.getValue(RedStoneWireBlock.POWER) == 7,
+		check(h, asVanilla.is(Blocks.REDSTONE_WIRE) && asVanilla.getValue(RedstoneWireBlock.POWER) == 7,
 				"the Wire at power 7 should show as redstone wire at power 7, got " + asVanilla);
 		h.succeed();
 	}

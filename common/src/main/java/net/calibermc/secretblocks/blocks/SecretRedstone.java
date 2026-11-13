@@ -19,11 +19,11 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class SecretRedstone extends net.minecraft.world.level.block.RedStoneWireBlock implements EntityBlock, SecretBlock {
+public class SecretRedstone extends net.minecraft.world.level.block.RedstoneWireBlock implements EntityBlock, SecretBlock {
 
     public SecretRedstone(Properties settings) {
         // A piston breaks it, as it breaks vanilla redstone dust.
-        super(settings.pushReaction(PushReaction.DESTROY));
+        super(settings.pushReaction(PushReaction.POPPED));
     }
 
 //    private static final VoxelShape SHAPE = VoxelShapes.cuboid(0.0d, 0.0d, 0.0d, 1.0d, 1.0d, 1.0d);

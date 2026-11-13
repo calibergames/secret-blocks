@@ -46,7 +46,7 @@ public class ProbeGameTests {
 		Vec3 graniteNorth = new Vec3(5.5, 1.5, 3.0);
 		useOn(h, player(h, new Vec3(5.5, 1, 0.5), graniteNorth), probe, granite, Direction.NORTH, graniteNorth);
 		CompoundTag tag = ItemData.read(probe);
-		check(h, "minecraft:polished_granite".equals(tag.getCompoundOrEmpty("setState").getStringOr("Name", "")),
+		check(h, "minecraft:polished_granite".equals(tag.getCompoundOrEmpty("setState").getStringOr("id", "")),
 				"probe should store polished granite, got " + tag);
 		check(h, "north".equals(tag.getStringOr("setDirection", "")), "probe should store the north face, got " + tag);
 
@@ -67,7 +67,7 @@ public class ProbeGameTests {
 		ItemStack probe = new ItemStack(ModItems.SWITCH_PROBE);
 		useOn(h, player(h, FEET_NORTH_OF_DUMMY, DUMMY_NORTH), probe, DUMMY, Direction.NORTH, DUMMY_NORTH);
 		CompoundTag tag = ItemData.read(probe);
-		check(h, "minecraft:emerald_block".equals(tag.getCompoundOrEmpty("setState").getStringOr("Name", "")),
+		check(h, "minecraft:emerald_block".equals(tag.getCompoundOrEmpty("setState").getStringOr("id", "")),
 				"probe should copy the emerald face, got " + tag);
 		h.succeed();
 	}

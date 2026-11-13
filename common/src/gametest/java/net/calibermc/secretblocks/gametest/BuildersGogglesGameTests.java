@@ -70,7 +70,7 @@ public class BuildersGogglesGameTests {
 		Player player = h.makeMockPlayer(GameType.CREATIVE);
 		player.setItemSlot(EquipmentSlot.HEAD, goggles());
 		for (int hit = 0; hit < 20; hit++) {
-			player.invulnerableTime = 0;
+			player.setInvulnerableTime(0);
 			player.hurt(player.damageSources().generic(), 1.0f);
 			player.setHealth(player.getMaxHealth());
 		}

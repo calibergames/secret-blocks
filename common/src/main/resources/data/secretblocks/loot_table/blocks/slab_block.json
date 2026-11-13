@@ -7,23 +7,21 @@
 				{
 					"type": "minecraft:item",
 					"name": "secretblocks:slab_block",
-					"functions": [
+					"modifier": [
 						{
-							"function": "minecraft:set_count",
+							"type": "minecraft:set_count",
 							"count": 2,
 							"add": false,
-							"conditions": [
-								{
-									"condition": "minecraft:block_state_property",
-									"block": "secretblocks:slab_block",
-									"properties": {
-										"type": "double"
-									}
+							"condition": {
+								"type": "minecraft:match_block",
+								"blocks": "secretblocks:slab_block",
+								"state": {
+									"type": "double"
 								}
-							]
+							}
 						},
 						{
-							"function": "minecraft:explosion_decay"
+							"type": "minecraft:explosion_decay"
 						}
 					]
 				}

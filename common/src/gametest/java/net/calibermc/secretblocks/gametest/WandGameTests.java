@@ -16,8 +16,12 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeverBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.Optional;
 
 import static net.calibermc.secretblocks.gametest.TestSupport.*;
 
@@ -45,7 +49,7 @@ public class WandGameTests {
 
 	private static String loadedName(ItemStack wand) {
 		CompoundTag tag = ItemData.read(wand);
-		return tag.getCompoundOrEmpty(CamouflageWand.DISGUISE).getStringOr("Name", "");
+		return tag.getCompoundOrEmpty(CamouflageWand.DISGUISE).getStringOr("id", "");
 	}
 
 	/** Sneak + use on a plain block loads it, state included. */
@@ -155,13 +159,28 @@ public class WandGameTests {
 		h.succeed();
 	}
 
+	/** A wand loaded before 26.3 stored its disguise under {@code Name} and {@code Properties}; it still carries it. */
+	@GameTest
+	public void aWandFromAnOlderVersionKeepsItsDisguise(GameTestHelper h) {
+		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
+		CompoundTag old = new CompoundTag();
+		old.putString("Name", "minecraft:oak_log");
+		CompoundTag properties = new CompoundTag();
+		properties.putString("axis", "x");
+		old.put("Properties", properties);
+		ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, old));
+		BlockState expected = Blocks.OAK_LOG.defaultBlockState().setValue(BlockStateProperties.AXIS, Direction.Axis.X);
+		check(h, CamouflageWand.loadedDisguise(wand).equals(Optional.of(expected)), "it should carry an x-axis oak log, got " + CamouflageWand.loadedDisguise(wand));
+		h.succeed();
+	}
+
 	/** The stored disguise is checked again when read: unknown blocks, air and secret blocks read as empty. */
 	@GameTest
 	public void aTamperedWandReadsAsEmpty(GameTestHelper h) {
 		ItemStack wand = new ItemStack(ModItems.CAMOUFLAGE_WAND);
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a new wand is empty");
 		CompoundTag unknown = new CompoundTag();
-		unknown.putString("Name", "nosuchmod:nosuchblock");
+		unknown.putString("id", "nosuchmod:nosuchblock");
 		ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, unknown));
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "an unknown block should read as empty");
 		ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, NbtUtils.writeBlockState(Blocks.AIR.defaultBlockState())));
@@ -172,12 +191,12 @@ public class WandGameTests {
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a value of the wrong type should read as empty");
 		for (String bad : new String[] {"Bad Name", "Foo:Bar", "minecraft:stone:x"}) {
 			CompoundTag malformed = new CompoundTag();
-			malformed.putString("Name", bad);
+			malformed.putString("id", bad);
 			ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, malformed));
 			check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a malformed id should read as empty: " + bad);
 		}
 		CompoundTag numeric = new CompoundTag();
-		numeric.putInt("Name", 3);
+		numeric.putInt("id", 3);
 		ItemData.update(wand, tag -> tag.put(CamouflageWand.DISGUISE, numeric));
 		check(h, CamouflageWand.loadedDisguise(wand).isEmpty(), "a numeric id should read as empty");
 		h.succeed();

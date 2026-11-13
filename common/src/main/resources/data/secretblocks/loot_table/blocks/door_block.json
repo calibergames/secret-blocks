@@ -6,23 +6,19 @@
 			"entries": [
 				{
 					"type": "minecraft:item",
-					"conditions": [
-						{
-							"condition": "minecraft:block_state_property",
-							"block": "secretblocks:door_block",
-							"properties": {
-								"half": "lower"
-							}
+					"condition": {
+						"type": "minecraft:match_block",
+						"blocks": "secretblocks:door_block",
+						"state": {
+							"half": "lower"
 						}
-					],
+					},
 					"name": "secretblocks:door_block"
 				}
 			],
-			"conditions": [
-				{
-					"condition": "minecraft:survives_explosion"
-				}
-			]
+			"condition": {
+				"type": "minecraft:survives_explosion"
+			}
 		}
 	]
 }

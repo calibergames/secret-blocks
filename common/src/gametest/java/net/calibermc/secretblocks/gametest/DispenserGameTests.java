@@ -227,7 +227,7 @@ public class DispenserGameTests {
 		dispenser(h).setDisguise(all(Blocks.BRICKS));
 		dispenser(h).setItem(0, new ItemStack(Items.DIAMOND, 5));
 		CompoundTag packet = dispenser(h).getUpdatePacket().getTag();
-		check(h, packet != null && packet.getCompoundOrEmpty("northState").getStringOr("Name", "").equals("minecraft:bricks") && !packet.contains("Items"),
+		check(h, packet != null && packet.getCompoundOrEmpty("northState").getStringOr("id", "").equals("minecraft:bricks") && !packet.contains("Items"),
 				"update packet should carry the disguise only: " + packet);
 		h.succeed();
 	}

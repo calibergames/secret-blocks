@@ -467,7 +467,7 @@ public class DropperGameTests {
 		CompoundTag update = secretDropper(h).getUpdateTag(h.getLevel().registryAccess());
 		check(h, update.contains("northState") && !update.contains("Items"), "the update tag should carry the disguise only: " + update);
 		CompoundTag packet = secretDropper(h).getUpdatePacket().getTag();
-		check(h, packet != null && packet.getCompoundOrEmpty("northState").getStringOr("Name", "").equals("minecraft:bricks") && !packet.contains("Items"),
+		check(h, packet != null && packet.getCompoundOrEmpty("northState").getStringOr("id", "").equals("minecraft:bricks") && !packet.contains("Items"),
 				"the update packet should carry the disguise only: " + packet);
 		h.succeed();
 	}
@@ -541,7 +541,7 @@ public class DropperGameTests {
 		check(h, vanilla.isRedstoneConductor(h.getLevel(), h.absolutePos(VANILLA_POS)) && secret.isRedstoneConductor(h.getLevel(), abs), "it should be a conductor, as a vanilla dropper is");
 		check(h, secret.getLightEmission() == 0 && !secret.isSignalSource() && !vanilla.isSignalSource(), "it should give no light and no signal");
 		check(h, secret.hasAnalogOutputSignal() && vanilla.hasAnalogOutputSignal(), "comparators should read it");
-		check(h, secret.hasBlockEntity() && secret.getPistonPushReaction() != PushReaction.DESTROY, "a piston must not break it");
+		check(h, secret.hasBlockEntity() && secret.getPistonPushReaction() != PushReaction.POPPED, "a piston must not break it");
 		check(h, secret.isCollisionShapeFullBlock(h.getLevel(), abs), "it should be a full block");
 		h.succeed();
 	}

@@ -128,7 +128,7 @@ public class GateSegmentGameTests {
 				"it should be as hard as wool (0.8), is " + state.getDestroySpeed(h.getLevel(), abs));
 		check(h, !state.isRedstoneConductor(h.getLevel(), abs), "it should not be a conductor");
 		check(h, state.isCollisionShapeFullBlock(h.getLevel(), abs) && state.getLightEmission() == 0, "it should be a full block with no light");
-		check(h, state.getPistonPushReaction() == PushReaction.BLOCK, "pistons should neither push nor break it, reaction " + state.getPistonPushReaction());
+		check(h, state.getPistonPushReaction() == PushReaction.IMMOVEABLE, "pistons should neither push nor break it, reaction " + state.getPistonPushReaction());
 		check(h, Counterparts.hasNone(SEGMENT), "it should have no counterpart");
 		h.succeed();
 	}
@@ -137,7 +137,7 @@ public class GateSegmentGameTests {
 	 * A piston facing a kept segment does not extend, and the segment stays; the
 	 * same piston beside it, facing air, extends. (A vanilla piston never moves
 	 * a block with a block entity, so this passes without the segment's own
-	 * {@code PushReaction.BLOCK}; {@link #properties} checks that.)
+	 * {@code PushReaction.IMMOVEABLE}; {@link #properties} checks that.)
 	 */
 	@GameTest(skyAccess = true)
 	public void aPistonCannotMoveIt(GameTestHelper h) {

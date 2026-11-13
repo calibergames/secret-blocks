@@ -7,7 +7,6 @@ import net.minecraft.data.AtlasIds;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -43,7 +42,7 @@ public final class BuilderView {
 	/** The Secret Blocks group in the controls screen ({@code key.category.secretblocks.main}). */
 	public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(SecretBlocks.id("main"));
 	public static final KeyMapping TOGGLE_KEY = new KeyMapping("key.secretblocks.builder_view",
-			InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, KEY_CATEGORY);
+			InputConstants.Type.KEYBOARD, InputConstants.KEY_B, KEY_CATEGORY);
 	/** Whether the loader's renderer can draw the view (Fabric needs a Fabric Renderer API implementation). */
 	private static volatile BooleanSupplier rendererCheck = () -> true;
 	private static volatile boolean rendererReady;

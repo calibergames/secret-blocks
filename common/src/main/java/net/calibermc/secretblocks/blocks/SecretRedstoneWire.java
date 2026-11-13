@@ -11,7 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DiodeBlock;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,11 +43,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class SecretRedstoneWire extends Block implements EntityBlock, SecretBlock {
 
 	/** Vanilla's own property object: vanilla reads it from any wire of the family. */
-	public static final IntegerProperty POWER = RedStoneWireBlock.POWER;
+	public static final IntegerProperty POWER = RedstoneWireBlock.POWER;
 
 	public SecretRedstoneWire(Properties settings) {
 		// A piston breaks it, as it breaks vanilla redstone dust.
-		super(settings.pushReaction(PushReaction.DESTROY));
+		super(settings.pushReaction(PushReaction.POPPED));
 		registerDefaultState(stateDefinition.any().setValue(POWER, 0));
 	}
 
@@ -166,13 +166,13 @@ public class SecretRedstoneWire extends Block implements EntityBlock, SecretBloc
 		}
 	}
 
-	/**
-	 * Forge and NeoForge ask a wire's neighbours whether wire connects to them
-	 * (vanilla's code asks "is this redstone wire?", widened on Fabric by a
-	 * mixin to every wire block). Vanilla wire answers yes from any side, and
-	 * so does this one. On those loaders this overrides their block hook;
-	 * elsewhere nothing calls it.
-	 */
+	/** Wire connects to this block from any side, including up and down a step, as it does to vanilla wire. */
+	@Override
+	protected boolean shouldRedstoneWireConnectTo(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
+		return true;
+	}
+
+	/** The same answer for the loaders whose block hook asks it instead; elsewhere nothing calls it. */
 	public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
 		return true;
 	}

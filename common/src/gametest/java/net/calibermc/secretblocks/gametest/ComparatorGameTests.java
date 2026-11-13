@@ -20,7 +20,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComparatorBlock;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.RedstoneLampBlock;
 import net.minecraft.world.level.block.RepeaterBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -130,8 +130,8 @@ public class ComparatorGameTests {
 			h.setBlock(3, 1, z + 2, Blocks.REDSTONE_BLOCK);
 		}
 		h.runAfterDelay(10, () -> {
-			check(h, h.getBlockState(new BlockPos(4, 1, 1)).getValue(RedStoneWireBlock.POWER) == 13,
-					"control: the side wire should carry 13, carries " + h.getBlockState(new BlockPos(4, 1, 1)).getValue(RedStoneWireBlock.POWER));
+			check(h, h.getBlockState(new BlockPos(4, 1, 1)).getValue(RedstoneWireBlock.POWER) == 13,
+					"control: the side wire should carry 13, carries " + h.getBlockState(new BlockPos(4, 1, 1)).getValue(RedstoneWireBlock.POWER));
 			int[] expected = {15, 2};
 			for (int pair = 0; pair < 2; pair++) {
 				int z = pair * 4;
@@ -370,12 +370,12 @@ public class ComparatorGameTests {
 			for (int[] wire : new int[][] {{0, 2}, {-1, 3}}) {
 				BlockState atSecret = h.getBlockState(new BlockPos(2 + wire[0], 1, wire[1]));
 				BlockState atVanilla = h.getBlockState(new BlockPos(6 + wire[0], 1, wire[1]));
-				for (var side : new net.minecraft.world.level.block.state.properties.EnumProperty[] {RedStoneWireBlock.NORTH, RedStoneWireBlock.SOUTH, RedStoneWireBlock.EAST, RedStoneWireBlock.WEST}) {
+				for (var side : new net.minecraft.world.level.block.state.properties.EnumProperty[] {RedstoneWireBlock.NORTH, RedstoneWireBlock.SOUTH, RedstoneWireBlock.EAST, RedstoneWireBlock.WEST}) {
 					check(h, atSecret.getValue(side) == atVanilla.getValue(side), "wire beside the Secret Comparator is " + atSecret + ", beside the vanilla one " + atVanilla);
 				}
 			}
 			BlockState input = h.getBlockState(new BlockPos(5, 1, 3));
-			check(h, input.getValue(RedStoneWireBlock.EAST).isConnected(), "control: wire at a vanilla comparator's input points at it, got " + input);
+			check(h, input.getValue(RedstoneWireBlock.EAST).isConnected(), "control: wire at a vanilla comparator's input points at it, got " + input);
 			h.succeed();
 		});
 	}

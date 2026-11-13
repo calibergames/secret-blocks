@@ -2,7 +2,7 @@ package net.calibermc.secretblocks.mixin;
 
 import net.calibermc.secretblocks.blocks.RedstoneWireFamily;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.redstone.RedstoneWireEvaluator;
 import org.spongepowered.asm.mixin.Final;
@@ -21,7 +21,7 @@ public abstract class RedstoneWireEvaluatorFamilyMixin {
 
 	@Shadow
 	@Final
-	protected RedStoneWireBlock wireBlock;
+	protected RedstoneWireBlock wireBlock;
 
 	@Redirect(method = "getWireSignal",
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Ljava/lang/Object;)Z"))

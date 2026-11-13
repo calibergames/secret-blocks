@@ -11,7 +11,7 @@ import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -39,7 +39,7 @@ public class SecretBlocks {
      */
     public static LootPool.Builder gogglesLootPool() {
         return LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1))
+                .setRolls(ContextIntProviders.exactly(1))
                 .add(LootItem.lootTableItem(ModItems.SECRET_GOGGLES))
                 .when(LootItemRandomChanceCondition.randomChance(0.1f));
     }

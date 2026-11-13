@@ -295,15 +295,22 @@ final class DisguiseQuads {
 		ChunkSectionLayer drawn = layer != null ? layer : info.layer();
 		BakedQuad out = new BakedQuad(positions[0], positions[1], positions[2], positions[3],
 				quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), quad.direction(),
-				material(info.sprite(), drawn, QuadTints.tintIndex(tint, faded), info.shade(), info.lightEmission()));
+				material(info.sprite(), drawn, QuadTints.tintIndex(tint, faded), info.shadeDirectionOverride(), info.lightEmission()));
 		return faded ? FadedQuad.faded(out, BuilderView.DISGUISE_ALPHA) : out;
 	}
 
-	/** A quad's material, drawn in {@code layer}, its colour in {@code tintIndex} ({@link QuadTints}). */
-	private static BakedQuad.MaterialInfo material(TextureAtlasSprite sprite, ChunkSectionLayer layer, int tintIndex, boolean shade,
-			int lightEmission) {
+	/**
+	 * A quad's material, drawn in {@code layer}, its colour in {@code tintIndex} ({@link QuadTints}), shaded as the
+	 * face {@code shadeAs} (as its own face for null; {@link Direction#UP}, the fully lit face, for none).
+	 */
+	private static BakedQuad.MaterialInfo material(TextureAtlasSprite sprite, ChunkSectionLayer layer, int tintIndex,
+			@Nullable Direction shadeAs, int lightEmission) {
+		boolean translucent = layer.translucent();
 		return new BakedQuad.MaterialInfo(sprite, layer,
-				layer.translucent() ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet(), tintIndex, shade, lightEmission);
+				translucent ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet(),
+				translucent ? Sheets.translucentBlockItemGlintSheet() : Sheets.cutoutBlockItemGlintSheet(),
+				translucent ? Sheets.translucentBlockItemGlintSpecialSheet() : Sheets.cutoutBlockItemGlintSpecialSheet(),
+				tintIndex, shadeAs, lightEmission);
 	}
 
 	/** A face rectangle ({@link FaceQuads#square}) baked into a quad with a sprite fitted to it. */
@@ -349,7 +356,7 @@ final class DisguiseQuads {
 			// Full-bright faces give off full light and skip shading and ambient occlusion, as the Fabric materials do.
 			int alpha = color >>> 24;
 			BakedQuad quad = new BakedQuad(positions[0], positions[1], positions[2], positions[3], packedUv[0], packedUv[1], packedUv[2],
-					packedUv[3], face, material(sprite, layer, QuadTints.tintIndex(color, alpha < 0xFF), !fullBright, fullBright ? 15 : 0));
+					packedUv[3], face, material(sprite, layer, QuadTints.tintIndex(color, alpha < 0xFF), fullBright ? Direction.UP : null, fullBright ? 15 : 0));
 			return alpha < 0xFF ? FadedQuad.faded(quad, alpha) : quad;
 		}
 	}

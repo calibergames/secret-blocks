@@ -13,7 +13,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.RedstoneLampBlock;
 import net.minecraft.world.level.block.RepeaterBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -258,12 +258,12 @@ public class RepeaterGameTests {
 		h.runAfterDelay(4, () -> {
 			BlockState sideSecret = h.getBlockState(new BlockPos(2, 1, 2));
 			BlockState sideVanilla = h.getBlockState(new BlockPos(6, 1, 2));
-			check(h, sideVanilla.getValue(RedStoneWireBlock.SOUTH) == RedstoneSide.NONE, "control: wire at a vanilla repeater's side has no arm toward it, got " + sideVanilla);
-			check(h, sideSecret.getValue(RedStoneWireBlock.SOUTH) == RedstoneSide.NONE, "wire at the Secret Repeater's side must have no arm toward it, got " + sideSecret);
+			check(h, sideVanilla.getValue(RedstoneWireBlock.SOUTH) == RedstoneSide.NONE, "control: wire at a vanilla repeater's side has no arm toward it, got " + sideVanilla);
+			check(h, sideSecret.getValue(RedstoneWireBlock.SOUTH) == RedstoneSide.NONE, "wire at the Secret Repeater's side must have no arm toward it, got " + sideSecret);
 			BlockState inputSecret = h.getBlockState(new BlockPos(1, 1, 3));
 			BlockState inputVanilla = h.getBlockState(new BlockPos(5, 1, 3));
-			check(h, inputVanilla.getValue(RedStoneWireBlock.EAST) == RedstoneSide.SIDE, "control: wire at a vanilla repeater's input points at it, got " + inputVanilla);
-			check(h, inputSecret.getValue(RedStoneWireBlock.EAST) == RedstoneSide.SIDE, "wire at the Secret Repeater's input should point at it, got " + inputSecret);
+			check(h, inputVanilla.getValue(RedstoneWireBlock.EAST) == RedstoneSide.SIDE, "control: wire at a vanilla repeater's input points at it, got " + inputVanilla);
+			check(h, inputSecret.getValue(RedstoneWireBlock.EAST) == RedstoneSide.SIDE, "wire at the Secret Repeater's input should point at it, got " + inputSecret);
 			h.succeed();
 		});
 	}

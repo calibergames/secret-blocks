@@ -4,7 +4,7 @@ import net.calibermc.secretblocks.blocks.SecretRedstoneWire;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.RedstoneWireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.redstone.DefaultRedstoneWireEvaluator;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,7 +28,7 @@ public abstract class DefaultRedstoneWireEvaluatorMixin {
 		for (Direction direction : new Direction[] {Direction.UP, Direction.DOWN}) {
 			BlockState neighbour = level.getBlockState(pos.relative(direction));
 			if (neighbour.getBlock() instanceof SecretRedstoneWire) {
-				strength = Math.max(strength, neighbour.getValue(RedStoneWireBlock.POWER) - 1);
+				strength = Math.max(strength, neighbour.getValue(RedstoneWireBlock.POWER) - 1);
 			}
 		}
 		cir.setReturnValue(strength);

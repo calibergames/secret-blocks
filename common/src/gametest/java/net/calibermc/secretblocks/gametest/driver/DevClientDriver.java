@@ -381,9 +381,9 @@ public class DevClientDriver {
 		}
 		// As the attack key does: chips fly off the face being mined.
 		if (mc.gameMode.continueDestroyBlock(breaking, breakFace)) {
-			mc.level.addBreakingBlockEffect(breaking, breakFace);
+			mc.level.addBreakingBlockEffects(breaking, breakFace, false);
 		}
-		mc.player.swing(InteractionHand.MAIN_HAND);
+		mc.player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false);
 	}
 
 	private static String describe(Minecraft mc, BlockPos pos) {

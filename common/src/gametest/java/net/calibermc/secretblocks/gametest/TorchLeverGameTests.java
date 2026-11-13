@@ -223,10 +223,10 @@ public class TorchLeverGameTests {
 				check(h, torch.getCollisionShape(h.getLevel(), abs, CollisionContext.empty()).isEmpty(), torch + " should have no collision");
 				check(h, torch.getDestroySpeed(h.getLevel(), abs) == 0 && vanilla.getDestroySpeed(h.getLevel(), abs) == 0, torch + " should break at once");
 				check(h, !torch.hasBlockEntity(), torch + " is not a secret block: no block entity");
-				check(h, torch.getPistonPushReaction() == vanilla.getPistonPushReaction() && vanilla.getPistonPushReaction() == net.minecraft.world.level.material.PushReaction.DESTROY,
+				check(h, torch.getPistonPushReaction() == vanilla.getPistonPushReaction() && vanilla.getPistonPushReaction() == net.minecraft.world.level.material.PushReaction.POPPED,
 						torch + " should be broken by a piston, as a torch is; its reaction is " + torch.getPistonPushReaction());
 				check(h, torch.getSoundType() == vanilla.getSoundType(), torch + " should sound like a torch");
-				check(h, !torch.blocksMotion() && !vanilla.blocksMotion(), torch + " should not block motion, as a torch (water washes it away)");
+				check(h, !torch.is(net.minecraft.tags.BlockTags.BLOCKS_MOTION) && !vanilla.is(net.minecraft.tags.BlockTags.BLOCKS_MOTION), torch + " should not block motion, as a torch (water washes it away)");
 			}
 		}
 		// On, the wall form's outline keeps its wall edge and reaches 8.5 pixels from the wall (a wall torch: 5), on every facing.
@@ -410,10 +410,10 @@ public class TorchLeverGameTests {
 	@GameTest
 	public void anOldFloorTorchLeverLoadsFacingEast(GameTestHelper h) {
 		CompoundTag saved = new CompoundTag();
-		saved.putString("Name", "secretblocks:torch_lever");
+		saved.putString("id", "secretblocks:torch_lever");
 		CompoundTag properties = new CompoundTag();
 		properties.putString("powered", "true");
-		saved.put("Properties", properties);
+		saved.put("properties", properties);
 		BlockState loaded = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, saved);
 		check(h, loaded.is(FLOOR) && loaded.getValue(BlockStateProperties.POWERED), "it should load as an on floor Torch Lever, got " + loaded);
 		check(h, loaded.getValue(TorchLever.FACING) == Direction.EAST, "it should face east, faces " + loaded.getValue(TorchLever.FACING));

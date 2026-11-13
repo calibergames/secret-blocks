@@ -44,7 +44,7 @@ public class SyncGameTests {
 		for (Map.Entry<Direction, BlockState> face : faces.entrySet()) {
 			String key = face.getKey().getName() + "State";
 			String expected = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(face.getValue().getBlock()).toString();
-			check(h, tag != null && expected.equals(tag.getCompoundOrEmpty(key).getStringOr("Name", "")),
+			check(h, tag != null && expected.equals(tag.getCompoundOrEmpty(key).getStringOr("id", "")),
 					what + " should carry " + key + "=" + expected + ", got " + (tag == null ? null : tag.get(key)));
 		}
 	}

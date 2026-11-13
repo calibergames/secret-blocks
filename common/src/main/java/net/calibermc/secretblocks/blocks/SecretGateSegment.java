@@ -41,7 +41,7 @@ public class SecretGateSegment extends Block implements EntityBlock, SecretBlock
 	public SecretGateSegment(Properties settings) {
 		// Pistons can neither push nor break it, though they push some other secret
 		// blocks (SecretPushing).
-		super(settings.pushReaction(PushReaction.BLOCK));
+		super(settings.pushReaction(PushReaction.IMMOVEABLE));
 	}
 
 	@Override
