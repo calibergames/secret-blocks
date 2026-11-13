@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.gamerules.GameRules;
 
 /**
  * A test environment that sets the time of day and the weather for its batch,
@@ -38,12 +39,12 @@ public final class SkyEnvironment implements TestEnvironmentDefinition {
 
 	@Override
 	public void setup(ServerLevel level) {
-		apply(level, time, rain);
+		apply(level, time, rain, true);
 	}
 
 	@Override
 	public void teardown(ServerLevel level) {
-		apply(level, TestEnvironments.NOON.time(), TestEnvironments.NOON.rain());
+		apply(level, TestEnvironments.NOON.time(), TestEnvironments.NOON.rain(), false);
 	}
 
 	@Override
@@ -51,8 +52,14 @@ public final class SkyEnvironment implements TestEnvironmentDefinition {
 		return CODEC;
 	}
 
-	private static void apply(ServerLevel level, long dayTime, boolean rain) {
+	/**
+	 * Sets the time and weather; {@code hold} stops the day-night cycle while the
+	 * environment's tests run (they can start long after it is set up, while the
+	 * test server runs ticks as fast as it can).
+	 */
+	private static void apply(ServerLevel level, long dayTime, boolean rain, boolean hold) {
 		level.setDayTime(dayTime);
+		level.getGameRules().set(GameRules.ADVANCE_TIME, !hold, level.getServer());
 		level.setWeatherParameters(rain ? 0 : 100000, rain ? 100000 : 0, rain, false);
 		level.setRainLevel(rain ? 1.0F : 0.0F);
 	}
