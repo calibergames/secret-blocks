@@ -15,6 +15,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
@@ -38,8 +39,8 @@ import static net.calibermc.secretblocks.gametest.TestSupport.*;
  * from the brightest sky light around it. Each check has a vanilla detector
  * beside it under the same sky. The time of day and the weather belong to the
  * whole test world, so the tests that need noon, midnight or rain run in
- * batches of their own, which set them first and put noon and clear weather
- * back afterwards.
+ * batches of their own, which set them first, hold the clock still, and put
+ * noon, clear weather and the clock back afterwards.
  *
  * Detectors update once a second, and the light engine lights a test area
  * some ticks after it is placed (seconds, in the first batches after the
@@ -56,8 +57,14 @@ public class DaylightDetectorGameTests {
 	private static final String DUSK = "secretblocks_daylight_dusk";
 	private static final String BEFORE_DAWN = "secretblocks_daylight_before_dawn";
 
-	private static void sky(ServerLevel level, long dayTime, boolean rain) {
+	/**
+	 * Sets the time and weather; {@code hold} stops the day-night cycle (the
+	 * batch's tests can start long after it begins, while the test server runs
+	 * ticks as fast as it can) and is cleared again after the batch.
+	 */
+	private static void sky(ServerLevel level, long dayTime, boolean rain, boolean hold) {
 		level.setDayTime(dayTime);
+		level.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(!hold, level.getServer());
 		level.setWeatherParameters(rain ? 0 : 100000, rain ? 100000 : 0, rain, false);
 		// At once, not over the 100 ticks the weather takes to change: a batch must not start in the last one's fading rain.
 		level.setRainLevel(rain ? 1.0F : 0.0F);
@@ -65,57 +72,62 @@ public class DaylightDetectorGameTests {
 
 	@BeforeBatch(batch = NOON)
 	public static void noon(ServerLevel level) {
-		sky(level, 6000, false);
+		sky(level, 6000, false, true);
 	}
 
 	@BeforeBatch(batch = MIDNIGHT)
 	public static void midnight(ServerLevel level) {
-		sky(level, 18000, false);
+		sky(level, 18000, false, true);
 	}
 
 	@BeforeBatch(batch = RAIN)
 	public static void rain(ServerLevel level) {
-		sky(level, 6000, true);
+		sky(level, 6000, true, true);
 	}
 
 	@BeforeBatch(batch = MORNING)
 	public static void morning(ServerLevel level) {
-		sky(level, 1000, false);
+		sky(level, 1000, false, true);
 	}
 
 	@BeforeBatch(batch = DUSK)
 	public static void dusk(ServerLevel level) {
-		sky(level, 12500, false);
+		sky(level, 12500, false, true);
 	}
 
 	@BeforeBatch(batch = BEFORE_DAWN)
 	public static void beforeDawn(ServerLevel level) {
-		sky(level, 23000, false);
+		sky(level, 23000, false, true);
+	}
+
+	@AfterBatch(batch = NOON)
+	public static void afterNoon(ServerLevel level) {
+		sky(level, 6000, false, false);
 	}
 
 	@AfterBatch(batch = MORNING)
 	public static void afterMorning(ServerLevel level) {
-		sky(level, 6000, false);
+		sky(level, 6000, false, false);
 	}
 
 	@AfterBatch(batch = DUSK)
 	public static void afterDusk(ServerLevel level) {
-		sky(level, 6000, false);
+		sky(level, 6000, false, false);
 	}
 
 	@AfterBatch(batch = BEFORE_DAWN)
 	public static void afterBeforeDawn(ServerLevel level) {
-		sky(level, 6000, false);
+		sky(level, 6000, false, false);
 	}
 
 	@AfterBatch(batch = MIDNIGHT)
 	public static void afterMidnight(ServerLevel level) {
-		sky(level, 6000, false);
+		sky(level, 6000, false, false);
 	}
 
 	@AfterBatch(batch = RAIN)
 	public static void afterRain(ServerLevel level) {
-		sky(level, 6000, false);
+		sky(level, 6000, false, false);
 	}
 
 	/** Detectors update when the game time is a multiple of this. */
