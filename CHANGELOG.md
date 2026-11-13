@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0 (Minecraft 1.20.1: Fabric, Quilt, NeoForge, Forge; Fabric and Quilt also 1.20)
+
+- **Fixed:** standing inside a Ghost Block showed caves and the sky through
+  the blocks around it. From inside you now see the faces of the solid
+  blocks around you, and through neighbouring Ghost Blocks up to the next
+  solid block.
+- The Fabric jar no longer bundles MixinExtras and needs Quilt Loader 0.30.2
+  or later on Quilt.
+- Smaller mod icon.
+- Same downloads and Minecraft versions as 2.1.1. Worlds from 2.1.1 load
+  unchanged.
+
 ## 2.1.1 (Minecraft 1.20.1: Fabric, Quilt, NeoForge, Forge; Fabric and Quilt also 1.20)
 
 - **One Way Glass walls read as one clean window,** now without a
