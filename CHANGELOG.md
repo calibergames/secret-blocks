@@ -7,7 +7,7 @@ for the other versions.
 
 - **Three downloads:**
   - `secret-blocks-fabric-1.21.4-2.2.0.jar` for Fabric and Quilt, on
-    Minecraft 1.21.4. It needs Fabric Loader 0.16.10 or later (or Quilt
+    Minecraft 1.21.4. It needs Fabric Loader 0.19.5 or later (or Quilt
     Loader 0.30.2 or later) and Fabric API 0.119.4 or later.
   - `secret-blocks-neoforge-1.21.4-2.2.0.jar` for NeoForge 21.4.121 or
     later, on Minecraft 1.21.4.
@@ -17,8 +17,8 @@ for the other versions.
   the blocks around it. From inside you now see the faces of the solid
   blocks around you, and through neighbouring Ghost Blocks up to the next
   solid block.
-- The Fabric jar no longer bundles MixinExtras and needs Quilt Loader 0.30.2
-  or later on Quilt.
+- The Fabric jar no longer bundles MixinExtras. It needs Fabric Loader 0.19.5
+  or later, or Quilt Loader 0.30.2 or later on Quilt.
 - Smaller mod icon.
 - **Worlds from 1.21.1 upgrade** with their secret blocks, disguises,
   container contents and locks. Back the world up first, as Minecraft asks.
