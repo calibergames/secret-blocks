@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0 (Minecraft 1.21.11: Fabric, Quilt, NeoForge, Forge)
+
+- **Fixed:** standing inside a Ghost Block showed caves and the sky through
+  the blocks around it. From inside you now see the faces of the solid
+  blocks around you, and through neighbouring Ghost Blocks up to the next
+  solid block.
+- The Fabric jar no longer bundles MixinExtras and needs Quilt Loader 0.30.2
+  or later on Quilt.
+- Smaller mod icon.
+- Same downloads and Minecraft version as 2.1.2. Worlds from 2.1.2 load
+  unchanged.
+
 ## 2.1.2 (Minecraft 1.21.11: Fabric, Quilt, NeoForge, Forge)
 
 Secret Blocks for Minecraft 1.21.11, with the same blocks and tools as
