@@ -72,7 +72,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: build
         shell: bash
-        # Gradle runs on Java 25; the mod builds and is tested on Java 21.
+        # Gradle runs on Java 25, and the mod builds and is tested on it too.
         run: ./gradlew build -Porg.gradle.java.installations.fromEnv=JAVA_HOME_21_X64
       - name: publish the Fabric and Quilt jar
         uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3.1
@@ -91,7 +91,7 @@ jobs:
             quilt
           game-versions: ${{ steps.version.outputs.minecraft_versions }}
           dependencies: fabric-api(required){modrinth:P7dR8mSH}{curseforge:306612}
-          java: 21
+          java: 25
       - name: publish the NeoForge jar
         uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3.1
         with:
@@ -106,7 +106,7 @@ jobs:
           changelog: ${{ github.event.release.body }}
           loaders: neoforge
           game-versions: ${{ steps.version.outputs.minecraft }}
-          java: 21
+          java: 25
       - name: publish the Forge jar
         uses: Kir-Antipov/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3.1
         with:
@@ -121,7 +121,7 @@ jobs:
           changelog: ${{ github.event.release.body }}
           loaders: forge
           game-versions: ${{ steps.version.outputs.minecraft }}
-          java: 21
+          java: 25
       - name: attach the jars to the GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
