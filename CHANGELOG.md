@@ -6,6 +6,10 @@
   the blocks around it. From inside you now see the faces of the solid
   blocks around you, and through neighbouring Ghost Blocks up to the next
   solid block.
+- **Fixed:** with Continuity, a secret block's face joined its neighbours
+  only when the block's bottom face had the same look. A One Way Glass wall
+  with glass on one side now reads as one pane, and joins real glass beside
+  it.
 - The Fabric jar no longer bundles MixinExtras. It needs Fabric Loader 0.19.5
   or later, or Quilt Loader 0.30.2 or later on Quilt.
 - Smaller mod icon.
