@@ -1,0 +1,116 @@
+name: Bug report
+description: Something in Secret Blocks does not work as it should, or the game crashes.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. One bug per report, please.
+        Mod compatibility notes (Sodium, shader packs, connected textures, Carpet) are on the
+        [Compatibility](https://github.com/calibergames/secret-blocks/wiki/Compatibility) wiki page.
+  - type: input
+    id: mod-version
+    attributes:
+      label: Secret Blocks version
+      description: The version in the jar's file name.
+      placeholder: "2.2.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: minecraft-version
+    attributes:
+      label: Minecraft version
+      options:
+        - "26.3"
+        - "26.2"
+        - "26.1.2"
+        - "26.1.1"
+        - "1.21.11"
+        - "1.21.4"
+        - "1.21.1"
+        - "1.21"
+        - "1.20.1"
+        - "1.20"
+        - "1.19.2"
+        - Other (say which below)
+    validations:
+      required: true
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Mod loader
+      options:
+        - Fabric
+        - Quilt
+        - NeoForge
+        - Forge
+    validations:
+      required: true
+  - type: input
+    id: loader-version
+    attributes:
+      label: Loader version
+      description: Also the Fabric API version on Fabric and Quilt.
+      placeholder: "Fabric Loader 0.20.1, Fabric API 0.166.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it happen?
+      options:
+        - Singleplayer
+        - On a server (the mod is on the server and the client)
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you saw. Screenshots help, above all for anything about how a block looks.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The shortest way to make it happen, starting from a new world if you can. Name the secret block and the block it is disguised as.
+      placeholder: |
+        1. Place a One Way Glass block
+        2. Give its front face the look of glass
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: other-mods
+    attributes:
+      label: Other mods
+      description: >-
+        Rendering mods matter most (Sodium, Embeddium, Iris, Oculus, Continuity, Fusion), then anything that
+        moves or changes blocks. Does it still happen with only Secret Blocks (and Fabric API) installed?
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log or crash report
+      description: >-
+        For a crash, the file from the `crash-reports` folder; otherwise `logs/latest.log`. Paste it here or
+        link to it (mclo.gs works well). Check it for anything private first.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: I am on the newest Secret Blocks version for my Minecraft version.
+          required: true
+        - label: I looked through the open issues and did not find this one.
+          required: true

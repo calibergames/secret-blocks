@@ -1,0 +1,52 @@
+name: Feature request
+description: A new block, tool or behaviour, or a change to one that exists.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One idea per request, please. For support with another mod, check the
+        [Compatibility](https://github.com/calibergames/secret-blocks/wiki/Compatibility) wiki page first.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: The block, tool or behaviour, as a player would meet it in the game.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What would you use it for?
+      description: The build or contraption you have in mind. This tells us more than the feature itself.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you get by today?
+      description: A workaround, another mod that does it, or nothing at all.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of request is it?
+      options:
+        - A new secret block
+        - A change to a block or tool that exists
+        - Support for another mod
+        - A Minecraft version or mod loader
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Minecraft version and loader you play on
+      placeholder: "1.21.1, NeoForge"
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: I looked through the open issues and did not find this request.
+          required: true
